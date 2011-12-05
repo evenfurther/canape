@@ -29,8 +29,8 @@ class DatabaseTest extends Specification {
       val status = new CouchStatus(Js("""{"couchdb":"Welcome","version":"1.3.0a-0c6f529-git","vendor":{"version":"1.3.0a-0c6f529-git","name":"The Apache Software Foundation"}}"""))
       (status.couchdb mustEqual "Welcome") &&
       (status.version mustEqual "1.3.0a-0c6f529-git") &&
-      (status.vendorVersion mustEqual "1.3.0a-0c6f529-git") &&
-      (status.vendorName mustEqual "The Apache Software Foundation")
+      (status.vendorVersion mustEqual Some("1.3.0a-0c6f529-git")) &&
+      (status.vendorName mustEqual Some("The Apache Software Foundation"))
     }
   }
 
@@ -62,8 +62,8 @@ class DatabaseTest extends Specification {
       (status.update_seq mustEqual 780) &&
       (status.purge_seq mustEqual 0) &&
       (status.compact_running mustEqual false) &&
-      (status.disk_size mustEqual 532600) &&
-      (status.data_size mustEqual 228323) &&
+      (status.disk_size mustEqual 532600L) &&
+      (status.data_size mustEqual Some(228323L)) &&
       (status.instance_start_time mustEqual 1323036107518987L) &&
       (status.disk_format_version mustEqual 6) &&
       (status.committed_update_seq mustEqual 780)

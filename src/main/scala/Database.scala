@@ -42,8 +42,9 @@ class CouchStatus(val js: JsValue) extends Js {
 
   val couchdb = ('couchdb ! str)(js)
   val version = ('version ! str)(js)
-  val vendorVersion = (('vendor ! obj) andThen ('version ! str))(js)
-  val vendorName = (('vendor ! obj) andThen ('name ! str))(js)
+  val vendor = ('vendor ? obj).unapply(js)
+  val vendorVersion = vendor.flatMap(('version ? str).unapply(_))
+  val vendorName = vendor.flatMap(('name ? str).unapply(_))
 
 }
 
@@ -56,7 +57,7 @@ class DbStatus(val js: JsValue) extends Js {
   val purge_seq = ('purge_seq ! num)(js)
   val compact_running = ('compact_running ! bool)(js)
   val disk_size = ('disk_size ! num)(js)
-  val data_size = ('data_size ! num)(js)
+  val data_size = ('data_size ? num).unapply(js)
   val instance_start_time = ('instance_start_time ! str)(js) toLong
   val disk_format_version = ('disk_format_version ! num)(js)
   val committed_update_seq = ('committed_update_seq ! num)(js)
