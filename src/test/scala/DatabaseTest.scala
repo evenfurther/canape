@@ -24,6 +24,14 @@ class DatabaseTest extends Specification {
       (Couch("db.example.com", "admin", "xyzzy").uri mustEqual "http://admin:xyzzy@db.example.com:5984") &&
       (Couch("db.example.com", 80, "admin", "xyzzy").uri mustEqual "http://admin:xyzzy@db.example.com:80")
     }
+
+    "properly analyze the status" in {
+      val status = new CouchStatus(Js("""{"couchdb":"Welcome","version":"1.3.0a-0c6f529-git","vendor":{"version":"1.3.0a-0c6f529-git","name":"The Apache Software Foundation"}}"""))
+      (status.couchdb mustEqual "Welcome") &&
+      (status.version mustEqual "1.3.0a-0c6f529-git") &&
+      (status.vendorVersion mustEqual "1.3.0a-0c6f529-git") &&
+      (status.vendorName mustEqual "The Apache Software Foundation")
+    }
   }
 
   val dbunauth = Db(cunauth, "test")

@@ -24,6 +24,8 @@ case class Couch(val host: String = "localhost", val port: Int = 5984, val auth:
     couchRequest / "_replicate" << (JsBean.toJSON(params), "application/json") >|
   }
 
+  def status = couchRequest ># (new CouchStatus(_))
+
 }
 
 object Couch {
@@ -36,7 +38,16 @@ object Couch {
 
 }
 
-class DbStatus(js: JsValue) extends Js {
+class CouchStatus(val js: JsValue) extends Js {
+
+  val couchdb = ('couchdb ! str)(js)
+  val version = ('version ! str)(js)
+  val vendorVersion = (('vendor ! obj) andThen ('version ! str))(js)
+  val vendorName = (('vendor ! obj) andThen ('name ! str))(js)
+
+}
+
+class DbStatus(val js: JsValue) extends Js {
 
   val db_name = ('db_name ! str)(js)
   val doc_count = ('doc_count ! num)(js)
@@ -52,7 +63,7 @@ class DbStatus(js: JsValue) extends Js {
 
 }
 
-case class Db(val couch: Couch, val database: String) extends Request(couch.couchRequest) with Js {
+case class Db(val couch: Couch, val database: String) extends Request(couch.couchRequest / database) with Js {
 
   val uri = couch.uri + "/" + database
 
