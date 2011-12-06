@@ -12,3 +12,6 @@ libraryDependencies ++= Seq("net.databinder" %% "dispatch-json" % "0.8.6" % "com
                             "net.databinder" %% "dispatch-http" % "0.8.6" % "compile",
                             "net.debasishg" %% "sjson" % "0.15" % "compile",
                             "org.specs2" %% "specs2" % "1.6.1")
+
+
+seq(lsSettings :_*)
