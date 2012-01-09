@@ -68,8 +68,14 @@ case class Db(val couch: Couch, val database: String) extends Request(couch.couc
 
   val uri = couch.uri + "/" + database
 
-  def uriFrom(other: Couch) = if (couch == other) database else uri
+  private[canape] def uriFrom(other: Couch) = if (couch == other) database else uri
 
   def status = this ># (new DbStatus(_))
+
+  def apply(id: String) = this / id
+
+  def apply(id: String, rev: String) = this / id <<? List("rev" -> rev)
+
+  def view(design: String, viewName: String) = this / "_design" / design / "_view" / viewName
 
 }
