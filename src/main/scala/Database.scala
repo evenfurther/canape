@@ -1,10 +1,9 @@
 package net.rfc1149.canape
 
 import dispatch._
-import dispatch.json._
-import dispatch.json.Js._
-import JsHttp._
-import sjson.json.JsBean
+import dispatch.liftjson.Js._
+import net.liftweb.json._
+import net.liftweb.json.JsonDSL._
 
 case class Couch(val host: String = "localhost", val port: Int = 5984, val auth: Option[(String, String)] = None) {
 
@@ -19,9 +18,10 @@ case class Couch(val host: String = "localhost", val port: Int = 5984, val auth:
   }
 
   def replicate(source: Db, target: Db, continuous: Boolean) = {
-    val params = Map("source" -> source.uriFrom(this), "target" -> target.uriFrom(this),
-		     "continuous" -> continuous)
-    couchRequest / "_replicate" << (JsBean.toJSON(params), "application/json") >|
+    val params = ("source" -> source.uriFrom(this)) ~
+                 ("target" -> target.uriFrom(this)) ~
+                 ("continuous" -> continuous)
+    couchRequest / "_replicate" << (compact(render(params)), "application/json") >|
   }
 
   def status = couchRequest ># (new CouchStatus(_))
@@ -38,33 +38,39 @@ object Couch {
 
 }
 
-class CouchStatus(val js: JsValue) extends Js {
+class CouchStatus(val js: JValue) {
 
-  val couchdb = ('couchdb ! str)(js)
-  val version = ('version ! str)(js)
-  val vendor = ('vendor ? obj).unapply(js)
-  val vendorVersion = vendor.flatMap(('version ? str).unapply(_))
-  val vendorName = vendor.flatMap(('name ? str).unapply(_))
+  private implicit val formats = DefaultFormats
 
-}
-
-class DbStatus(val js: JsValue) extends Js {
-
-  val db_name = ('db_name ! str)(js)
-  val doc_count = ('doc_count ! num)(js)
-  val doc_del_count = ('doc_del_count ! num)(js)
-  val update_seq = ('update_seq ! num)(js)
-  val purge_seq = ('purge_seq ! num)(js)
-  val compact_running = ('compact_running ! bool)(js)
-  val disk_size = ('disk_size ! num)(js)
-  val data_size = ('data_size ? num).unapply(js)
-  val instance_start_time = ('instance_start_time ! str)(js) toLong
-  val disk_format_version = ('disk_format_version ! num)(js)
-  val committed_update_seq = ('committed_update_seq ! num)(js)
+  val JString(couchdb) = js \ "couchdb"
+  val JString(version) = js \ "version"
+  val vendorVersion = (js \ "vendor" \ "version").extractOpt[String]
+  val vendorName = (js \ "vendor" \ "name").extractOpt[String]
 
 }
 
-case class Db(val couch: Couch, val database: String) extends Request(couch.couchRequest / database) with Js {
+class DbStatus(val js: JValue) {
+
+  private implicit val formats = DefaultFormats
+
+  val JString(db_name) = js \ "db_name"
+  val JInt(doc_count) = js \ "doc_count"
+  val JInt(doc_del_count) = js \ "doc_del_count"
+  val JInt(update_seq) = js \ "update_seq"
+  val JInt(purge_seq) = js \ "purge_seq"
+  val JBool(compact_running) = js \ "compact_running"
+  val JInt(disk_size) = js \ "disk_size"
+  val data_size = js \ "data_size" match {
+      case JInt(s) => Some(s)
+      case _       => None
+  }
+  val instance_start_time = BigInt((js \ "instance_start_time").extract[String])
+  val JInt(disk_format_version) = js \ "disk_format_version"
+  val JInt(committed_update_seq) = js \ "committed_update_seq"
+
+}
+
+case class Db(val couch: Couch, val database: String) extends Request(couch.couchRequest / database) {
 
   val uri = couch.uri + "/" + database
 
