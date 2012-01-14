@@ -38,7 +38,7 @@ object Couch {
 
 }
 
-class CouchStatus(val js: JValue) {
+class CouchStatus(js: JValue) {
 
   private implicit val formats = DefaultFormats
 
@@ -49,7 +49,7 @@ class CouchStatus(val js: JValue) {
 
 }
 
-class DbStatus(val js: JValue) {
+class DbStatus(js: JValue) {
 
   private implicit val formats = DefaultFormats
 
@@ -82,6 +82,9 @@ case class Db(val couch: Couch, val database: String) extends Request(couch.couc
 
   def apply(id: String, rev: String) = this / id <<? List("rev" -> rev)
 
-  def view(design: String, viewName: String) = this / "_design" / design / "_view" / viewName
+  val allDocs = {
+    implicit val formats = DefaultFormats
+    (new Query[String, Map[String, JValue]](this, this / "_all_docs"))()
+  }
 
 }
