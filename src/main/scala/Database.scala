@@ -82,9 +82,10 @@ case class Db(val couch: Couch, val database: String) extends Request(couch.couc
 
   def apply(id: String, rev: String) = this / id <<? List("rev" -> rev)
 
-  val allDocs = {
+  lazy val allDocs = {
     implicit val formats = DefaultFormats
-    (new Query[String, Map[String, JValue]](this, this / "_all_docs"))()
+    val query = new Query[String, Map[String, JValue]](this, this / "_all_docs")
+    query()
   }
 
 }
