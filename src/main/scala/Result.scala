@@ -1,29 +1,38 @@
 package net.rfc1149.canape
 
-import dispatch._
-import dispatch.liftjson.Js._
 import net.liftweb.json._
 
-class Result[K, V](js: JValue)(implicit val formats: Formats, implicit val k: Manifest[K], implicit val v: Manifest[V]) {
+case class Result(total_rows: Long,
+                  offset: Long,
+                  rows: List[Row]) {
 
-  val JInt(total_rows) = js \ "total_rows"
-  val JInt(offset) = js \ "offset"
-  val rows = (js \ "rows").children map { new Row[K, V](_) }
+  lazy val ids = rows map (_.id)
+
+  def keys[K](implicit formats: Formats, k: Manifest[K]) = rows map (_.key.extract[K])
+
+  def values[V](implicit formats: Formats, v: Manifest[V]) = rows map (_.value.extract[V])
+
+  def docsOption[D](implicit formats: Formats, d: Manifest[D]) = rows map (_.doc.map(_.extract[D]))
+
+  def docs[D](implicit formats: Formats, d: Manifest[D]) = rows map (_.doc.get.extract[D])
+
+  def items[K, V](implicit formats: Formats, k: Manifest[K], v: Manifest[V]) = rows map (_.extract[K, V](formats, k, v))
+
+  def itemsWithDocOption[K, V, D](implicit formats: Formats, k: Manifest[K], v: Manifest[V], d: Manifest[D]) = rows map (_.extractWithDocOption[K, V, D])
+
+  def itemsWithDoc[K, V, D](implicit formats: Formats, k: Manifest[K], v: Manifest[V], d: Manifest[D]) = rows map (_.extractWithDoc[K, V, D])
 
 }
 
-class Row[K, V](js: JValue)(implicit val formats: Formats, implicit val k: Manifest[K], implicit val v: Manifest[V]) {
+case class Row(id: String, key: JValue, value: JValue, doc: Option[JValue]) {
 
-  val JString(id) = js \ "id"
-  val key = (js \ "key").extract[K]
-  val value = (js \ "value").extract[V]
+  def extract[K, V](implicit formats: Formats, k: Manifest[K], v: Manifest[V]): (String, K, V) =
+    (id, key.extract[K], value.extract[V])
+
+  def extractWithDocOption[K, V, D](implicit formats: Formats, k: Manifest[K], v: Manifest[V], d: Manifest[D]): (String, K, V, Option[D]) =
+    (id, key.extract[K], value.extract[V], doc.map(_.extract[D]))
+
+  def extractWithDoc[K, V, D](implicit formats: Formats, k: Manifest[K], v: Manifest[V], d: Manifest[D]): (String, K, V, D) =
+    (id, key.extract[K], value.extract[V], doc.get.extract[D])
 
 }
-
-class Query[K, V](val db: Db, val query: Request)(implicit val k: Manifest[K], implicit val v: Manifest[V], implicit val formats: Formats) {
-
-  def apply(params: Map[String, String] = Map()) = query <<? params ># (new Result[K, V](_))
-
-}
-
-class View[K, V](db: Db, val design: String, val viewName: String)(implicit val ik: Manifest[K], implicit val iv: Manifest[V], implicit val iformats: Formats) extends Query[K, V](db, db / "_design" / design / "_view" / viewName)(ik, iv, iformats)

@@ -1,91 +1,289 @@
 package net.rfc1149.canape
 
-import dispatch._
-import dispatch.liftjson.Js._
 import net.liftweb.json._
-import net.liftweb.json.JsonDSL._
+import org.jboss.netty.handler.codec.http._
 
-case class Couch(val host: String = "localhost", val port: Int = 5984, val auth: Option[(String, String)] = None) {
+case class Database(couch: Couch, database: String) {
 
-  val uri = "http://" + auth.map(x => x._1 + ":" + x._2 + "@").getOrElse("") + host + ":" + port
+  private[canape] val uri = couch.uri + "/" + database
 
-  val couchRequest = {
-    val base = :/(host, port)
-    auth match {
-      case Some((login, password)) => base.as_!(login, password)
-      case None                    => base
-    }
+  override def toString = couch.toString + "/" + database
+
+  override def hashCode = uri.hashCode
+
+  override def canEqual(that: Any) = that.isInstanceOf[Database]
+
+  override def equals(that: Any): Boolean = that match {
+    case other: Database if other.canEqual(this) => uri == other.uri
+    case _ => false
   }
-
-  def replicate(source: Db, target: Db, continuous: Boolean) = {
-    val params = ("source" -> source.uriFrom(this)) ~
-                 ("target" -> target.uriFrom(this)) ~
-                 ("continuous" -> continuous)
-    couchRequest / "_replicate" << (compact(render(params)), "application/json") >|
-  }
-
-  def status = couchRequest ># (new CouchStatus(_))
-
-}
-
-object Couch {
-
-  def apply(host: String, port: Int, login: String, password: String): Couch = Couch(host, port, Some((login, password)))
-
-  def apply(login: String, password: String): Couch = Couch(auth = Some((login, password)))
-
-  def apply(host: String, login: String, password: String): Couch = Couch(host, auth = Some((login, password)))
-
-}
-
-class CouchStatus(js: JValue) {
-
-  private implicit val formats = DefaultFormats
-
-  val JString(couchdb) = js \ "couchdb"
-  val JString(version) = js \ "version"
-  val vendorVersion = (js \ "vendor" \ "version").extractOpt[String]
-  val vendorName = (js \ "vendor" \ "name").extractOpt[String]
-
-}
-
-class DbStatus(js: JValue) {
-
-  private implicit val formats = DefaultFormats
-
-  val JString(db_name) = js \ "db_name"
-  val JInt(doc_count) = js \ "doc_count"
-  val JInt(doc_del_count) = js \ "doc_del_count"
-  val JInt(update_seq) = js \ "update_seq"
-  val JInt(purge_seq) = js \ "purge_seq"
-  val JBool(compact_running) = js \ "compact_running"
-  val JInt(disk_size) = js \ "disk_size"
-  val data_size = js \ "data_size" match {
-      case JInt(s) => Some(s)
-      case _       => None
-  }
-  val instance_start_time = BigInt((js \ "instance_start_time").extract[String])
-  val JInt(disk_format_version) = js \ "disk_format_version"
-  val JInt(committed_update_seq) = js \ "committed_update_seq"
-
-}
-
-case class Db(val couch: Couch, val database: String) extends Request(couch.couchRequest / database) {
-
-  val uri = couch.uri + "/" + database
 
   private[canape] def uriFrom(other: Couch) = if (couch == other) database else uri
 
-  def status = this ># (new DbStatus(_))
-
-  def apply(id: String) = this / id
-
-  def apply(id: String, rev: String) = this / id <<? List("rev" -> rev)
-
-  lazy val allDocs = {
-    implicit val formats = DefaultFormats
-    val query = new Query[String, Map[String, JValue]](this, this / "_all_docs")
-    query()
+  private[this] def encode(extra: String, properties: Seq[(String, String)] = Seq()) = {
+    val encoder = new QueryStringEncoder(database + "/" + extra)
+    properties foreach {
+      case (name, value) => encoder.addParam(name, value)
+    }
+    encoder.toString
   }
+
+  /**
+   * Get the database status.
+   *
+   * @return a request
+   */
+  def status(): CouchRequest[mapObject] = couch.makeGetRequest[mapObject](database)
+
+  /**
+   * Get the latest revision of an existing document from the database.
+   *
+   * @param id the id of the document
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def apply(id: String): CouchRequest[mapObject] =
+    couch.makeGetRequest[mapObject](encode(id))
+
+  /**
+   * Get a particular revision of an existing document from the database.
+   *
+   * @param id the id of the document
+   * @param rev the revision of the document
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def apply(id: String, rev: String): CouchRequest[mapObject] =
+    couch.makeGetRequest[mapObject](encode(id, Seq("rev" -> rev)))
+
+  /**
+   * Get an existing document from the database.
+   *
+   * @param id the id of the document
+   * @param properties the properties to add to the request
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def apply(id: String, properties: Map[String, String]): CouchRequest[JValue] =
+    apply(id, properties.toSeq)
+
+  /**
+   * Get an existing document from the database.
+   *
+   * @param id the id of the document
+   * @param properties the properties to add to the request
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def apply(id: String, properties: Seq[(String, String)]): CouchRequest[JValue] =
+    couch.makeGetRequest[JValue](encode(id, properties))
+
+  private[this] def query(id: String, properties: Seq[(String, String)]): CouchRequest[Result] = {
+    couch.makeGetRequest[Result](encode(id, properties))
+  }
+
+  /**
+   * Query a view from the database.
+   *
+   * @param design the design document
+   * @param name the name of the view
+   * @param properties the properties to add to the request
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def view(design: String, name: String, properties: Seq[(String, String)] = Seq()): CouchRequest[Result] =
+    query("_design/" + design + "/_view/" + name, properties)
+
+  /**
+   * Call an update function.
+   *
+   * @param design the design document
+   * @param name the name of the update function
+   * @param data the data to pass to the update function
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def update(design: String, name: String, id: String, data: Map[String, String]): CouchRequest[JValue] = {
+    val encoder = new QueryStringEncoder("")
+    data foreach {
+      case (key, value) => encoder.addParam(key, value)
+    }
+    couch.makePostRequest[JValue]("%s/_design/%s/_update/%s/%s".format(database, design, name, id), encoder.toString.tail)
+  }
+
+  /**
+   * Retrieve the list of public documents from the database.
+   *
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def allDocs(): CouchRequest[Result] = allDocs(Map())
+
+  /**
+   * Retrieve the list of public documents from the database.
+   *
+   * @param properties the properties to add to the request
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def allDocs(params: Map[String, String]): CouchRequest[Result] =
+    query("_all_docs", params.toSeq)
+
+  /**
+   * Create the database.
+   *
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def create(): CouchRequest[JValue] = couch.makePutRequest[JValue](database, None)
+
+  /**
+   * Compact the database.
+   *
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def compact(): CouchRequest[JValue] =
+    couch.makePostRequest[JValue](database + "/_compact", None)
+
+  /**
+   * Insert documents in bulk mode.
+   *
+   * @param docs the documents to insert
+   * @param allOrNothing force an insertion of all documents
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def bulkDocs(docs: Seq[Any], allOrNothing: Boolean = false): CouchRequest[JValue] = {
+    val args = Map("all_or_nothing" -> allOrNothing, "docs" -> docs)
+    couch.makePostRequest[JValue](database + "/_bulk_docs", args)
+  }
+
+  private[this] def batchMode(query: String, batch: Boolean) =
+    if (batch) query + "?batch=ok" else query
+
+  /**
+   * Insert a document into the database.
+   *
+   * @param doc the document to insert
+   * @param id the id of the document if it is known and absent from the document itself
+   * @param batch allow the insertion in batch (unchecked) mode
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def insert[T <% JObject](doc: T, id: String = null, batch: Boolean = false): CouchRequest[JValue] =
+    if (id == null)
+      couch.makePostRequest[JValue](batchMode(database, batch), Some(doc))
+    else
+      couch.makePutRequest[JValue](batchMode(database + "/" + id, batch), Some(doc))
+
+  /**
+   * Delete a document from the database.
+   *
+   * @param id the id of the document
+   * @param rev the revision to delete
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def delete(id: String, rev: String): CouchRequest[JValue] =
+    couch.makeDeleteRequest[JValue](database + "/" + id + "?rev=" + rev)
+
+  /**
+   * Delete a document from the database.
+   *
+   * @param doc the document which must contains an `_id` and a `_rev` field
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def delete[T <% JObject](doc: T): CouchRequest[JValue] = {
+    val JString(id) = doc \ "_id"
+    val JString(rev) = doc \ "_rev"
+    delete(id, rev)
+  }
+
+  /**
+   * Delete a document from the database.
+   *
+   * @param doc the document which must contains an `_id` and a `_rev` field
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def delete(doc: mapObject): CouchRequest[JValue] = {
+    val JString(id) = doc("_id")
+    val JString(rev) = doc("_rev")
+    delete(id, rev)
+  }
+
+  /**
+   * Delete the database.
+   *
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def delete(): CouchRequest[JValue] = couch.makeDeleteRequest[JValue](database)
+
+  /**
+   * Request the list of changes from the database.
+   *
+   * @param params the parameters to add to the request
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   *
+   * @note The kind of request (continuous, longpoll, etc.) will determine the
+   * result type.
+   */
+  def changes(params: Map[String, String] = Map()): CouchRequest[JValue] =
+    couch.makeGetRequest[JValue](encode("_changes", params.toSeq), true)
+
+  /**
+   * Ensure that the database has been written to the permanent storage.
+   *
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def ensureFullCommit(): CouchRequest[JValue] =
+    couch.makePostRequest[JValue](database + "/_ensure_full_commit", None)
+
+  /**
+   * Launch a mono-directional replication from another database.
+   *
+   * @param source the database to replicate from
+   * @param continuous true if the replication must be continuous, false otherwise
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def replicateFrom(source: Database, continuous: Boolean): CouchRequest[JObject] =
+    couch.replicate(source, this, continuous)
+
+  /**
+   * Launch a mono-directional replication to another database.
+   *
+   * @param target the database to replicate to
+   * @param continuous true if the replication must be continuous, false otherwise
+   * @return a request
+   *
+   * @throws StatusCode if an error occurs
+   */
+  def replicateTo(target: Database, continuous: Boolean): CouchRequest[JObject] =
+    couch.replicate(this, target, continuous)
 
 }

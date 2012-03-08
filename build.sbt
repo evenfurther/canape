@@ -2,7 +2,11 @@ name := "canape"
 
 organization := "net.rfc1149"
 
-version := "0.0.4-SNAPSHOT"
+resolvers += "Typesafe repository (releases)" at "http://repo.typesafe.com/typesafe/releases/"
 
-libraryDependencies ++= Seq("net.databinder" %% "dispatch-http" % "0.8.7",
-			    "org.specs2" %% "specs2" % "1.6.1" % "test")
+libraryDependencies ++= Seq("io.netty" % "netty" % "3.3.1.Final",
+                            "com.typesafe.akka" % "akka-actor" % "2.0",
+			    "net.liftweb" %% "lift-json" % "2.4",
+			    "org.specs2" %% "specs2" % "1.8.2" % "test")
+
+scalacOptions ++= Seq("-unchecked", "-deprecation")
