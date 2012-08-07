@@ -2,5 +2,6 @@ language: scala
 scala:
   - 2.9.1
   - 2.9.2
+  - 2.10.0-M6
 before_script:
   - curl -X PUT http://localhost:5984/_config/admins/admin -d '"admin"'
