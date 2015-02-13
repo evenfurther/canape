@@ -191,9 +191,8 @@ class Couch(val host: String = "localhost",
 
 object Couch {
 
-  class StatusError(val status: spray.http.StatusCode) extends Exception {
-    def code: Int = status.intValue
-    def reason: String = status.reason
+  case class StatusError(code: Int, reason: String) extends Exception {
+    def this(status: StatusCode) = this(status.intValue, status.reason)
   }
 
   /**The Couch instance current status. */
