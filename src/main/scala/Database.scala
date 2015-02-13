@@ -1,7 +1,6 @@
 package net.rfc1149.canape
 
 import net.liftweb.json._
-import net.rfc1149.canape.Couch.EmptyJson
 import spray.http.Uri
 import spray.http.Uri.Query
 
@@ -113,8 +112,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @throws StatusError if an error occurs
    */
   def update(design: String, name: String, id: String, data: Map[String, String]): Future[JValue] = {
-    val stringData = Query(data.toSeq: _*).toString()
-    couch.makePostRequest[JValue]("%s/_design/%s/_update/%s/%s".format(databaseName, design, name, id), stringData)
+    couch.makePostRequest[JValue]("%s/_design/%s/_update/%s/%s".format(databaseName, design, name, id), Some(data))
   }
 
   /**
@@ -144,7 +142,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws StatusError if an error occurs
    */
-  def create(): Future[JValue] = couch.makePutRequest[JValue](localUri, EmptyJson)
+  def create(): Future[JValue] = couch.makePutRequest[JValue](localUri)
 
   /**
    * Compact the database.
@@ -153,7 +151,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws StatusError if an error occurs
    */
-  def compact(): Future[JValue] = couch.makePostRequest[JValue](s"$localUri/_compact", EmptyJson)
+  def compact(): Future[JValue] = couch.makePostRequest[JValue](s"$localUri/_compact")
 
   /**
    * Insert documents in bulk mode.
@@ -166,7 +164,7 @@ case class Database(couch: Couch, databaseName: String) {
    */
   def bulkDocs(docs: Seq[Any], allOrNothing: Boolean = false): Future[JValue] = {
     val args = Map("all_or_nothing" -> allOrNothing, "docs" -> docs)
-    couch.makePostRequest[JValue](s"$localUri/_bulk_docs", args)
+    couch.makePostRequest[JValue](s"$localUri/_bulk_docs", Some(args))
   }
 
   private[this] def batchMode(query: String, batch: Boolean) =
@@ -182,7 +180,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws StatusError if an error occurs
    */
-  def insert[T <% JObject](doc: T, id: String = null, batch: Boolean = false): Future[JValue] =
+  def insert(doc: AnyRef, id: String = null, batch: Boolean = false): Future[JValue] =
     if (id == null)
       couch.makePostRequest[JValue](batchMode(localUri, batch), Some(doc))
     else
@@ -260,7 +258,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @throws StatusError if an error occurs
    */
   def ensureFullCommit(): Future[JValue] =
-    couch.makePostRequest[JValue](s"$localUri/_ensure_full_commit", EmptyJson)
+    couch.makePostRequest[JValue](s"$localUri/_ensure_full_commit")
 
   /**
    * Launch a mono-directional replication from another database.

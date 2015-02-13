@@ -88,7 +88,7 @@ class Couch(val host: String = "localhost",
    *
    * @throws StatusError if an error occurs
    */
-  def makePostRequest[T <: AnyRef : Manifest](query: String, data: AnyRef): Future[T] =
+  def makePostRequest[T <: AnyRef : Manifest](query: String, data: Option[AnyRef] = None): Future[T] =
     hostConnector.flatMap(_.ask(Post(query, data)).mapTo[HttpResponse]).map(checkResponse(_))
 
   /**
@@ -108,7 +108,7 @@ class Couch(val host: String = "localhost",
    *
    * @throws StatusError if an error occurs
    */
-  def makePutRequest[T <: AnyRef : Manifest](query: String, data: AnyRef): Future[T] =
+  def makePutRequest[T <: AnyRef : Manifest](query: String, data: Option[AnyRef] = None): Future[T] =
     hostConnector.flatMap(_.ask(Put(query, data)).mapTo[HttpResponse]).map(checkResponse(_))
 
   /**
@@ -150,9 +150,7 @@ class Couch(val host: String = "localhost",
    */
   def replicate[T <% JObject](source: Database, target: Database, params: T): Future[JObject] = {
     makePostRequest[JObject]("_replicate",
-      ("source" -> source.uriFrom(this)) ~
-        ("target" -> target.uriFrom(this)) ~
-        params)
+      Some(("source" -> source.uriFrom(this)) ~ ("target" -> target.uriFrom(this)) ~ params))
   }
 
   /**
@@ -192,8 +190,6 @@ class Couch(val host: String = "localhost",
 }
 
 object Couch {
-
-  val EmptyJson = None
 
   class StatusError(val status: spray.http.StatusCode) extends Exception {
     def code: Int = status.intValue
