@@ -112,6 +112,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @throws StatusError if an error occurs
    */
   def update(design: String, name: String, id: String, data: Map[String, String]): Future[JValue] = {
+    // TODO: check if the json encoding for the parameters is acceptable or if form data must be sent somehow
     couch.makePostRequest[JValue]("%s/_design/%s/_update/%s/%s".format(databaseName, design, name, id), Some(data))
   }
 
