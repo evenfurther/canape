@@ -139,7 +139,7 @@ class CouchNG(val host: String = "localhost",
   /**URI that refers to the database */
   private[canape] val uri = "http://" + auth.map(x => x._1 + ":" + x._2 + "@").getOrElse("") + host + ":" + port
 
-  protected def canEqual(that: Any) = that.isInstanceOf[Couch]
+  protected def canEqual(that: Any) = that.isInstanceOf[CouchNG]
 
   override def equals(that: Any) = that match {
     case other: CouchNG if other.canEqual(this) => uri == other.uri

@@ -2,7 +2,6 @@ package net.rfc1149.canape
 
 import net.liftweb.json._
 import net.liftweb.json.Extraction.decompose
-import org.jboss.netty.channel._
 
 object util {
 
@@ -21,17 +20,5 @@ object util {
       case _ => decompose(something)
     }
   }
-
-  def toUpstreamHandler[T](f: T => Unit) =
-    new SimpleChannelUpstreamHandler {
-
-      override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
-        f(e.getMessage.asInstanceOf[T])
-      }
-
-      override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-        ctx.sendUpstream(e)
-      }
-    }
 
 }

@@ -8,10 +8,11 @@ class URISpec extends Specification {
 
   import implicits._
 
-  implicit val dispatcher = ActorSystem().dispatcher
+  implicit val system = ActorSystem()
+  implicit val dispatcher = system.dispatcher
 
-  val cunauth = new NioCouch("db.example.com", 5984)
-  val cauth = new NioCouch("db.example.com", 5984, Some(("admin", "xyzzy")))
+  val cunauth = new CouchNG("db.example.com", 5984)
+  val cauth = new CouchNG("db.example.com", 5984, Some(("admin", "xyzzy")))
 
   "The 'Couch' class" should {
     "return the right unauthentified URI" in {
@@ -23,15 +24,15 @@ class URISpec extends Specification {
     }
 
     "complete missing arguments" in {
-      ((new NioCouch()).uri mustEqual "http://localhost:5984") &&
-      ((new NioCouch(auth = Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@localhost:5984") &&
-      ((new NioCouch("db.example.com")).uri mustEqual "http://db.example.com:5984") &&
-      ((new NioCouch("db.example.com", auth = Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@db.example.com:5984") &&
-      ((new NioCouch("db.example.com", 80, Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@db.example.com:80")
+      ((new CouchNG()).uri mustEqual "http://localhost:5984") &&
+      ((new CouchNG(auth = Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@localhost:5984") &&
+      ((new CouchNG("db.example.com")).uri mustEqual "http://db.example.com:5984") &&
+      ((new CouchNG("db.example.com", auth = Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@db.example.com:5984") &&
+      ((new CouchNG("db.example.com", 80, Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@db.example.com:80")
     }
 
     "properly analyze the status" in {
-      val status = parse("""{"couchdb":"Welcome","version":"1.3.0a-0c6f529-git","vendor":{"version":"1.3.0a-0c6f529-git","name":"The Apache Software Foundation"}}""").extract[Couch.Status]
+      val status = parse("""{"couchdb":"Welcome","version":"1.3.0a-0c6f529-git","vendor":{"version":"1.3.0a-0c6f529-git","name":"The Apache Software Foundation"}}""").extract[CouchNG.Status]
       (status.couchdb mustEqual "Welcome") &&
       (status.version mustEqual "1.3.0a-0c6f529-git") &&
       (status.vendor.get.version mustEqual "1.3.0a-0c6f529-git") &&
@@ -39,8 +40,8 @@ class URISpec extends Specification {
     }
   }
 
-  val dbunauth = Database(cunauth, "test")
-  val dbauth = Database(cauth, "test")
+  val dbunauth = DatabaseNG(cunauth, "test")
+  val dbauth = DatabaseNG(cauth, "test")
 
   "The 'Database' class" should {
     "return the right unauthentified URI" in {
