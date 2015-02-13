@@ -71,19 +71,6 @@ class Couch(val host: String = "localhost",
     hostConnector.flatMap(_.ask(Get(query)).mapTo[HttpResponse]).map(checkResponse(_))
   }
 
-  private[this] def buildRequest(builder: RequestBuilder, uri: String, data: AnyRef): HttpRequest =
-    data match {
-      case EmptyJson => builder(uri, HttpEntity.apply(`application/json`, ""))
-      case s: String => builder(uri, FormData(Seq("data" -> s)))     // TODO: check if this is ok to add a name
-      case _         => builder(uri, util.toJValue(data))
-    }
-
-  private[this] def convert(data: AnyRef): Some[Either[AnyRef, String]] =
-    Some(data match {
-      case s: String => Right(s)
-      case _ => Left(data)
-    })
-
   /**
    * Build a POST HTTP request.
    *
@@ -102,7 +89,7 @@ class Couch(val host: String = "localhost",
    * @throws StatusError if an error occurs
    */
   def makePostRequest[T <: AnyRef : Manifest](query: String, data: AnyRef): Future[T] =
-    hostConnector.flatMap(_.ask(buildRequest(Post, query, data)).mapTo[HttpResponse]).map(checkResponse(_))
+    hostConnector.flatMap(_.ask(Post(query, data)).mapTo[HttpResponse]).map(checkResponse(_))
 
   /**
    * Build a PUT HTTP request.
@@ -122,7 +109,7 @@ class Couch(val host: String = "localhost",
    * @throws StatusError if an error occurs
    */
   def makePutRequest[T <: AnyRef : Manifest](query: String, data: AnyRef): Future[T] =
-    hostConnector.flatMap(_.ask(buildRequest(Put, query, data)).mapTo[HttpResponse]).map(checkResponse(_))
+    hostConnector.flatMap(_.ask(Put(query, data)).mapTo[HttpResponse]).map(checkResponse(_))
 
   /**
    * Build a DELETE HTTP request.
@@ -134,7 +121,7 @@ class Couch(val host: String = "localhost",
    * @throws StatusError if an error occurs
    */
   def makeDeleteRequest[T <: AnyRef : Manifest](query: String): Future[T] =
-    hostConnector.flatMap(_.ask(buildRequest(Delete, query, EmptyJson)).mapTo[HttpResponse]).map(checkResponse(_))
+    hostConnector.flatMap(_.ask(Delete(query)).mapTo[HttpResponse]).map(checkResponse(_))
 
   /**URI that refers to the database */
   private[canape] val uri = "http://" + auth.map(x => x._1 + ":" + x._2 + "@").getOrElse("") + host + ":" + port
@@ -206,7 +193,7 @@ class Couch(val host: String = "localhost",
 
 object Couch {
 
-  case object EmptyJson
+  val EmptyJson = None
 
   class StatusError(val status: spray.http.StatusCode) extends Exception {
     def code: Int = status.intValue
