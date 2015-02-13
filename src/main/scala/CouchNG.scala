@@ -34,7 +34,7 @@ class CouchNG(val host: String = "localhost",
               private val auth: Option[(String, String)] = None)
              (implicit system: ActorSystem) extends LiftJsonSupport {
 
-  import CouchNG.StatusError
+  import CouchNG._
 
   override implicit val liftJsonFormats = DefaultFormats
 
@@ -67,8 +67,6 @@ class CouchNG(val host: String = "localhost",
     // TODO: check chunking
     hostConnector.flatMap(_.ask(Get(query)).mapTo[HttpResponse]).map(checkResponse(_))
   }
-
-  case object EmptyJson
 
   private[this] def buildRequest(builder: RequestBuilder, uri: String, data: AnyRef): HttpRequest =
     data match {
@@ -150,7 +148,6 @@ class CouchNG(val host: String = "localhost",
   override def toString =
     "http://" + auth.map(x => x._1 + ":********@").getOrElse("") + host + ":" + port
 
-  /*
   /**
    * Launch a mono-directional replication.
    *
@@ -159,15 +156,14 @@ class CouchNG(val host: String = "localhost",
    * @param params extra parameters to the request
    * @return a request
    *
-   * @throws StatusCode if an error occurs
+   * @throws StatusError if an error occurs
    */
-  def replicate[T <% JObject](source: Database, target: Database, params: T): CouchRequest[JObject] = {
+  def replicate[T <% JObject](source: DatabaseNG, target: DatabaseNG, params: T): Future[JObject] = {
     makePostRequest[JObject]("_replicate",
       ("source" -> source.uriFrom(this)) ~
         ("target" -> target.uriFrom(this)) ~
         params)
   }
-  */
 
   /**
    * CouchDB installation status.
@@ -176,7 +172,7 @@ class CouchNG(val host: String = "localhost",
    *
    * @throws StatusError if an error occurs
    */
-  def status(): Future[CouchNG.Status] = makeGetRequest[CouchNG.Status]("/")
+  def status(): Future[Status] = makeGetRequest[Status]("/")
 
 
   /**
@@ -188,7 +184,6 @@ class CouchNG(val host: String = "localhost",
    */
   def activeTasks(): Future[List[JObject]] = makeGetRequest[List[JObject]]("/_active_tasks")
 
-  /*
   /**
    * Get a named database. This does not attempt to connect to the database or check
    * its existence.
@@ -196,11 +191,12 @@ class CouchNG(val host: String = "localhost",
    * @param databaseName the database name
    * @return an object representing this database
    */
-  def db(databaseName: String) = Database(this, databaseName)
-    */
+  def db(databaseName: String) = DatabaseNG(this, databaseName)
 }
 
 object CouchNG {
+
+  case object EmptyJson
 
   class StatusError(val status: spray.http.StatusCode) extends Exception {
     def code: Int = status.intValue

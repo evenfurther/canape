@@ -1,34 +1,52 @@
-import akka.actor.ActorSystem
-import net.rfc1149.canape._
-import org.specs2.mutable._
-import org.specs2.specification._
+import net.rfc1149.canape.CouchNG.StatusError
 
 import scala.concurrent.Await
-import scala.concurrent.duration._
 
-// This requires a local standard CouchDB instance. The "canape-test-*" databases
-// will be created, destroyed and worked into. There must be an "admin"/"admin"
-// account.
+class ConnectionNGSpec extends DbNGSpecification {
 
-class CouchNGSpec extends Specification {
-
-  implicit val system = ActorSystem("canape")
-  implicit val dispatcher = system.dispatcher
-
-  val couch = new CouchNG(auth = Some("admin", "admin"))
-
-  sequential
+  val dbSuffix = "connectiontest"
 
   "couch.status()" should {
 
     "have a version we are comfortable with" in {
-      val status = Await.result(couch.status(), (5, SECONDS))
-      status.version must startWith("1.")
+      Await.result(couch.status(), timeout).version must startWith("1.")
     }
 
-    "return a list of active tasks" in {
-      Await.ready(couch.activeTasks(), (5, SECONDS))
+  }
+
+  "couch.activeTasks()" should {
+
+    "be queryable" in {
+      Await.result(couch.activeTasks(), timeout)
       success
+    }
+
+  }
+
+  "db.delete()" should {
+
+    "be able to delete an existing database" in {
+      Await.result(db.delete(), timeout)
+      success
+    }
+
+    "fail when we try to delete a non-existing database" in {
+      Await.result(db.delete(), timeout)
+      Await.result(db.delete(), timeout) must throwA[StatusError]
+    }
+
+  }
+
+  "db.create()" should {
+
+    "be able to create a non-existing database" in {
+      Await.result(db.delete(), timeout)
+      Await.result(db.create(), timeout)
+      success
+    }
+
+    "fail when trying to create an existing database" in {
+      Await.result(db.create(), timeout) must throwA[StatusError]
     }
 
   }
