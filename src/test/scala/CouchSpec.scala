@@ -2,7 +2,7 @@ import net.rfc1149.canape.Couch.StatusError
 
 import scala.concurrent.Future
 
-class CouchSpec extends WithDbSpecification("connectiontest") {
+class CouchSpec extends WithDbSpecification("couch") {
 
   "couch.status()" should {
 

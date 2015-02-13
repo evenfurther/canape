@@ -4,7 +4,7 @@ import net.rfc1149.canape._
 
 import scala.concurrent.Future
 
-class DatabaseSpec extends WithDbSpecification("databasetest") {
+class DatabaseSpec extends WithDbSpecification("db") {
 
   import implicits._
 

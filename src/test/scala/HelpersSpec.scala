@@ -1,7 +1,7 @@
 import net.liftweb.json._
 import net.rfc1149.canape._
 
-class HelpersSpec extends WithDbSpecification("helperstest") {
+class HelpersSpec extends WithDbSpecification("helpers") {
 
   import helpers._
   import implicits._
