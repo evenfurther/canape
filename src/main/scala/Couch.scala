@@ -30,12 +30,12 @@ import spray.httpx.unmarshalling._
  * @param auth an optional (login, password) pair
  */
 
-class CouchNG(val host: String = "localhost",
-              val port: Int = 5984,
-              private val auth: Option[(String, String)] = None)
-             (implicit system: ActorSystem) extends LiftJsonSupport {
+class Couch(val host: String = "localhost",
+            val port: Int = 5984,
+            private val auth: Option[(String, String)] = None)
+           (implicit system: ActorSystem) extends LiftJsonSupport {
 
-  import CouchNG._
+  import Couch._
 
   override implicit val liftJsonFormats = DefaultFormats
 
@@ -139,10 +139,10 @@ class CouchNG(val host: String = "localhost",
   /**URI that refers to the database */
   private[canape] val uri = "http://" + auth.map(x => x._1 + ":" + x._2 + "@").getOrElse("") + host + ":" + port
 
-  protected def canEqual(that: Any) = that.isInstanceOf[CouchNG]
+  protected def canEqual(that: Any) = that.isInstanceOf[Couch]
 
   override def equals(that: Any) = that match {
-    case other: CouchNG if other.canEqual(this) => uri == other.uri
+    case other: Couch if other.canEqual(this) => uri == other.uri
     case _ => false
   }
 
@@ -161,7 +161,7 @@ class CouchNG(val host: String = "localhost",
    *
    * @throws StatusError if an error occurs
    */
-  def replicate[T <% JObject](source: DatabaseNG, target: DatabaseNG, params: T): Future[JObject] = {
+  def replicate[T <% JObject](source: Database, target: Database, params: T): Future[JObject] = {
     makePostRequest[JObject]("_replicate",
       ("source" -> source.uriFrom(this)) ~
         ("target" -> target.uriFrom(this)) ~
@@ -194,7 +194,7 @@ class CouchNG(val host: String = "localhost",
    * @param databaseName the database name
    * @return an object representing this database
    */
-  def db(databaseName: String) = DatabaseNG(this, databaseName)
+  def db(databaseName: String) = Database(this, databaseName)
 
   /**
    * Get the list of existing databases.
@@ -204,7 +204,7 @@ class CouchNG(val host: String = "localhost",
   def databases(): Future[List[String]] = makeGetRequest[List[String]]("/_all_dbs")
 }
 
-object CouchNG {
+object Couch {
 
   case object EmptyJson
 

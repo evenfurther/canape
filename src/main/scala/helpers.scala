@@ -10,7 +10,7 @@ package object helpers {
 
   type Solver = Seq[mapObject] => mapObject
 
-  def solve(db: DatabaseNG,
+  def solve(db: Database,
             documents: Seq[JObject])(solver: Solver): Future[JValue] = {
     val mergedDoc = solver(documents.map(_.toMap)) - "_conflicts"
     val JString(id) = mergedDoc("_id")
@@ -24,20 +24,20 @@ package object helpers {
     db.bulkDocs(mergedDoc +: deletedDocs, true)
   }
 
-  def getRevs(db: DatabaseNG, id: String, revs: Seq[String] = Seq())(implicit context: ExecutionContext): Future[Seq[JObject]] = {
+  def getRevs(db: Database, id: String, revs: Seq[String] = Seq())(implicit context: ExecutionContext): Future[Seq[JObject]] = {
     val revsList = if (revs.isEmpty) "all" else "[" + revs.map("\"" + _ + "\"").mkString(",") + "]"
     db(id, Map("open_revs" -> revsList)) map {
       _.childrenAs[JObject] map (_ \ "ok") map (_.asInstanceOf[JObject])
     }
   }
 
-  def getConflicting(db: DatabaseNG, doc: JObject)(implicit context: ExecutionContext): Future[Seq[JObject]] = {
+  def getConflicting(db: Database, doc: JObject)(implicit context: ExecutionContext): Future[Seq[JObject]] = {
     val JString(id) = doc \ "_id"
     val revs = doc.subSeq[String]("_conflicts")
     getRevs(db, id, revs) map { doc +: _ }
   }
 
-  def getConflictingRevs(db: DatabaseNG, id: String)(implicit context: ExecutionContext): Future[Seq[String]] =
+  def getConflictingRevs(db: Database, id: String)(implicit context: ExecutionContext): Future[Seq[String]] =
     db(id, Map("conflicts" -> "true")) map { js: JValue =>
       (js \ "_rev").extract[String] +: (js \ "_conflicts").extract[List[String]]
     }

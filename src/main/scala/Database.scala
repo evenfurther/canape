@@ -1,15 +1,15 @@
 package net.rfc1149.canape
 
 import net.liftweb.json._
-import net.rfc1149.canape.CouchNG.EmptyJson
+import net.rfc1149.canape.Couch.EmptyJson
 import spray.http.Uri
 import spray.http.Uri.Query
 
 import scala.concurrent.Future
 
-case class DatabaseNG(couch: CouchNG, databaseName: String) {
+case class Database(couch: Couch, databaseName: String) {
 
-  import CouchNG.StatusError
+  import Couch.StatusError
 
   private[canape] val uri = s"${couch.uri}/$databaseName"
   private[this] val localUri = s"/$databaseName"
@@ -18,14 +18,14 @@ case class DatabaseNG(couch: CouchNG, databaseName: String) {
 
   override def hashCode = uri.hashCode
 
-  override def canEqual(that: Any) = that.isInstanceOf[DatabaseNG]
+  override def canEqual(that: Any) = that.isInstanceOf[Database]
 
   override def equals(that: Any): Boolean = that match {
-    case other: DatabaseNG if other.canEqual(this) => uri == other.uri
+    case other: Database if other.canEqual(this) => uri == other.uri
     case _ => false
   }
 
-  private[canape] def uriFrom(other: CouchNG) = if (couch == other) databaseName else uri
+  private[canape] def uriFrom(other: Couch) = if (couch == other) databaseName else uri
 
   private[this] def encode(extra: String, properties: Seq[(String, String)] = Seq()) = {
     val base = s"$localUri/$extra"
@@ -271,7 +271,7 @@ case class DatabaseNG(couch: CouchNG, databaseName: String) {
    *
    * @throws StatusError if an error occurs
    */
-  def replicateFrom[T <% JObject](source: DatabaseNG, params: T = Map()): Future[JObject] =
+  def replicateFrom[T <% JObject](source: Database, params: T = Map()): Future[JObject] =
     couch.replicate(source, this, params)
 
   /**
@@ -283,7 +283,7 @@ case class DatabaseNG(couch: CouchNG, databaseName: String) {
    *
    * @throws StatusError if an error occurs
    */
-  def replicateTo[T <% JObject](target: DatabaseNG, params: T = Map()): Future[JObject] =
+  def replicateTo[T <% JObject](target: Database, params: T = Map()): Future[JObject] =
     couch.replicate(this, target, params)
 
 }

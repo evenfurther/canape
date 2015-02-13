@@ -1,12 +1,12 @@
 import net.liftweb.json._
 import net.rfc1149.canape._
 
-class HelpersSpec extends DbNGSpecification("helperstest") {
+class HelpersSpec extends WithDbSpecification("helperstest") {
 
   import helpers._
   import implicits._
 
-  def makeConflicts(db: DatabaseNG) =
+  def makeConflicts(db: Database) =
     waitForResult(db.bulkDocs(Seq(Map("_id" -> "docid", "extra" -> List("one")),
       Map("_id" -> "docid", "extra" -> List("other")),
       Map("_id" -> "docid", "extra" -> List("yet-another"))),

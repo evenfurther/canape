@@ -1,10 +1,10 @@
 import net.liftweb.json._
-import net.rfc1149.canape.CouchNG.StatusError
+import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
 
 import scala.concurrent.Future
 
-class DatabaseNGSpec extends DbNGSpecification("databasetest") {
+class DatabaseSpec extends WithDbSpecification("databasetest") {
 
   import implicits._
 

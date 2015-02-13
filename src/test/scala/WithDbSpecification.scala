@@ -1,7 +1,7 @@
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import net.rfc1149.canape.CouchNG.StatusError
+import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
 import org.specs2.mutable._
 
@@ -12,13 +12,13 @@ import scala.concurrent.{Await, Future}
 // will be created, destroyed and worked into. There must be an "admin"/"admin"
 // account.
 
-class DbNGSpecification(dbSuffix: String) extends Specification  {
+class WithDbSpecification(dbSuffix: String) extends Specification  {
 
   implicit val system = ActorSystem()
   implicit val dispatcher = system.dispatcher
   implicit val timeout: Duration = (5, SECONDS)
 
-  val couch = new CouchNG(auth = Some("admin", "admin"))
+  val couch = new Couch(auth = Some("admin", "admin"))
 
   trait freshDb extends BeforeAfter {
 

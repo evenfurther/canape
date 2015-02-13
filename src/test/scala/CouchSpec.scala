@@ -1,8 +1,8 @@
-import net.rfc1149.canape.CouchNG.StatusError
+import net.rfc1149.canape.Couch.StatusError
 
 import scala.concurrent.Future
 
-class CouchNGSpec extends DbNGSpecification("connectiontest") {
+class CouchSpec extends WithDbSpecification("connectiontest") {
 
   "couch.status()" should {
 
