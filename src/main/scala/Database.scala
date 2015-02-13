@@ -1,8 +1,10 @@
 package net.rfc1149.canape
 
+import akka.actor.ActorRef
 import net.liftweb.json._
 import spray.http.Uri
 import spray.http.Uri.Query
+import spray.httpx.RequestBuilding.Get
 
 import scala.concurrent.Future
 
@@ -237,19 +239,21 @@ case class Database(couch: Couch, databaseName: String) {
   def delete(): Future[JValue] = couch.makeDeleteRequest[JValue](localUri)
 
   /**
-   * Request the list of changes from the database.
+   * Request the list of changes from the database in a non-continuous way.
    *
    * @param params the parameters to add to the request
    * @return a request
    *
    * @throws StatusError if an error occurs
-   *
-   * @note The kind of request (continuous, longpoll, etc.) will determine the
-   * result type.
    */
   def changes(params: Map[String, String] = Map()): Future[JValue] =
-    // FIXME: this likely cannot work as-is
     couch.makeGetRequest[JValue](encode("_changes", params.toSeq), true)
+
+  def continuousChanges(params: Map[String, String] = Map(), target: ActorRef): Future[Unit] = {
+    val request = Get(encode("_changes", ("feed" -> "continuous") +: params.toSeq))
+    couch.sendChunkedRequest(request, target)
+  }
+
 
   /**
    * Ensure that the database has been written to the permanent storage.

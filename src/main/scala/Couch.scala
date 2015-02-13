@@ -42,19 +42,27 @@ class Couch(val host: String = "localhost",
   private[this] implicit val dispatcher = system.dispatcher
   private[this] implicit val timeout: Timeout = 5.seconds
 
-  private[this] val hostConnector: Future[ActorRef] = {
+  private[this] def connectionSettings(aggregateChunks: Boolean): ClientConnectionSettings =
+    ClientConnectionSettings(system).copy(responseChunkAggregationLimit = if (aggregateChunks) 1024 * 1024 else 0)
+
+  private[this] def makeHostConnector(aggregateChunks: Boolean): Future[ActorRef] = {
     // TODO: check gzip handling
     val authHeader = auth map { case (login, password) => Authorization(BasicHttpCredentials(login, password)) }
     val headers = `User-Agent`("canape for Scala") :: Accept(`application/json`) :: authHeader.toList
-    val settings = HostConnectorSettings(system).copy(pipelining = true, maxConnections = 5, maxRetries = 3)
+    val settings = HostConnectorSettings(system).copy(pipelining = true, maxConnections = 5, maxRetries = 3,
+      connectionSettings = connectionSettings(aggregateChunks))
     val setup = HostConnectorSetup(host, port, defaultHeaders = headers, settings = Some(settings))
     IO(Http).ask(setup).mapTo[HostConnectorInfo].map(_.hostConnector)
   }
 
+  private[this] lazy val hostConnector = makeHostConnector(true)
+
+  private[this] lazy val chunkedHostConnector = makeHostConnector(false)
+
   private[this] def checkResponse[T <: AnyRef : Manifest](response: HttpResponse): T = {
     response.status match {
       case status if status.isFailure => throw new StatusError(status)
-      case _                          => response.entity.as[T].right.get
+      case _                          => response.entity.as[T].right.get   // TODO: check for errors
     }
   }
 
@@ -123,6 +131,16 @@ class Couch(val host: String = "localhost",
   def makeDeleteRequest[T <: AnyRef : Manifest](query: String): Future[T] =
     hostConnector.flatMap(_.ask(Delete(query)).mapTo[HttpResponse]).map(checkResponse(_))
 
+  /**
+   * Send an arbitrary HTTP request and redirect the answer to a given target.
+   *
+   * @param request the request to send
+   * @param target the actor which will receive the response elements
+   * @return a future resolved when the connector has been created
+   */
+  def sendChunkedRequest(request: HttpRequest, target: ActorRef): Future[Unit] =
+    chunkedHostConnector.map(_.tell(request, target))
+
   /**URI that refers to the database */
   val uri = "http://" + auth.map(x => x._1 + ":" + x._2 + "@").getOrElse("") + host + ":" + port
 
@@ -161,7 +179,6 @@ class Couch(val host: String = "localhost",
    * @throws StatusError if an error occurs
    */
   def status(): Future[Status] = makeGetRequest[Status]("/")
-
 
   /**
    * CouchDB active tasks.
