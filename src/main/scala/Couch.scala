@@ -32,7 +32,7 @@ import spray.httpx.unmarshalling._
 
 class Couch(val host: String = "localhost",
             val port: Int = 5984,
-            private val auth: Option[(String, String)] = None)
+            val auth: Option[(String, String)] = None)
            (implicit system: ActorSystem) extends LiftJsonSupport {
 
   import Couch._
@@ -124,7 +124,7 @@ class Couch(val host: String = "localhost",
     hostConnector.flatMap(_.ask(Delete(query)).mapTo[HttpResponse]).map(checkResponse(_))
 
   /**URI that refers to the database */
-  private[canape] val uri = "http://" + auth.map(x => x._1 + ":" + x._2 + "@").getOrElse("") + host + ":" + port
+  val uri = "http://" + auth.map(x => x._1 + ":" + x._2 + "@").getOrElse("") + host + ":" + port
 
   protected def canEqual(that: Any) = that.isInstanceOf[Couch]
 

@@ -10,7 +10,7 @@ case class Database(couch: Couch, databaseName: String) {
 
   import Couch.StatusError
 
-  private[canape] val uri = s"${couch.uri}/$databaseName"
+  val uri = s"${couch.uri}/$databaseName"
   private[this] val localUri = s"/$databaseName"
 
   override def toString = uri
@@ -24,7 +24,7 @@ case class Database(couch: Couch, databaseName: String) {
     case _ => false
   }
 
-  private[canape] def uriFrom(other: Couch) = if (couch == other) databaseName else uri
+  def uriFrom(other: Couch) = if (couch == other) databaseName else uri
 
   private[this] def encode(extra: String, properties: Seq[(String, String)] = Seq()) = {
     val base = s"$localUri/$extra"

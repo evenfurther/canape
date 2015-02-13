@@ -1,7 +1,6 @@
-package net.rfc1149.canape
-
 import akka.actor.ActorSystem
 import net.liftweb.json._
+import net.rfc1149.canape._
 import org.specs2.mutable._
 
 class URISpec extends Specification {
