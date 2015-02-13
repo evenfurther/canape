@@ -12,7 +12,7 @@ import spray.can.client.{ClientConnectionSettings, HostConnectorSettings}
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import spray.can.Http
-import spray.can.Http.{HostConnectorSetup, HostConnectorInfo}
+import spray.can.Http.{CloseAll, HostConnectorSetup, HostConnectorInfo}
 import spray.http._
 import spray.http.HttpHeaders.{Accept, Authorization, `User-Agent`}
 import spray.http.MediaTypes.`application/json`
@@ -187,6 +187,11 @@ class Couch(val host: String = "localhost",
    * @return a list of databases on this server
    */
   def databases(): Future[List[String]] = makeGetRequest[List[String]]("/_all_dbs")
+
+  /**
+   * Release external resources used by this connector.
+   */
+  def releaseExternalResources() = hostConnector foreach (_ ! CloseAll)
 }
 
 object Couch {
