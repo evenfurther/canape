@@ -12,7 +12,7 @@ import scala.concurrent.{Await, Future}
 // will be created, destroyed and worked into. There must be an "admin"/"admin"
 // account.
 
-class WithDbSpecification(dbSuffix: String) extends Specification {
+abstract class WithDbSpecification(dbSuffix: String) extends Specification {
 
   implicit val system = ActorSystem()
   implicit val dispatcher = system.dispatcher
