@@ -7,12 +7,12 @@ import spray.http.Uri.Query
 
 import scala.concurrent.Future
 
-case class DatabaseNG(couch: CouchNG, database: String) {
+case class DatabaseNG(couch: CouchNG, databaseName: String) {
 
   import CouchNG.StatusError
 
-  private[canape] val uri = s"${couch.uri}/$database"
-  private[this] val localUri = s"/$database"
+  private[canape] val uri = s"${couch.uri}/$databaseName"
+  private[this] val localUri = s"/$databaseName"
 
   override def toString = uri
 
@@ -25,10 +25,11 @@ case class DatabaseNG(couch: CouchNG, database: String) {
     case _ => false
   }
 
-  private[canape] def uriFrom(other: CouchNG) = if (couch == other) database else uri
+  private[canape] def uriFrom(other: CouchNG) = if (couch == other) databaseName else uri
 
   private[this] def encode(extra: String, properties: Seq[(String, String)] = Seq()) = {
-    Uri(s"$localUri/$extra", query = Query(properties: _*)).toString()
+    val base = s"$localUri/$extra"
+    if (properties.isEmpty) base else s"$base?${Query(properties: _*).toString()}"
   }
 
   /**
@@ -113,7 +114,7 @@ case class DatabaseNG(couch: CouchNG, database: String) {
    */
   def update(design: String, name: String, id: String, data: Map[String, String]): Future[JValue] = {
     val stringData = Query(data.toSeq: _*).toString()
-    couch.makePostRequest[JValue]("%s/_design/%s/_update/%s/%s".format(database, design, name, id), stringData)
+    couch.makePostRequest[JValue]("%s/_design/%s/_update/%s/%s".format(databaseName, design, name, id), stringData)
   }
 
   /**
@@ -259,7 +260,7 @@ case class DatabaseNG(couch: CouchNG, database: String) {
    * @throws StatusError if an error occurs
    */
   def ensureFullCommit(): Future[JValue] =
-    couch.makePostRequest[JValue](s"$localUri/_ensure_full_commit", None)
+    couch.makePostRequest[JValue](s"$localUri/_ensure_full_commit", EmptyJson)
 
   /**
    * Launch a mono-directional replication from another database.

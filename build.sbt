@@ -2,7 +2,7 @@ name := "canape"
 
 organization := "net.rfc1149"
 
-version := "0.0.6-SNAPSHOT"
+version := "0.0.7-SNAPSHOT"
 
 scalaVersion := "2.11.6"
 
@@ -15,6 +15,10 @@ libraryDependencies ++= Seq("io.netty" % "netty" % "3.3.1.Final",
 			    "org.specs2" %% "specs2-core" % "2.4.15" % "test")
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
+
+javaOptions in Test += "-Dconfig.file=conf/test.conf"
+
+fork in Test := true
 
 publishTo := {
   val path = "/home/sam/rfc1149.net/data/ivy2/" + (if (version.value.trim.endsWith("SNAPSHOT")) "snapshots/" else "releases")

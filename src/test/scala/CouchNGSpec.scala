@@ -1,15 +1,13 @@
 import net.rfc1149.canape.CouchNG.StatusError
 
-import scala.concurrent.Await
+import scala.concurrent.Future
 
-class ConnectionNGSpec extends DbNGSpecification {
-
-  val dbSuffix = "connectiontest"
+class CouchNGSpec extends DbNGSpecification("connectiontest") {
 
   "couch.status()" should {
 
     "have a version we are comfortable with" in {
-      Await.result(couch.status(), timeout).version must startWith("1.")
+      waitForResult(couch.status()).version must startWith("1.")
     }
 
   }
@@ -17,36 +15,44 @@ class ConnectionNGSpec extends DbNGSpecification {
   "couch.activeTasks()" should {
 
     "be queryable" in {
-      Await.result(couch.activeTasks(), timeout)
+      waitForResult(couch.activeTasks())
       success
+    }
+
+  }
+
+  "couch.databases()" should {
+
+    "contain the current database in the list" in new freshDb {
+      waitForResult(couch.databases()) must contain(db.databaseName)
     }
 
   }
 
   "db.delete()" should {
 
-    "be able to delete an existing database" in {
-      Await.result(db.delete(), timeout)
+    "be able to delete an existing database" in new freshDb {
+      waitForResult(db.delete())
       success
     }
 
-    "fail when we try to delete a non-existing database" in {
-      Await.result(db.delete(), timeout)
-      Await.result(db.delete(), timeout) must throwA[StatusError]
+    "fail when we try to delete a non-existing database" in new freshDb {
+      waitForResult(db.delete())
+      waitForResult(db.delete()) must throwA[StatusError]
     }
 
   }
 
   "db.create()" should {
 
-    "be able to create a non-existing database" in {
-      Await.result(db.delete(), timeout)
-      Await.result(db.create(), timeout)
+    "be able to create a non-existing database" in new freshDb {
+      waitForResult(db.delete())
+      waitForResult(db.create())
       success
     }
 
-    "fail when trying to create an existing database" in {
-      Await.result(db.create(), timeout) must throwA[StatusError]
+    "fail when trying to create an existing database" in new freshDb {
+      waitForResult(db.create()) must throwA[StatusError]
     }
 
   }

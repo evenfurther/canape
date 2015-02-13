@@ -8,10 +8,11 @@ import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json._
 import net.liftweb.json.JsonDSL._
 import net.liftweb.json.Serialization.write
+import spray.can.client.{ClientConnectionSettings, HostConnectorSettings}
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 import spray.can.Http
-import spray.can.Http.HostConnectorInfo
+import spray.can.Http.{HostConnectorSetup, HostConnectorInfo}
 import spray.http._
 import spray.http.HttpHeaders.{Accept, Authorization, `User-Agent`}
 import spray.http.MediaTypes.`application/json`
@@ -45,7 +46,9 @@ class CouchNG(val host: String = "localhost",
     // TODO: check gzip handling
     val authHeader = auth map { case (login, password) => Authorization(BasicHttpCredentials(login, password)) }
     val headers = `User-Agent`("canape for Scala") :: Accept(`application/json`) :: authHeader.toList
-    IO(Http).ask(Http.HostConnectorSetup(host, port, defaultHeaders = headers)).mapTo[HostConnectorInfo].map(_.hostConnector)
+    val settings = HostConnectorSettings(system).copy(pipelining = false, maxConnections = 1, maxRetries = 0)
+    val setup = HostConnectorSetup(host, port, defaultHeaders = headers, settings = Some(settings))
+    IO(Http).ask(setup).mapTo[HostConnectorInfo].map(_.hostConnector)
   }
 
   private[this] def checkResponse[T <: AnyRef : Manifest](response: HttpResponse): T = {
@@ -192,6 +195,13 @@ class CouchNG(val host: String = "localhost",
    * @return an object representing this database
    */
   def db(databaseName: String) = DatabaseNG(this, databaseName)
+
+  /**
+   * Get the list of existing databases.
+   *
+   * @return a list of databases on this server
+   */
+  def databases(): Future[List[String]] = makeGetRequest[List[String]]("/_all_dbs")
 }
 
 object CouchNG {
