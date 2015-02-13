@@ -89,7 +89,7 @@ class Couch(val host: String = "localhost",
    * @throws StatusError if an error occurs
    */
   def makePostRequest[T <: AnyRef : Manifest](query: String, data: Option[AnyRef] = None): Future[T] =
-    hostConnector.flatMap(_.ask(Post(query, data)).mapTo[HttpResponse]).map(checkResponse(_))
+    hostConnector.flatMap(_.ask(Post(query, data getOrElse (new Object))).mapTo[HttpResponse]).map(checkResponse(_))
 
   /**
    * Build a PUT HTTP request.

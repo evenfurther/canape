@@ -151,7 +151,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws StatusError if an error occurs
    */
-  def compact(): Future[JValue] = couch.makePostRequest[JValue](s"$localUri/_compact", Nil)
+  def compact(): Future[JValue] = couch.makePostRequest[JValue](s"$localUri/_compact")
 
   /**
    * Insert documents in bulk mode.
