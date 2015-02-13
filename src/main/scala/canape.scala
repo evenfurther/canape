@@ -6,4 +6,6 @@ package object canape {
 
   type mapObject = Map[String, JValue]
 
+  // TODO: remove after transition phase
+  @deprecated("use Couch.StatusError instead", "spray") type StatusCode = Couch.StatusError
 }
