@@ -61,8 +61,8 @@ class Couch(val host: String = "localhost",
 
   private[this] def checkResponse[T <: AnyRef : Manifest](response: HttpResponse): T = {
     response.status match {
-      case status if status.isFailure => throw new StatusError(status)
-      case _                          => response.entity.as[T].right.get   // TODO: check for errors
+      case status if status.isFailure => throw StatusError(status)
+      case _                          => response.entity.as[T].fold(e => throw DataError(e), identity)
     }
   }
 
@@ -211,8 +211,14 @@ class Couch(val host: String = "localhost",
 
 object Couch {
 
-  case class StatusError(code: Int, reason: String) extends Exception {
-    def this(status: spray.http.StatusCode) = this(status.intValue, status.reason)
+  sealed abstract class CouchError extends Exception
+
+  case class DataError(error: DeserializationError) extends CouchError
+
+  case class StatusError(code: Int, reason: String) extends CouchError
+
+  object StatusError {
+    def apply(status: spray.http.StatusCode): StatusError = StatusError(status.intValue, status.reason)
   }
 
   /**The Couch instance current status. */
