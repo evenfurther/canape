@@ -22,7 +22,7 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
 
   trait freshDb extends BeforeAfter {
 
-    val db = couch.db("canape-test-" + dbSuffix + "-" + UUID.randomUUID())
+    val db = couch.db(s"canape-test-$dbSuffix-${UUID.randomUUID()}")
 
     override def before =
       try {
