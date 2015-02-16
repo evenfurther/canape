@@ -221,4 +221,22 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
   }
 
+  "db.changes()" should {
+    "represent an empty set" in new freshDb {
+      (waitForResult(db.changes()) \ "results").extract[List[JObject]] must beEmpty
+    }
+
+    "contain the only change" in new freshDb {
+      val id = waitForResult(insertedId(db.insert(Map())))
+      (waitForResult(db.changes()) \ "results").extract[List[JObject]].head \ "id" must be equalTo JString(id)
+    }
+
+    "return the change in long-polling state" in new freshDb {
+      val changes = db.changes(Map("feed" -> "longpoll"))
+      changes.isCompleted must beFalse
+      val id = waitForResult(insertedId(db.insert(Map())))
+      (waitForResult(changes) \ "results").extract[List[JObject]].head \ "id" must be equalTo JString(id)
+    }
+  }
+
 }
