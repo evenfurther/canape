@@ -4,10 +4,8 @@ import akka.actor.{ActorSystem, ActorRef}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
-import net.liftweb.json.JsonAST.JValue
 import net.liftweb.json._
 import net.liftweb.json.JsonDSL._
-import net.liftweb.json.Serialization.write
 import spray.can.client.{ClientConnectionSettings, HostConnectorSettings}
 import scala.concurrent.duration._
 import scala.language.implicitConversions
@@ -16,8 +14,7 @@ import spray.can.Http.{CloseAll, HostConnectorSetup, HostConnectorInfo}
 import spray.http._
 import spray.http.HttpHeaders.{Accept, Authorization, `User-Agent`}
 import spray.http.MediaTypes.`application/json`
-import spray.httpx.encoding.{Gzip, Deflate}
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.Future
 import spray.httpx.LiftJsonSupport
 import spray.httpx.RequestBuilding._
 import spray.httpx.unmarshalling._
@@ -55,9 +52,9 @@ class Couch(val host: String = "localhost",
     IO(Http).ask(setup).mapTo[HostConnectorInfo].map(_.hostConnector)
   }
 
-  private[this] lazy val hostConnector = makeHostConnector(true)
+  private[this] lazy val hostConnector = makeHostConnector(aggregateChunks = true)
 
-  private[this] lazy val chunkedHostConnector = makeHostConnector(false)
+  private[this] lazy val chunkedHostConnector = makeHostConnector(aggregateChunks = false)
 
   private[this] def checkResponse[T <: AnyRef : Manifest](response: HttpResponse): T = {
     response.status match {
@@ -92,10 +89,10 @@ class Couch(val host: String = "localhost",
    * @tparam T the type of the result
    * @return a request.
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def makePostRequest[T <: AnyRef : Manifest](query: String, data: Option[AnyRef] = None): Future[T] =
-    hostConnector.flatMap(_.ask(Post(query, data getOrElse (new Object))).mapTo[HttpResponse]).map(checkResponse(_))
+    hostConnector.flatMap(_.ask(Post(query, data getOrElse new Object)).mapTo[HttpResponse]).map(checkResponse(_))
 
   /**
    * Build a PUT HTTP request.
@@ -112,7 +109,7 @@ class Couch(val host: String = "localhost",
    * @tparam T the type of the result
    * @return a request.
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def makePutRequest[T <: AnyRef : Manifest](query: String, data: Option[AnyRef] = None): Future[T] =
     hostConnector.flatMap(_.ask(Put(query, data)).mapTo[HttpResponse]).map(checkResponse(_))
@@ -124,7 +121,7 @@ class Couch(val host: String = "localhost",
    * @tparam T the type of the result
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def makeDeleteRequest[T <: AnyRef : Manifest](query: String): Future[T] =
     hostConnector.flatMap(_.ask(Delete(query)).mapTo[HttpResponse]).map(checkResponse(_))
@@ -162,7 +159,7 @@ class Couch(val host: String = "localhost",
    * @param params extra parameters to the request
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def replicate[T <% JObject](source: Database, target: Database, params: T): Future[JObject] = {
     makePostRequest[JObject]("_replicate",
@@ -174,7 +171,7 @@ class Couch(val host: String = "localhost",
    *
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def status(): Future[Status] = makeGetRequest[Status]("/")
 
@@ -183,7 +180,7 @@ class Couch(val host: String = "localhost",
    *
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def activeTasks(): Future[List[JObject]] = makeGetRequest[List[JObject]]("/_active_tasks")
 

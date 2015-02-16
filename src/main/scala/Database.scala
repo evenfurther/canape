@@ -2,7 +2,6 @@ package net.rfc1149.canape
 
 import akka.actor.ActorRef
 import net.liftweb.json._
-import spray.http.Uri
 import spray.http.Uri.Query
 import spray.httpx.RequestBuilding.Get
 
@@ -46,7 +45,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param id the id of the document
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def apply(id: String): Future[mapObject] =
     couch.makeGetRequest[mapObject](encode(id))
@@ -58,7 +57,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param rev the revision of the document
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def apply(id: String, rev: String): Future[mapObject] =
     couch.makeGetRequest[mapObject](encode(id, Seq("rev" -> rev)))
@@ -70,7 +69,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param properties the properties to add to the request
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def apply(id: String, properties: Map[String, String]): Future[JValue] =
     apply(id, properties.toSeq)
@@ -82,7 +81,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param properties the properties to add to the request
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def apply(id: String, properties: Seq[(String, String)]): Future[JValue] =
     couch.makeGetRequest[JValue](encode(id, properties))
@@ -98,7 +97,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param properties the properties to add to the request
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def view(design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[Result] =
     query(s"_design/$design/_view/$name", properties)
@@ -111,7 +110,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param data the data to pass to the update function
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def update(design: String, name: String, id: String, data: Map[String, String]): Future[JValue] = {
     // TODO: check if the json encoding for the parameters is acceptable or if form data must be sent somehow
@@ -123,7 +122,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def allDocs(): Future[Result] = allDocs(Map())
 
@@ -133,7 +132,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param params the properties to add to the request
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def allDocs(params: Map[String, String]): Future[Result] =
     query("_all_docs", params.toSeq)
@@ -143,7 +142,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def create(): Future[JValue] = couch.makePutRequest[JValue](localUri)
 
@@ -152,7 +151,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def compact(): Future[JValue] = couch.makePostRequest[JValue](s"$localUri/_compact")
 
@@ -163,7 +162,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param allOrNothing force an insertion of all documents
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def bulkDocs(docs: Seq[Any], allOrNothing: Boolean = false): Future[JValue] = {
     val args = Map("all_or_nothing" -> allOrNothing, "docs" -> docs)
@@ -181,7 +180,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param batch allow the insertion in batch (unchecked) mode
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def insert(doc: AnyRef, id: String = null, batch: Boolean = false): Future[JValue] =
     if (id == null)
@@ -196,7 +195,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param rev the revision to delete
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def delete(id: String, rev: String): Future[JValue] =
     couch.makeDeleteRequest[JValue](s"$localUri/$id?rev=$rev")
@@ -207,7 +206,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param doc the document which must contains an `_id` and a `_rev` field
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def delete[T <% JObject](doc: T): Future[JValue] = {
     val JString(id) = doc \ "_id"
@@ -221,7 +220,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param doc the document which must contains an `_id` and a `_rev` field
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def delete(doc: mapObject): Future[JValue] = {
     val JString(id) = doc("_id")
@@ -234,7 +233,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def delete(): Future[JValue] = couch.makeDeleteRequest[JValue](localUri)
 
@@ -265,7 +264,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def ensureFullCommit(): Future[JValue] =
     couch.makePostRequest[JValue](s"$localUri/_ensure_full_commit")
@@ -277,7 +276,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param params extra parameters to the request
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def replicateFrom[T <% JObject](source: Database, params: T = Map()): Future[JObject] =
     couch.replicate(source, this, params)
@@ -289,7 +288,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param params extra parameters to the request
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def replicateTo[T <% JObject](target: Database, params: T = Map()): Future[JObject] =
     couch.replicate(this, target, params)
