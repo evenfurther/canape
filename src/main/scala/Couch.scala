@@ -49,7 +49,7 @@ class Couch(val host: String = "localhost",
     // TODO: check gzip handling
     val authHeader = auth map { case (login, password) => Authorization(BasicHttpCredentials(login, password)) }
     val headers = `User-Agent`("canape for Scala") :: Accept(`application/json`) :: authHeader.toList
-    val settings = HostConnectorSettings(system).copy(pipelining = true, maxConnections = 5, maxRetries = 3,
+    val settings = HostConnectorSettings(system).copy(pipelining = true, maxConnections = 5, maxRetries = 0,
       connectionSettings = connectionSettings(aggregateChunks))
     val setup = HostConnectorSetup(host, port, defaultHeaders = headers, settings = Some(settings))
     IO(Http).ask(setup).mapTo[HostConnectorInfo].map(_.hostConnector)
