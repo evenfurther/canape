@@ -10,7 +10,7 @@ import scala.concurrent.Future
 
 case class Database(couch: Couch, databaseName: String) {
 
-  import Couch.StatusError
+  import Couch._
 
   val uri = s"${couch.uri}/$databaseName"
   private[this] val localUri = s"/$databaseName"
@@ -244,7 +244,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param params the parameters to add to the request
    * @return a request
    *
-   * @throws StatusError if an error occurs
+   * @throws CouchError if an error occurs
    */
   def changes(params: Map[String, String] = Map()): Future[JValue] =
     couch.makeGetRequest[JValue](encode("_changes", params.toSeq))
@@ -254,6 +254,11 @@ case class Database(couch: Couch, databaseName: String) {
     couch.sendChunkedRequest(request, target)
   }
 
+  def revs_limit(limit: Int): Future[JValue] =
+    couch.makePutRequest[JValue](encode("_revs_limit"), Some(JInt(limit)))
+
+  def revs_limit(): Future[BigInt] =
+    couch.makeGetRequest[BigInt](encode("_revs_limit"))
 
   /**
    * Ensure that the database has been written to the permanent storage.

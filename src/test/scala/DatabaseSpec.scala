@@ -239,4 +239,11 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
   }
 
+  "db.revs_limit()" should {
+    "be settable and queryable" in new freshDb {
+      waitForResult(db.revs_limit(1938))
+      waitForResult(db.revs_limit()) must be equalTo 1938
+    }
+  }
+
 }
