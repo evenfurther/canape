@@ -14,7 +14,7 @@ import scala.concurrent.{Await, Future}
 
 abstract class WithDbSpecification(dbSuffix: String) extends Specification {
 
-  implicit val system = ActorSystem()
+  implicit val system = ActorSystem("canape-test")
   implicit val dispatcher = system.dispatcher
   implicit val timeout: Duration = (5, SECONDS)
 
