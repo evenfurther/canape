@@ -38,7 +38,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @return a request
    */
-  def status(): Future[mapObject] = couch.makeGetRequest[mapObject](localUri, false)
+  def status(): Future[mapObject] = couch.makeGetRequest[mapObject](localUri)
 
   /**
    * Get the latest revision of an existing document from the database.
@@ -247,7 +247,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @throws StatusError if an error occurs
    */
   def changes(params: Map[String, String] = Map()): Future[JValue] =
-    couch.makeGetRequest[JValue](encode("_changes", params.toSeq), true)
+    couch.makeGetRequest[JValue](encode("_changes", params.toSeq))
 
   def continuousChanges(params: Map[String, String] = Map(), target: ActorRef): Future[Unit] = {
     val request = Get(encode("_changes", ("feed" -> "continuous") +: params.toSeq))

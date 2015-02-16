@@ -70,12 +70,10 @@ class Couch(val host: String = "localhost",
    * Build a GET HTTP request.
    *
    * @param query The query string, including the already-encoded optional parameters.
-   * @param allowChunks True if the handler is ready to handle HTTP chunks, false otherwise.
    * @tparam T The type of the chunks (if allowChunks is true) or of the result.
    * @return A request.
    */
   def makeGetRequest[T <: AnyRef : Manifest](query: String, allowChunks: Boolean = false): Future[T] = {
-    // TODO: check chunking
     hostConnector.flatMap(_.ask(Get(query)).mapTo[HttpResponse]).map(checkResponse(_))
   }
 
