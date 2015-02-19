@@ -2,7 +2,7 @@ package net.rfc1149.canape
 
 import net.liftweb.json._
 import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
+import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
 
 object implicits {
@@ -24,7 +24,7 @@ object implicits {
   // TODO: remove after the transition phase
   implicit class CouchRequestEmulation[T](val f: Future[T]) {
     @deprecated("data is already a future", "spray") def toFuture(): Future[T] = f
-    @deprecated("do not use blocking constructs", "spray") def execute(): T = Await.result(f, (5, SECONDS))
+    def execute()(implicit timeout: Duration): T = Await.result(f, timeout)
   }
 
 }
