@@ -4,7 +4,7 @@ organization := "net.rfc1149"
 
 version := "0.0.6-SNAPSHOT"
 
-scalaVersion := "2.11.5"
+scalaVersion := "2.11.6"
 
 resolvers += "Typesafe repository (releases)" at "http://repo.typesafe.com/typesafe/releases/"
 
