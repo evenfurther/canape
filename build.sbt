@@ -8,10 +8,12 @@ scalaVersion := "2.11.6"
 
 crossScalaVersions := Seq(scalaVersion.value, "2.10.4")
 
-libraryDependencies ++= Seq( "com.typesafe.akka" %% "akka-actor" % "2.3.9",
-                            "io.spray" %% "spray-client" % "1.3.2",
-			    "net.liftweb" %% "lift-json" % "2.6",
-			    "org.specs2" %% "specs2-core" % "2.4.15" % "test")
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-actor" % "2.3.9",
+  "io.spray" %% "spray-client" % "1.3.2",
+  "net.liftweb" %% "lift-json" % "2.6",
+  "org.specs2" %% "specs2-core" % "2.4.15" % "test"
+)
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
