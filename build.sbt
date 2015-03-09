@@ -6,7 +6,7 @@ version := "0.0.6-SNAPSHOT"
 
 scalaVersion := "2.11.6"
 
-resolvers += "Typesafe repository (releases)" at "http://repo.typesafe.com/typesafe/releases/"
+crossScalaVersions := Seq(scalaVersion.value, "2.10.4")
 
 libraryDependencies ++= Seq("io.netty" % "netty" % "3.3.1.Final",
                             "com.typesafe.akka" %% "akka-actor" % "2.3.9",
@@ -15,10 +15,7 @@ libraryDependencies ++= Seq("io.netty" % "netty" % "3.3.1.Final",
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
-publishMavenStyle := true
-
-publishTo <<= (version) { version: String =>
-  val path = "/home/sam/rfc1149.net/data/maven2/" +
-      (if (version.trim.endsWith("SNAPSHOT")) "snapshots/" else "releases")
-  Some(Resolver.sftp("Maven Releases", "rfc1149.net", path) as "sam")
+publishTo := {
+  val path = "/home/sam/rfc1149.net/data/ivy2/" + (if (version.value.trim.endsWith("SNAPSHOT")) "snapshots/" else "releases")
+  Some(Resolver.ssh("rfc1149 ivy releases", "rfc1149.net", path) as "sam" withPermissions("0644"))
 }
