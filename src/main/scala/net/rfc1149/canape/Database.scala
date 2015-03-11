@@ -9,7 +9,7 @@ import scala.concurrent.Future
 
 case class Database(couch: Couch, databaseName: String) {
 
-  import Couch._
+  import net.rfc1149.canape.Couch._
 
   val uri = s"${couch.uri}/$databaseName"
   private[this] val localUri = s"/$databaseName"

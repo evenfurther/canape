@@ -1,23 +1,24 @@
 package net.rfc1149.canape
 
-import akka.actor.{ActorSystem, ActorRef}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
-import net.liftweb.json._
 import net.liftweb.json.JsonDSL._
-import spray.can.client.{ClientConnectionSettings, HostConnectorSettings}
-import scala.concurrent.duration._
-import scala.language.implicitConversions
+import net.liftweb.json._
 import spray.can.Http
-import spray.can.Http.{CloseAll, HostConnectorSetup, HostConnectorInfo}
-import spray.http._
+import spray.can.Http.{CloseAll, HostConnectorInfo, HostConnectorSetup}
+import spray.can.client.{ClientConnectionSettings, HostConnectorSettings}
 import spray.http.HttpHeaders.{Accept, Authorization, `User-Agent`}
 import spray.http.MediaTypes.`application/json`
-import scala.concurrent.Future
+import spray.http._
 import spray.httpx.LiftJsonSupport
 import spray.httpx.RequestBuilding._
 import spray.httpx.unmarshalling._
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.language.implicitConversions
 
 /**
  * Connexion to a CouchDB server.
@@ -32,7 +33,7 @@ class Couch(val host: String = "localhost",
             val auth: Option[(String, String)] = None)
            (implicit system: ActorSystem) extends LiftJsonSupport {
 
-  import Couch._
+  import net.rfc1149.canape.Couch._
 
   override implicit val liftJsonFormats = DefaultFormats
 

@@ -1,7 +1,7 @@
 package net.rfc1149.canape
 
-import net.liftweb.json._
 import net.liftweb.json.Extraction.decompose
+import net.liftweb.json._
 
 object util {
 

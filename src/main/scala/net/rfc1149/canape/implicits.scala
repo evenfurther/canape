@@ -1,8 +1,9 @@
 package net.rfc1149.canape
 
 import net.liftweb.json._
-import scala.concurrent.{Await, Future}
+
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.language.implicitConversions
 
 object implicits {
