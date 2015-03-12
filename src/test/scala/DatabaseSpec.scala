@@ -1,3 +1,6 @@
+import akka.actor.ActorSystem
+import akka.stream.ActorFlowMaterializer
+import akka.stream.scaladsl.Source
 import net.liftweb.json._
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
@@ -243,6 +246,42 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "be settable and queryable" in new freshDb {
       waitForResult(db.revs_limit(1938))
       waitForResult(db.revs_limit()) must be equalTo 1938
+    }
+  }
+
+  "db.continuousChanges()" should {
+    "see the creation of new documents" in new freshDb {
+      implicit val materializer = ActorFlowMaterializer(None)
+      val changes: Source[JObject, Unit] = db.continuousChanges()
+      val result = changes.map(j => (j \ "id").extract[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
+      db.insert(JObject(Nil), "docid1")
+      db.insert(JObject(Nil), "docid2")
+      db.insert(JObject(Nil), "docid3")
+      waitForResult(result).sorted must be equalTo List("docid1", "docid2", "docid3")
+    }
+
+    "reconnect automatically" in new freshDb {
+      implicit val materializer = ActorFlowMaterializer(None)
+      val changes: Source[JObject, Unit] = db.continuousChanges(Map("timeout" -> "100"))
+      val result = changes.map(j => (j \ "id").extract[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
+      db.insert(JObject(Nil), "docid1")
+      Thread.sleep(200)
+      db.insert(JObject(Nil), "docid2")
+      db.insert(JObject(Nil), "docid3")
+      waitForResult(result).sorted must be equalTo List("docid1", "docid2", "docid3")
+    }
+
+    "be able to filter changes" in new freshDb {
+      implicit val materializer = ActorFlowMaterializer(None)
+      val filter = """function(doc, req) { return doc.name == "foo"; }"""
+      waitForResult(db.insert(Map("filters" -> Map("namedfoo" -> filter)), "_design/common"))
+      val changes: Source[JObject, Unit] = db.continuousChanges(Map("filter" -> "common/namedfoo"))
+      val result = changes.map(j => (j \ "id").extract[String]).take(2).runFold[List[String]](Nil)(_ :+ _)
+      waitForResult(db.insert(Map("name" -> "foo"), "docid1"))
+      waitForResult(db.insert(Map("name" -> "bar"), "docid2"))
+      waitForResult(db.insert(Map("name" -> "foo"), "docid3"))
+      waitForResult(db.insert(Map("name" -> "bar"), "docid4"))
+      waitForResult(result).sorted must be equalTo List("docid1", "docid3")
     }
   }
 

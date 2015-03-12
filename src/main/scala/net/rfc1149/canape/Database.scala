@@ -1,10 +1,15 @@
 package net.rfc1149.canape
 
-import akka.actor.ActorRef
+import akka.actor.{ActorSystem, Props}
+import akka.stream.actor.ActorPublisher
+import akka.stream.actor.ActorPublisherMessage.{Request, SubscriptionTimeoutExceeded}
+import akka.stream.scaladsl.Source
 import net.liftweb.json._
 import spray.http.Uri.Query
+import spray.http.{ChunkedMessageEnd, ChunkedResponseStart, MessageChunk}
 import spray.httpx.RequestBuilding.Get
 
+import scala.collection.mutable
 import scala.concurrent.Future
 
 case class Database(couch: Couch, databaseName: String) {
@@ -248,11 +253,6 @@ case class Database(couch: Couch, databaseName: String) {
   def changes(params: Map[String, String] = Map()): Future[JValue] =
     couch.makeGetRequest[JValue](encode("_changes", params.toSeq))
 
-  def continuousChanges(params: Map[String, String] = Map(), target: ActorRef): Future[Unit] = {
-    val request = Get(encode("_changes", ("feed" -> "continuous") +: params.toSeq))
-    couch.sendChunkedRequest(request, target)
-  }
-
   def revs_limit(limit: Int): Future[JValue] =
     couch.makePutRequest[JValue](encode("_revs_limit"), Some(JInt(limit)))
 
@@ -292,5 +292,61 @@ case class Database(couch: Couch, databaseName: String) {
    */
   def replicateTo[T <% JObject](target: Database, params: T = Map()): Future[JObject] =
     couch.replicate(this, target, params)
+
+  def continuousChanges(params: Map[String, String] = Map())(implicit system: ActorSystem, formats: Formats): Source[JObject, Unit] =
+    Source(ActorPublisher(system.actorOf(Props(new ContinuousChangesActor(params, formats)))))
+
+  class ContinuousChangesActor(params: Map[String, String], implicit val formats: Formats) extends ActorPublisher[JObject] {
+
+    // XXXXX We should probably not handle the queue ourselves and let the buffer with overflow
+    // strategies do the job.
+    private val queue: mutable.Queue[JObject] = mutable.Queue()
+
+    private def startRequest(params: Map[String, String]) = {
+      val request = Get(encode("_changes", ("feed" -> "continuous") +: params.toSeq))
+      couch.sendChunkedRequest(request, self)
+    }
+
+    override def preStart() = startRequest(params)
+
+    override def receive = {
+      case SubscriptionTimeoutExceeded =>
+        context.stop(self)
+      case Request(_) if isActive =>
+        for (_ <- 1L to totalDemand.min(queue.size))
+          onNext(queue.dequeue())
+      case start: ChunkedResponseStart =>
+        if (start.response.status.isFailure) {
+          onError(Database.ChangedError(start.response.status))
+          context.stop(self)
+        }
+      case message: MessageChunk =>
+        val stringData: String = new Predef.String(message.data.toByteArray, "UTF-8")
+        if (stringData.size > 1) {
+          val value = parse(stringData).extract[JObject]
+          // If we are about to get a disconnection, reconnect if needed with a "since" specification to
+          // ensure that no value will be missed in the interval.
+          value \ "last_seq" match {
+            case JInt(seq) =>
+              if (isActive)
+                startRequest(params + ("since" -> seq.toString))
+            case _ =>
+              if (isActive && totalDemand > 0)
+                onNext(value)
+              else
+                queue += value
+          }
+        }
+      case end: ChunkedMessageEnd =>
+        if (!isActive)
+          context.stop(self)
+    }
+  }
+
+}
+
+object Database {
+
+  case class ChangedError(status: spray.http.StatusCode) extends Exception
 
 }
