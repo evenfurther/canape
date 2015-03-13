@@ -19,8 +19,6 @@ libraryDependencies ++= Seq(
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
-javaOptions in Test += "-Dconfig.file=conf/test.conf"
-
 fork in Test := true
 
 publishTo := {
