@@ -278,7 +278,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def replicateFrom[T <% JObject](source: Database, params: T = Map()): Future[JObject] =
+  def replicateFrom(source: Database, params: Map[String, _] = Map()): Future[JObject] =
     couch.replicate(source, this, params)
 
   /**
@@ -290,7 +290,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def replicateTo[T <% JObject](target: Database, params: T = Map()): Future[JObject] =
+  def replicateTo(target: Database, params: Map[String, _] = Map()): Future[JObject] =
     couch.replicate(this, target, params)
 
   def continuousChanges(params: Map[String, String] = Map())(implicit system: ActorSystem, formats: Formats): Source[JObject, Unit] =

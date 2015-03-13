@@ -162,10 +162,8 @@ class Couch(val host: String = "localhost",
    *
    * @throws CouchError if an error occurs
    */
-  def replicate[T <% JObject](source: Database, target: Database, params: T): Future[JObject] = {
-    makePostRequest[JObject]("_replicate",
-      Some(("source" -> source.uriFrom(this)) ~ ("target" -> target.uriFrom(this)) ~ params))
-  }
+  def replicate(source: Database, target: Database, params: Map[String, _] = Map()): Future[JObject] =
+    makePostRequest[JObject]("/_replicate", Some(params ++ Map("source" -> source.uriFrom(this), "target" -> target.uriFrom(this))))
 
   /**
    * CouchDB installation status.
