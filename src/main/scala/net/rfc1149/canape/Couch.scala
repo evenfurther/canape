@@ -4,6 +4,8 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
+import com.typesafe.config.{Config, ConfigFactory}
+import net.ceedubs.ficus.Ficus._
 import net.liftweb.json._
 import spray.can.Http
 import spray.can.Http.{CloseAll, HostConnectorInfo, HostConnectorSetup}
@@ -38,7 +40,6 @@ class Couch(val host: String = "localhost",
   override implicit val liftJsonFormats = DefaultFormats
 
   private[this] implicit val dispatcher = system.dispatcher
-  private[this] implicit val timeout: Timeout = 5.seconds
 
   private[this] def connectionSettings(aggregateChunks: Boolean): ClientConnectionSettings =
     ClientConnectionSettings(system).copy(responseChunkAggregationLimit = if (aggregateChunks) 1024 * 1024 else 0)
@@ -46,9 +47,8 @@ class Couch(val host: String = "localhost",
   private[this] def makeHostConnector(aggregateChunks: Boolean): Future[ActorRef] = {
     // TODO: check gzip handling
     val authHeader = auth map { case (login, password) => Authorization(BasicHttpCredentials(login, password)) }
-    val headers = `User-Agent`("canape for Scala") :: Accept(`application/json`) :: authHeader.toList
-    val settings = HostConnectorSettings(system).copy(pipelining = true, maxConnections = 5, maxRetries = 0,
-      connectionSettings = connectionSettings(aggregateChunks))
+    val headers = userAgent :: Accept(`application/json`) :: authHeader.toList
+    val settings = HostConnectorSettings(system).copy(connectionSettings = connectionSettings(aggregateChunks))
     val setup = HostConnectorSetup(host, port, defaultHeaders = headers, settings = Some(settings))
     IO(Http).ask(setup).mapTo[HostConnectorInfo].map(_.hostConnector)
   }
@@ -209,6 +209,10 @@ class Couch(val host: String = "localhost",
 }
 
 object Couch {
+
+  private[canape] val config: Config = ConfigFactory.load().getConfig("canape")
+  private[canape] val userAgent = `User-Agent`(config.as[String]("user-agent"))
+  private[canape] implicit val timeout: Timeout = config.as[FiniteDuration]("request-timeout")
 
   sealed abstract class CouchError extends Exception
 

@@ -13,6 +13,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-M4",
   "io.spray" %% "spray-client" % "1.3.2",
   "net.liftweb" %% "lift-json" % "2.6",
+  "net.ceedubs" %% "ficus" % "1.1.2",
   "org.specs2" %% "specs2-core" % "2.4.15" % "test"
 )
 
