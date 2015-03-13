@@ -6,7 +6,7 @@ import akka.stream.actor.ActorPublisherMessage.{Request, SubscriptionTimeoutExce
 import akka.stream.scaladsl.Source
 import net.liftweb.json._
 import spray.http.Uri.Query
-import spray.http.{ChunkedMessageEnd, ChunkedResponseStart, MessageChunk}
+import spray.http._
 import spray.httpx.RequestBuilding.Get
 
 import scala.collection.mutable
@@ -117,10 +117,8 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def update(design: String, name: String, id: String, data: Map[String, String]): Future[JValue] = {
-    // TODO: check if the json encoding for the parameters is acceptable or if form data must be sent somehow
-    couch.makePostRequest[JValue]("%s/_design/%s/_update/%s/%s".format(databaseName, design, name, id), Some(data))
-  }
+  def update(design: String, name: String, id: String, data: Map[String, String]): Future[JValue] =
+    couch.makePostRequest[JValue](s"$localUri/_design/$design/_update/$name/$id", FormData(data))
 
   /**
    * Retrieve the list of public documents from the database.

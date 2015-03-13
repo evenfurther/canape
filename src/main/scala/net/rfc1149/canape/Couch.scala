@@ -4,7 +4,6 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
-import net.liftweb.json.JsonDSL._
 import net.liftweb.json._
 import spray.can.Http
 import spray.can.Http.{CloseAll, HostConnectorInfo, HostConnectorSetup}
@@ -14,6 +13,7 @@ import spray.http.MediaTypes.`application/json`
 import spray.http._
 import spray.httpx.LiftJsonSupport
 import spray.httpx.RequestBuilding._
+import spray.httpx.marshalling.BasicMarshallers
 import spray.httpx.unmarshalling._
 
 import scala.concurrent.Future
@@ -94,6 +94,9 @@ class Couch(val host: String = "localhost",
    */
   def makePostRequest[T <: AnyRef : Manifest](query: String, data: Option[AnyRef] = None): Future[T] =
     hostConnector.flatMap(_.ask(Post(query, data getOrElse new Object)).mapTo[HttpResponse]).map(checkResponse(_))
+
+  def makePostRequest[T <: AnyRef : Manifest](query: String, data: FormData): Future[T] =
+    hostConnector.flatMap(_.ask(Post(query, data)(BasicMarshallers.FormDataMarshaller)).mapTo[HttpResponse]).map(checkResponse(_))
 
   /**
    * Build a PUT HTTP request.
