@@ -285,4 +285,53 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
   }
 
+  "db.update" should {
+
+    def installUpdate(db: Database) = {
+      val update = """
+                     | function(doc, req) {
+                     |   var newdoc = JSON.parse(req.form.json);
+                     |   newdoc._id = req.id || req.uuid ;
+                     |   if (doc && doc._rev)
+                     |     newdoc._rev = doc._rev;
+                     |   return [newdoc, {
+                     |     headers : {
+                     |      "Content-Type" : "application/json"
+                     |      },
+                     |     body: JSON.stringify(newdoc)
+                     |   }];
+                     | };
+                   """.stripMargin
+      waitForResult(db.insert(Map("updates" -> Map("upd" -> update)), "_design/common"))
+    }
+
+    "properly encode values" in new freshDb {
+      installUpdate(db)
+      val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" -> compactRender(Map("foo" -> "bar")))))
+      newDoc \ "_id" must be equalTo JString("docid")
+      newDoc \ "_rev" must be equalTo JNothing
+      newDoc \ "foo" must be equalTo JString("bar")
+    }
+
+    "properly insert documents" in new freshDb {
+      installUpdate(db)
+      waitForResult(db.update("common", "upd", "docid", Map("json" -> compactRender(Map("foo" -> "bar")))))
+      val newDoc = waitForResult(db("docid"))
+      newDoc \ "_id" must be equalTo JString("docid")
+      (newDoc \ "_rev").extract[String] must startWith("1-")
+      newDoc \ "foo" must be equalTo JString("bar")
+    }
+
+    "properly update documents" in new freshDb {
+      installUpdate(db)
+      waitForResult(db.update("common", "upd", "docid", Map("json" -> compactRender(Map("foo" -> "bar")))))
+      waitForResult(db.update("common", "upd", "docid", Map("json" -> compactRender(Map("foo2" -> "bar2")))))
+      val updatedDoc = waitForResult(db("docid"))
+      updatedDoc \ "_id" must be equalTo JString("docid")
+      (updatedDoc \ "_rev").extract[String] must startWith("2-")
+      updatedDoc \ "foo" must be equalTo JNothing
+      updatedDoc \ "foo2" must be equalTo JString("bar2")
+    }
+  }
+
 }
