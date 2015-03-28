@@ -10,7 +10,7 @@ crossScalaVersions := Seq(scalaVersion.value, "2.10.4")
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.3.9",
-  "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-M4",
+  "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-M5",
   "io.spray" %% "spray-client" % "1.3.2",
   "net.liftweb" %% "lift-json" % "2.6",
   "net.ceedubs" %% "ficus" % "1.1.2",
