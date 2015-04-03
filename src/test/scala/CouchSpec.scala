@@ -1,13 +1,9 @@
-import net.rfc1149.canape.Couch.StatusError
-
-import scala.concurrent.Future
-
 class CouchSpec extends WithDbSpecification("couch") {
 
   "couch.status()" should {
 
-    "have a version we are comfortable with" in {
-      waitForResult(couch.status()).version must startWith("1.")
+    "have a version we are comfortable working with" in {
+      waitForResult(couch.status()).version must beGreaterThan("1.6.0")
     }
 
   }

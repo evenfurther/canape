@@ -4,7 +4,7 @@ import akka.actor.{ActorSystem, Props}
 import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorPublisherMessage.{Request, SubscriptionTimeoutExceeded}
 import akka.stream.scaladsl.Source
-import net.liftweb.json._
+import play.api.libs.json._
 import spray.http.Uri.Query
 import spray.http._
 import spray.httpx.RequestBuilding.Get
@@ -32,7 +32,7 @@ case class Database(couch: Couch, databaseName: String) {
 
   def uriFrom(other: Couch) = if (couch == other) databaseName else uri
 
-  private[this] def encode(extra: String, properties: Seq[(String, String)] = Seq()) = {
+  private[this] def encode(extra: String, properties: Seq[(String, String)] = Seq()): String = {
     val base = s"$localUri/$extra"
     if (properties.isEmpty) base else s"$base?${Query(properties: _*).toString()}"
   }
@@ -42,7 +42,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @return a request
    */
-  def status(): Future[mapObject] = couch.makeGetRequest[mapObject](localUri)
+  def status(): Future[JsObject] = couch.makeGetRequest[JsObject](localUri)
 
   /**
    * Get the latest revision of an existing document from the database.
@@ -52,8 +52,8 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def apply(id: String): Future[mapObject] =
-    couch.makeGetRequest[mapObject](encode(id))
+  def apply(id: String): Future[JsObject] =
+    couch.makeGetRequest[JsObject](encode(id))
 
   /**
    * Get a particular revision of an existing document from the database.
@@ -64,8 +64,8 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def apply(id: String, rev: String): Future[mapObject] =
-    couch.makeGetRequest[mapObject](encode(id, Seq("rev" -> rev)))
+  def apply(id: String, rev: String): Future[JsObject] =
+    couch.makeGetRequest[JsObject](encode(id, Seq("rev" -> rev)))
 
   /**
    * Get an existing document from the database.
@@ -76,7 +76,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def apply(id: String, properties: Map[String, String]): Future[JValue] =
+  def apply(id: String, properties: Map[String, String]): Future[JsValue] =
     apply(id, properties.toSeq)
 
   /**
@@ -88,8 +88,8 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def apply(id: String, properties: Seq[(String, String)]): Future[JValue] =
-    couch.makeGetRequest[JValue](encode(id, properties))
+  def apply(id: String, properties: Seq[(String, String)]): Future[JsValue] =
+    couch.makeGetRequest[JsValue](encode(id, properties))
 
   private[this] def query(id: String, properties: Seq[(String, String)]): Future[Result] =
     couch.makeGetRequest[Result](encode(id, properties))
@@ -117,8 +117,8 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def update(design: String, name: String, id: String, data: Map[String, String]): Future[JValue] =
-    couch.makePostRequest[JValue](s"$localUri/_design/$design/_update/$name/$id", FormData(data))
+  def update(design: String, name: String, id: String, data: Map[String, String]): Future[JsValue] =
+    couch.makePostRequest[JsValue](s"$localUri/_design/$design/_update/$name/$id", FormData(data))
 
   /**
    * Retrieve the list of public documents from the database.
@@ -147,7 +147,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def create(): Future[JValue] = couch.makePutRequest[JValue](localUri)
+  def create(): Future[JsValue] = couch.makePutRequest[JsValue](localUri)
 
   /**
    * Compact the database.
@@ -156,7 +156,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def compact(): Future[JValue] = couch.makePostRequest[JValue](s"$localUri/_compact")
+  def compact(): Future[JsValue] = couch.makePostRequest[JsValue](s"$localUri/_compact")
 
   /**
    * Insert documents in bulk mode.
@@ -167,9 +167,9 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def bulkDocs(docs: Seq[Any], allOrNothing: Boolean = false): Future[JValue] = {
-    val args = Map("all_or_nothing" -> allOrNothing, "docs" -> docs)
-    couch.makePostRequest[JValue](s"$localUri/_bulk_docs", Some(args))
+  def bulkDocs(docs: Seq[JsObject], allOrNothing: Boolean = false): Future[JsValue] = {
+    val args = Json.obj("all_or_nothing" -> JsBoolean(allOrNothing), "docs" -> docs)
+    couch.makePostRequest[JsValue](s"$localUri/_bulk_docs", args)
   }
 
   private[this] def batchMode(query: String, batch: Boolean) =
@@ -185,11 +185,11 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def insert(doc: AnyRef, id: String = null, batch: Boolean = false): Future[JValue] =
+  def insert(doc: JsObject, id: String = null, batch: Boolean = false): Future[JsValue] =
     if (id == null)
-      couch.makePostRequest[JValue](batchMode(localUri, batch), Some(doc))
+      couch.makePostRequest[JsValue](batchMode(localUri, batch), doc)
     else
-      couch.makePutRequest[JValue](batchMode(s"$localUri/$id", batch), Some(doc))
+      couch.makePutRequest[JsValue](batchMode(s"$localUri/$id", batch), doc)
 
   /**
    * Delete a document from the database.
@@ -200,8 +200,8 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def delete(id: String, rev: String): Future[JValue] =
-    couch.makeDeleteRequest[JValue](s"$localUri/$id?rev=$rev")
+  def delete(id: String, rev: String): Future[JsValue] =
+    couch.makeDeleteRequest[JsValue](s"$localUri/$id?rev=$rev")
 
   /**
    * Delete a document from the database.
@@ -211,23 +211,9 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def delete[T](doc: T)(implicit ev: T => JObject): Future[JValue] = {
-    val JString(id) = doc \ "_id"
-    val JString(rev) = doc \ "_rev"
-    delete(id, rev)
-  }
-
-  /**
-   * Delete a document from the database.
-   *
-   * @param doc the document which must contains an `_id` and a `_rev` field
-   * @return a request
-   *
-   * @throws CouchError if an error occurs
-   */
-  def delete(doc: mapObject): Future[JValue] = {
-    val JString(id) = doc("_id")
-    val JString(rev) = doc("_rev")
+  def delete[T](doc: JsObject): Future[JsValue] = {
+    val id = (doc \ "_id").as[String]
+    val rev = (doc \ "_rev").as[String]
     delete(id, rev)
   }
 
@@ -238,7 +224,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def delete(): Future[JValue] = couch.makeDeleteRequest[JValue](localUri)
+  def delete(): Future[JsValue] = couch.makeDeleteRequest[JsValue](localUri)
 
   /**
    * Request the list of changes from the database in a non-continuous way.
@@ -248,14 +234,14 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def changes(params: Map[String, String] = Map()): Future[JValue] =
-    couch.makeGetRequest[JValue](encode("_changes", params.toSeq))
+  def changes(params: Map[String, String] = Map()): Future[JsValue] =
+    couch.makeGetRequest[JsValue](encode("_changes", params.toSeq))
 
-  def revs_limit(limit: Int): Future[JValue] =
-    couch.makePutRequest[JValue](encode("_revs_limit"), Some(JInt(limit)))
+  def revs_limit(limit: Int): Future[JsValue] =
+    couch.makePutRequest[JsValue](encode("_revs_limit"), JsNumber(limit))
 
-  def revs_limit(): Future[BigInt] =
-    couch.makeGetRequest[BigInt](encode("_revs_limit"))
+  def revs_limit(): Future[Long] =
+    couch.makeGetRequest[Long](encode("_revs_limit"))
 
   /**
    * Ensure that the database has been written to the permanent storage.
@@ -264,8 +250,8 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def ensureFullCommit(): Future[JValue] =
-    couch.makePostRequest[JValue](s"$localUri/_ensure_full_commit")
+  def ensureFullCommit(): Future[JsValue] =
+    couch.makePostRequest[JsValue](s"$localUri/_ensure_full_commit")
 
   /**
    * Launch a mono-directional replication from another database.
@@ -276,7 +262,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def replicateFrom(source: Database, params: Map[String, _] = Map()): Future[JObject] =
+  def replicateFrom(source: Database, params: JsObject = Json.obj()): Future[JsObject] =
     couch.replicate(source, this, params)
 
   /**
@@ -288,17 +274,17 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def replicateTo(target: Database, params: Map[String, _] = Map()): Future[JObject] =
+  def replicateTo(target: Database, params: JsObject = Json.obj()): Future[JsObject] =
     couch.replicate(this, target, params)
 
-  def continuousChanges(params: Map[String, String] = Map())(implicit system: ActorSystem, formats: Formats): Source[JObject, Unit] =
-    Source(ActorPublisher(system.actorOf(Props(new ContinuousChangesActor(params, formats)))))
+  def continuousChanges(params: Map[String, String] = Map())(implicit system: ActorSystem): Source[JsObject, Unit] =
+    Source(ActorPublisher(system.actorOf(Props(new ContinuousChangesActor(params)))))
 
-  class ContinuousChangesActor(params: Map[String, String], implicit val formats: Formats) extends ActorPublisher[JObject] {
+  class ContinuousChangesActor(params: Map[String, String]) extends ActorPublisher[JsObject] {
 
     // XXXXX We should probably not handle the queue ourselves and let the buffer with overflow
     // strategies do the job.
-    private val queue: mutable.Queue[JObject] = mutable.Queue()
+    private val queue: mutable.Queue[JsObject] = mutable.Queue()
 
     private def startRequest(params: Map[String, String]) = {
       val request = Get(encode("_changes", ("feed" -> "continuous") +: params.toSeq))
@@ -321,11 +307,11 @@ case class Database(couch: Couch, databaseName: String) {
       case message: MessageChunk =>
         val stringData: String = new Predef.String(message.data.toByteArray, "UTF-8")
         if (stringData.length > 1) {
-          val value = parse(stringData).extract[JObject]
+          val value = Json.parse(stringData).as[JsObject]
           // If we are about to get a disconnection, reconnect if needed with a "since" specification to
           // ensure that no value will be missed in the interval.
           value \ "last_seq" match {
-            case JInt(seq) =>
+            case JsNumber(seq) =>
               if (isActive)
                 startRequest(params + ("since" -> seq.toString))
             case _ =>

@@ -1,6 +1,7 @@
 package net.rfc1149.canape
 
-import net.liftweb.json._
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 case class Result(total_rows: Long,
                   offset: Long,
@@ -8,31 +9,33 @@ case class Result(total_rows: Long,
 
   lazy val ids = rows map (_.id)
 
-  def keys[K](implicit formats: Formats, k: Manifest[K]) = rows map (_.key.extract[K])
+  def keys[K: Reads]: Seq[K] = rows map (_.key.as[K])
 
-  def values[V](implicit formats: Formats, v: Manifest[V]) = rows map (_.value.extract[V])
+  def values[V: Reads]: Seq[V] = rows map (_.value.as[V])
 
-  def docsOption[D](implicit formats: Formats, d: Manifest[D]) = rows map (_.doc.map(_.extract[D]))
+  def docs[D: Reads]: Seq[D] = rows flatMap (d => d.doc.toList.map(_.as[D]))
 
-  def docs[D](implicit formats: Formats, d: Manifest[D]) = rows map (_.doc.get.extract[D])
+  def items[K: Reads, V: Reads]: Iterable[(String, K, V)] = rows map (r => (r.id, r.key.as[K], r.value.as[V]))
 
-  def items[K, V](implicit formats: Formats, k: Manifest[K], v: Manifest[V]) = rows map (_.extract[K, V](formats, k, v))
-
-  def itemsWithDocOption[K, V, D](implicit formats: Formats, k: Manifest[K], v: Manifest[V], d: Manifest[D]) = rows map (_.extractWithDocOption[K, V, D])
-
-  def itemsWithDoc[K, V, D](implicit formats: Formats, k: Manifest[K], v: Manifest[V], d: Manifest[D]) = rows map (_.extractWithDoc[K, V, D])
+  def itemsWithDoc[K: Reads, V: Reads, D: Reads]: Iterable[(String, K, V, Option[D])] =
+    rows map (r => (r.id, r.key.as[K], r.value.as[V], r.doc.map(_.as[D])))
 
 }
 
-case class Row(id: String, key: JValue, value: JValue, doc: Option[JValue]) {
+object Result {
 
-  def extract[K, V](implicit formats: Formats, k: Manifest[K], v: Manifest[V]): (String, K, V) =
-    (id, key.extract[K], value.extract[V])
+  implicit val resultRead: Reads[Result] = (
+    (__ \ 'total_rows).read[Long] and (__ \ 'offset).read[Long] and (__ \ 'rows).read[List[Row]]
+    )(Result.apply _)
 
-  def extractWithDocOption[K, V, D](implicit formats: Formats, k: Manifest[K], v: Manifest[V], d: Manifest[D]): (String, K, V, Option[D]) =
-    (id, key.extract[K], value.extract[V], doc.map(_.extract[D]))
+}
 
-  def extractWithDoc[K, V, D](implicit formats: Formats, k: Manifest[K], v: Manifest[V], d: Manifest[D]): (String, K, V, D) =
-    (id, key.extract[K], value.extract[V], doc.get.extract[D])
+case class Row(id: String, key: JsValue, value: JsValue, doc: Option[JsValue])
+
+object Row {
+
+  implicit val rowRead: Reads[Row] = (
+    (__ \ 'id).read[String] and (__ \ 'key).read[JsValue] and (__ \ 'value).read[JsValue] and (__ \ 'doc).readNullable[JsValue]
+    )(Row.apply _)
 
 }

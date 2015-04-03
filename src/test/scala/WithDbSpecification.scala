@@ -24,12 +24,7 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
 
     val db = couch.db(s"canape-test-$dbSuffix-${UUID.randomUUID()}")
 
-    override def before =
-      try {
-        Await.ready(db.create(), timeout)
-      } catch {
-        case _: StatusError =>
-      }
+    override def before = Await.ready(db.create(), timeout)
 
     override def after =
       try {

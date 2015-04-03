@@ -1,7 +1,7 @@
 import akka.actor.ActorSystem
-import net.liftweb.json._
 import net.rfc1149.canape._
 import org.specs2.mutable._
+import play.api.libs.json.{JsValue, Json}
 
 class URISpec extends Specification {
 
@@ -31,7 +31,7 @@ class URISpec extends Specification {
     }
 
     "properly analyze the status" in {
-      val status = parse("""{"couchdb":"Welcome","version":"1.3.0a-0c6f529-git","vendor":{"version":"1.3.0a-0c6f529-git","name":"The Apache Software Foundation"}}""").extract[Couch.Status]
+      val status = Json.parse("""{"couchdb":"Welcome","version":"1.3.0a-0c6f529-git","vendor":{"version":"1.3.0a-0c6f529-git","name":"The Apache Software Foundation"}}""").as[Couch.Status]
       (status.couchdb mustEqual "Welcome") &&
       (status.version mustEqual "1.3.0a-0c6f529-git") &&
       (status.vendor.get.version mustEqual "1.3.0a-0c6f529-git") &&
@@ -60,18 +60,18 @@ class URISpec extends Specification {
     }
 
     "properly analyze the status" in {
-      val status = parse("""{"db_name":"episodes","doc_count":110,"doc_del_count":656,"update_seq":780,"purge_seq":0,"compact_running":false,"disk_size":532600,"data_size":228323,"instance_start_time":"1323036107518987","disk_format_version":6,"committed_update_seq":780}""").extract[Map[String, JValue]]
-      (status("db_name").extract[String] mustEqual "episodes") &&
-      (status("doc_count").extract[Int] mustEqual 110) &&
-      (status("doc_del_count").extract[Int] mustEqual 656) &&
-      (status("update_seq").extract[Int] mustEqual 780) &&
-      (status("purge_seq").extract[Int] mustEqual 0) &&
-      (status("compact_running").extract[Boolean] mustEqual false) &&
-      (status("disk_size").extract[Long] mustEqual 532600L) &&
-      (status("data_size").extract[Long] mustEqual 228323L) &&
-      (status("instance_start_time").extract[String].toLong mustEqual 1323036107518987L) &&
-      (status("disk_format_version").extract[Int] mustEqual 6) &&
-      (status("committed_update_seq").extract[Int] mustEqual 780)
+      val status = Json.parse("""{"db_name":"episodes","doc_count":110,"doc_del_count":656,"update_seq":780,"purge_seq":0,"compact_running":false,"disk_size":532600,"data_size":228323,"instance_start_time":"1323036107518987","disk_format_version":6,"committed_update_seq":780}""").as[Map[String, JsValue]]
+      (status("db_name").as[String] mustEqual "episodes") &&
+      (status("doc_count").as[Int] mustEqual 110) &&
+      (status("doc_del_count").as[Int] mustEqual 656) &&
+      (status("update_seq").as[Int] mustEqual 780) &&
+      (status("purge_seq").as[Int] mustEqual 0) &&
+      (status("compact_running").as[Boolean] mustEqual false) &&
+      (status("disk_size").as[Long] mustEqual 532600L) &&
+      (status("data_size").as[Long] mustEqual 228323L) &&
+      (status("instance_start_time").as[String].toLong mustEqual 1323036107518987L) &&
+      (status("disk_format_version").as[Int] mustEqual 6) &&
+      (status("committed_update_seq").as[Int] mustEqual 780)
     }
 
   }
