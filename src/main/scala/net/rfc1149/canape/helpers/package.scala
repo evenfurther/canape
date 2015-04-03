@@ -21,7 +21,7 @@ package object helpers {
     } filterNot {
       _("_rev") == rev
     }
-    db.bulkDocs(mergedDoc +: deletedDocs, true)
+    db.bulkDocs(mergedDoc +: deletedDocs, allOrNothing = true)
   }
 
   def getRevs(db: Database, id: String, revs: Seq[String] = Seq())(implicit context: ExecutionContext): Future[Seq[JObject]] = {

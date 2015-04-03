@@ -211,7 +211,7 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def delete[T <% JObject](doc: T): Future[JValue] = {
+  def delete[T](doc: T)(implicit ev: T => JObject): Future[JValue] = {
     val JString(id) = doc \ "_id"
     val JString(rev) = doc \ "_rev"
     delete(id, rev)
@@ -320,7 +320,7 @@ case class Database(couch: Couch, databaseName: String) {
         }
       case message: MessageChunk =>
         val stringData: String = new Predef.String(message.data.toByteArray, "UTF-8")
-        if (stringData.size > 1) {
+        if (stringData.length > 1) {
           val value = parse(stringData).extract[JObject]
           // If we are about to get a disconnection, reconnect if needed with a "since" specification to
           // ensure that no value will be missed in the interval.
