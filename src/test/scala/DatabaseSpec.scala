@@ -18,6 +18,34 @@ class DatabaseSpec extends WithDbSpecification("db") {
   private def inserted(f: Future[JValue]): Future[(String, String)] =
     for (id <- insertedId(f); rev <- insertedRev(f)) yield (id, rev)
 
+  "db.delete()" should {
+
+    "be able to delete an existing database" in new freshDb {
+      waitForResult(db.delete())
+      success
+    }
+
+    "fail when we try to delete a non-existing database" in new freshDb {
+      waitForResult(db.delete())
+      waitForResult(db.delete()) must throwA[StatusError]
+    }
+
+  }
+
+  "db.create()" should {
+
+    "be able to create a non-existing database" in new freshDb {
+      waitForResult(db.delete())
+      waitForResult(db.create())
+      success
+    }
+
+    "fail when trying to create an existing database" in new freshDb {
+      waitForResult(db.create()) must throwA[StatusError]
+    }
+
+  }
+
   "db.insert()" should {
 
     "be able to insert a new document with an explicit id" in new freshDb {
