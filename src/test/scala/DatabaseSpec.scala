@@ -74,13 +74,13 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "be able to update a document with an embedded id" in new freshDb {
       waitForResult(insertedId(db.insert(Json.obj("_id" -> "docid")))) must be equalTo "docid"
-      val updatedDoc = waitForResult(db("docid")) + ("foo" -> JsString("bar"))
+      val updatedDoc = waitForResult(db("docid")) ++ Json.obj("foo" -> "bar")
       waitForResult(insertedId(db.insert(updatedDoc))) must be equalTo "docid"
     }
 
     "be able to update a document with an embedded id in batch mode" in new freshDb {
       waitForResult(insertedId(db.insert(Json.obj("_id" -> "docid")))) must be equalTo "docid"
-      val updatedDoc = waitForResult(db("docid")) + ("foo" -> JsString("bar"))
+      val updatedDoc = waitForResult(db("docid")) ++ Json.obj("foo" -> "bar")
       waitForResult(insertedId(db.insert(updatedDoc, batch = true))) must be equalTo "docid"
     }
 
@@ -101,21 +101,21 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "be able to retrieve an older revision of a document with two params" in new freshDb {
       val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
       val doc = waitForResult(db(id))
-      waitForResult(db.insert(doc + ("key" -> JsString("newValue"))))
+      waitForResult(db.insert(doc ++ Json.obj("key" -> "newValue")))
       (waitForResult(db(id, rev)) \ "key").as[String] must be equalTo "value"
     }
 
     "be able to retrieve an older revision of a document with a params map" in new freshDb {
       val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
       val doc = waitForResult(db(id))
-      waitForResult(db.insert(doc + ("key" -> JsString("newValue"))))
+      waitForResult(db.insert(doc ++ Json.obj("key" -> "newValue")))
       (waitForResult(db(id, Map("rev" -> rev))) \ "key").as[String] must be equalTo "value"
     }
 
     "be able to retrieve an older revision of a document with a params sequence" in new freshDb {
       val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
       val doc = waitForResult(db(id))
-      waitForResult(db.insert(doc + ("key" -> JsString("newValue"))))
+      waitForResult(db.insert(doc ++ Json.obj("key" -> "newValue")))
       (waitForResult(db(id, Seq("rev" -> rev))) \ "key").as[String] must be equalTo "value"
     }
 
@@ -142,7 +142,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "fail when trying to delete an older revision of a document" in new freshDb {
       val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
       val doc = waitForResult(db(id))
-      waitForResult(db.insert(doc + ("key" -> JsString("newValue"))))
+      waitForResult(db.insert(doc ++ Json.obj("key" -> "newValue")))
       waitForResult(db.delete(id, rev)) must throwA[StatusError]
     }
   }

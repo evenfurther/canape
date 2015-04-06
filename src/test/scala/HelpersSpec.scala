@@ -7,9 +7,9 @@ class HelpersSpec extends WithDbSpecification("helpers") {
   import implicits._
 
   def makeConflicts(db: Database) =
-    waitForResult(db.bulkDocs(Seq(Json.obj("_id" -> JsString("docid"), "extra" -> Json.arr(JsString("one"))),
-      Json.obj("_id" -> JsString("docid"), "extra" -> Json.arr(JsString("other"))),
-      Json.obj("_id" -> JsString("docid"), "extra" -> Json.arr(JsString("yet-another")))),
+    waitForResult(db.bulkDocs(Seq(Json.obj("_id" -> "docid", "extra" -> List("one")),
+      Json.obj("_id" -> "docid", "extra" -> List("other")),
+      Json.obj("_id" -> "docid", "extra" -> List("yet-another"))),
       true))
 
   "getRevs()" should {
@@ -60,7 +60,7 @@ class HelpersSpec extends WithDbSpecification("helpers") {
           val extra = docs.flatMap { d =>
             (d \ "extra").as[Array[String]]
           }.sorted
-          docs.head - "extra" + ("extra" -> JsArray(extra.map(JsString(_))))
+          docs.head - "extra" ++ Json.obj("extra" -> extra)
       })
       waitForResult(getConflictingRevs(db, "docid")) must have size(1)
       (waitForResult(db("docid")) \ "extra") must be equalTo(Json.parse("""["one", "other", "yet-another"]"""))
