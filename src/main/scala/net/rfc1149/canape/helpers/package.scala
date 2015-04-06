@@ -1,22 +1,24 @@
 package net.rfc1149.canape
 
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import play.api.libs.json.Reads._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 package object helpers {
 
-  type Solver = Seq[JsObject] => JsObject
+  private val deleter =
+    ((__ \ '_id).json.pickBranch and (__ \ '_rev).json.pickBranch and (__ \ '_deleted).json.put(JsBoolean(true))).reduce
 
-  def solve(db: Database, documents: Seq[JsObject])(solver: Solver): Future[JsValue] = {
-    val mergedDoc = solver(documents) - "_conflicts"
-    val id = mergedDoc \ "_id"
+  private val unconflicter = (__ \ '_conflicts).json.prune
+
+  def solve(db: Database, documents: Seq[JsObject])(solver: Seq[JsObject] => JsObject): Future[JsValue] = {
+    val mergedDoc = solver(documents)
     val rev = mergedDoc \ "_rev"
     val bulkDocs = documents map {
-      case d if (d \ "_rev") != rev =>
-        Json.obj("_id" -> id, "_rev" -> d \ "_rev", "_deleted" -> JsBoolean(true))
-      case _ =>
-        mergedDoc
+      case d if (d \ "_rev") == rev => mergedDoc.transform(unconflicter).get
+      case d                        => d.transform(deleter).get
     }
     db.bulkDocs(bulkDocs, allOrNothing = true)
   }
