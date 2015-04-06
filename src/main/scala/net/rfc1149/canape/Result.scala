@@ -1,6 +1,5 @@
 package net.rfc1149.canape
 
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 case class Result(total_rows: Long,
@@ -24,18 +23,9 @@ case class Result(total_rows: Long,
 
 object Result {
 
-  implicit val resultRead: Reads[Result] = (
-    (__ \ 'total_rows).read[Long] and (__ \ 'offset).read[Long] and (__ \ 'rows).read[List[Row]]
-    )(Result.apply _)
+  private implicit val rowRead: Reads[Row] = Json.reads[Row]
+  implicit val resultRead: Reads[Result] = Json.reads[Result]
 
 }
 
 case class Row(id: String, key: JsValue, value: JsValue, doc: Option[JsValue])
-
-object Row {
-
-  implicit val rowRead: Reads[Row] = (
-    (__ \ 'id).read[String] and (__ \ 'key).read[JsValue] and (__ \ 'value).read[JsValue] and (__ \ 'doc).readNullable[JsValue]
-    )(Row.apply _)
-
-}

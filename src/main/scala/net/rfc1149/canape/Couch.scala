@@ -6,7 +6,6 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
 import net.ceedubs.ficus.Ficus._
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import spray.can.Http
 import spray.can.Http.{CloseAll, HostConnectorInfo, HostConnectorSetup}
@@ -290,12 +289,7 @@ object Couch {
   case class VendorInfo(name: String,
                         version: String)
 
-  implicit val vendorInfoRead: Reads[VendorInfo] = (
-    (__ \ 'name).read[String] and (__ \ 'version).read[String]
-    )(VendorInfo.apply _)
-
-  implicit val statusRead: Reads[Status] = (
-    (__ \ 'couchdb).read[String] and (__ \ 'version).read[String] and (__ \ 'vendor).readNullable[VendorInfo]
-    )(Status.apply _)
+  implicit val vendorInfoRead: Reads[VendorInfo] = Json.reads[VendorInfo]
+  implicit val statusRead: Reads[Status] = Json.reads[Status]
 
 }
