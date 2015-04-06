@@ -1,10 +1,13 @@
 package net.rfc1149.canape
 
+import akka.actor.Status.Failure
 import akka.actor.{ActorSystem, Props}
+import akka.event.Logging
 import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorPublisherMessage.{Request, SubscriptionTimeoutExceeded}
 import akka.stream.scaladsl.Source
 import play.api.libs.json._
+import spray.can.Http.ConnectionException
 import spray.http.Uri.Query
 import spray.http._
 import spray.httpx.RequestBuilding.Get
@@ -282,14 +285,18 @@ case class Database(couch: Couch, databaseName: String) {
 
   class ContinuousChangesActor(params: Map[String, String]) extends ActorPublisher[JsObject] {
 
+    private[this] val log = Logging(context.system, this)
+
     // XXXXX We should probably not handle the queue ourselves and let the buffer with overflow
     // strategies do the job.
-    private val queue: mutable.Queue[JsObject] = mutable.Queue()
+    private[this] val queue: mutable.Queue[JsObject] = mutable.Queue()
 
-    private def startRequest(params: Map[String, String]) = {
+    private[this] def startRequest(params: Map[String, String]) = {
       val request = Get(encode("_changes", ("feed" -> "continuous") +: params.toSeq))
       couch.sendChunkedRequest(request, self)
     }
+
+    private var lastSeq: Option[Int] = None
 
     override def preStart() = startRequest(params)
 
@@ -315,15 +322,27 @@ case class Database(couch: Couch, databaseName: String) {
               if (isActive)
                 startRequest(params + ("since" -> seq.toString))
             case _ =>
-              if (isActive && totalDemand > 0)
-                onNext(value)
-              else
-                queue += value
+              // Preserve the sequence number in case we restart on a failure.
+              value.validate((__ \ 'seq).json.pick[JsNumber]) match {
+                case JsSuccess(n, _) =>
+                  lastSeq = Some(n.as[Int])
+                  if (isActive && totalDemand > 0)
+                    onNext(value)
+                  else
+                    queue += value
+                case error: JsError  =>
+                  log.warning(s"Received an unknown message: $value")
+              }
           }
         }
       case end: ChunkedMessageEnd =>
         if (!isActive)
           context.stop(self)
+      case failure: Failure =>
+        log.debug(s"Received a failure message, restarting")
+        startRequest(params ++ lastSeq.map(seq => Map("since" -> seq.toString)).getOrElse(Map()))
+      case other =>
+        log.warning(s"Received unknown message $other")
     }
   }
 

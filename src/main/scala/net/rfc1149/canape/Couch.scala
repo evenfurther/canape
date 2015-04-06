@@ -45,7 +45,9 @@ class Couch(val host: String = "localhost",
     // TODO: check gzip handling
     val authHeader = auth map { case (login, password) => Authorization(BasicHttpCredentials(login, password)) }
     val headers = userAgent :: Accept(`application/json`) :: authHeader.toList
-    val settings = HostConnectorSettings(system).copy(connectionSettings = connectionSettings(aggregateChunks))
+    val systemHostConnectorSettings = HostConnectorSettings(system)
+    val settings = systemHostConnectorSettings.copy(connectionSettings = connectionSettings(aggregateChunks),
+      maxRetries = if (aggregateChunks) systemHostConnectorSettings.maxRetries else 0)
     val setup = HostConnectorSetup(host, port, defaultHeaders = headers, settings = Some(settings))
     IO(Http).ask(setup).mapTo[HostConnectorInfo].map(_.hostConnector)
   }
