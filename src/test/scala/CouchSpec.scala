@@ -25,4 +25,21 @@ class CouchSpec extends WithDbSpecification("couch") {
 
   }
 
+  "couch.getUUID*()" should {
+
+    "return an UUID with the expected length" in {
+      waitForResult(couch.getUUID) must have size 32
+    }
+
+    "return distinct UUIDs when called in succession" in {
+      val uuid1 = waitForResult(couch.getUUID)
+      val uuid2 = waitForResult(couch.getUUID)
+      uuid1 must not be equalTo(uuid2)
+    }
+
+    "return distinct UUIDs when called in bulk mode" in {
+      waitForResult(couch.getUUIDs(50)).distinct must have size 50
+    }
+  }
+
 }

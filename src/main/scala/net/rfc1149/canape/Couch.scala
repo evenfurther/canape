@@ -21,7 +21,6 @@ import spray.httpx.marshalling.BasicMarshallers
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.implicitConversions
-import scala.util.{Failure, Success, Try}
 
 /**
  * Connexion to a CouchDB server.
@@ -225,6 +224,22 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def activeTasks(): Future[List[JsObject]] = makeGetRequest[List[JsObject]]("/_active_tasks")
+
+  /**
+   * Request UUIDs from the database.
+   *
+   * @param count the number of UUIDs to return
+   * @return a sequence of UUIDs
+   */
+  def getUUIDs(count: Int): Future[Seq[String]] =
+    makeGetRequest[JsObject](s"/_uuids?count=$count") map { r => (r \ "uuids").as[Seq[String]] }
+
+  /**
+   * Request an UUID from the database.
+   *
+   * @return an UUID
+   */
+  def getUUID: Future[String] = getUUIDs(1).map(_.head)
 
   /**
    * Get a named database. This does not attempt to connect to the database or check
