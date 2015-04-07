@@ -4,7 +4,7 @@ import akka.actor.Status.Failure
 import akka.actor.{ActorSystem, Props}
 import akka.event.Logging
 import akka.stream.actor.ActorPublisher
-import akka.stream.actor.ActorPublisherMessage.{Request, SubscriptionTimeoutExceeded}
+import akka.stream.actor.ActorPublisherMessage.{Cancel, Request, SubscriptionTimeoutExceeded}
 import akka.stream.scaladsl.Source
 import play.api.libs.json._
 import spray.can.Http.ConnectionException
@@ -306,6 +306,8 @@ case class Database(couch: Couch, databaseName: String) {
       case Request(_) if isActive =>
         for (_ <- 1L to totalDemand.min(queue.size))
           onNext(queue.dequeue())
+      case Cancel =>
+        context.stop(self)
       case start: ChunkedResponseStart =>
         if (start.response.status.isFailure) {
           onError(Database.ChangedError(start.response.status))
