@@ -170,9 +170,9 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def bulkDocs(docs: Seq[JsObject], allOrNothing: Boolean = false): Future[JsValue] = {
+  def bulkDocs(docs: Seq[JsObject], allOrNothing: Boolean = false): Future[Seq[JsObject]] = {
     val args = Json.obj("all_or_nothing" -> JsBoolean(allOrNothing), "docs" -> docs)
-    couch.makePostRequest[JsValue](s"$localUri/_bulk_docs", args)
+    couch.makePostRequest[Seq[JsObject]](s"$localUri/_bulk_docs", args)
   }
 
   private[this] def batchMode(query: String, batch: Boolean) =

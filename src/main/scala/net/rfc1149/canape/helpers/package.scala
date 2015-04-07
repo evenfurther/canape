@@ -13,7 +13,7 @@ package object helpers {
 
   private val unconflicter = (__ \ '_conflicts).json.prune
 
-  def solve(db: Database, documents: Seq[JsObject])(solver: Seq[JsObject] => JsObject): Future[JsValue] = {
+  def solve(db: Database, documents: Seq[JsObject])(solver: Seq[JsObject] => JsObject): Future[Seq[JsObject]] = {
     val mergedDoc = solver(documents)
     val rev = mergedDoc \ "_rev"
     val bulkDocs = documents map {
