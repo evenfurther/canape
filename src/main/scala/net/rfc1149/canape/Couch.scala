@@ -31,12 +31,17 @@ import scala.language.implicitConversions
 
 class Couch(val host: String = "localhost",
             val port: Int = 5984,
-            val auth: Option[(String, String)] = None)
+            val auth: Option[(String, String)] = None,
+            val config: Config = ConfigFactory.load())
            (implicit system: ActorSystem) extends PlayJsonSupport {
 
   import net.rfc1149.canape.Couch._
 
   private[this] implicit val dispatcher = system.dispatcher
+
+  private[this] val canapeConfig = config.getConfig("canape")
+  private[this] val userAgent = `User-Agent`(canapeConfig.as[String]("user-agent"))
+  private[this] implicit val timeout: Timeout = canapeConfig.as[FiniteDuration]("request-timeout")
 
   private[this] def connectionSettings(aggregateChunks: Boolean): ClientConnectionSettings =
     ClientConnectionSettings(system).copy(responseChunkAggregationLimit = if (aggregateChunks) 1024 * 1024 else 0)
@@ -265,10 +270,6 @@ class Couch(val host: String = "localhost",
 }
 
 object Couch {
-
-  private[canape] val config: Config = ConfigFactory.load().getConfig("canape")
-  private[canape] val userAgent = `User-Agent`(config.as[String]("user-agent"))
-  private[canape] implicit val timeout: Timeout = config.as[FiniteDuration]("request-timeout")
 
   sealed abstract class CouchError extends Exception
 
