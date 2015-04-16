@@ -7,7 +7,6 @@ import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorPublisherMessage.{Cancel, Request, SubscriptionTimeoutExceeded}
 import akka.stream.scaladsl.Source
 import play.api.libs.json._
-import spray.can.Http.ConnectionException
 import spray.http.Uri.Query
 import spray.http._
 import spray.httpx.RequestBuilding.Get
@@ -342,7 +341,9 @@ case class Database(couch: Couch, databaseName: String) {
           context.stop(self)
       case failure: Failure =>
         log.debug(s"Received a failure message, restarting")
-        startRequest(params ++ lastSeq.map(seq => Map("since" -> seq.toString)).getOrElse(Map()))
+        context.system.scheduler.scheduleOnce(couch.changesReconnectionInterval) {
+          startRequest(params ++ lastSeq.map(seq => Map("since" -> seq.toString)).getOrElse(Map()))
+        } (context.dispatcher)
       case other =>
         log.warning(s"Received unknown message $other")
     }

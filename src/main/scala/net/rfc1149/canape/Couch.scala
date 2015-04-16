@@ -42,6 +42,7 @@ class Couch(val host: String = "localhost",
   private[this] val canapeConfig = config.getConfig("canape")
   private[this] val userAgent = `User-Agent`(canapeConfig.as[String]("user-agent"))
   private[this] implicit val timeout: Timeout = canapeConfig.as[FiniteDuration]("request-timeout")
+  private[canape] implicit val changesReconnectionInterval: FiniteDuration = canapeConfig.as[FiniteDuration]("changes-reconnection-interval")
 
   private[this] def connectionSettings(aggregateChunks: Boolean): ClientConnectionSettings =
     ClientConnectionSettings(system).copy(responseChunkAggregationLimit = if (aggregateChunks) 1024 * 1024 else 0)
