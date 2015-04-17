@@ -175,7 +175,7 @@ case class Database(couch: Couch, databaseName: String) {
   }
 
   private[this] def batchMode(query: String, batch: Boolean) =
-    if (batch) query + "?batch=ok" else query
+    if (batch) s"$query?batch=ok" else query
 
   /**
    * Insert a document into the database.

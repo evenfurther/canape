@@ -27,7 +27,13 @@ class URISpec extends Specification {
       ((new Couch(auth = Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@localhost:5984") &&
       ((new Couch("db.example.com")).uri mustEqual "http://db.example.com:5984") &&
       ((new Couch("db.example.com", auth = Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@db.example.com:5984") &&
-      ((new Couch("db.example.com", 80, Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@db.example.com:80")
+      ((new Couch("db.example.com", 80, Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@db.example.com")
+    }
+
+    "mask the password in toString" in {
+      ((new Couch()).toString mustEqual "http://localhost:5984") &&
+      ((new Couch(auth = Some("admin", "xyzzy"))).toString mustEqual "http://admin:********@localhost:5984") &&
+      ((new Couch("db.example.com", 80, Some("admin", "xyzzy"))).toString mustEqual "http://admin:********@db.example.com")
     }
 
     "properly analyze the status" in {

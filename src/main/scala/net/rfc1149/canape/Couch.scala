@@ -185,8 +185,11 @@ class Couch(val host: String = "localhost",
   def sendChunkedRequest(request: HttpRequest, target: ActorRef): Future[Unit] =
     chunkedHostConnector.map(_.tell(request, target))
 
+  private[this] def buildURI(fixedAuth: Option[(String, String)]): String =
+    s"http://${fixedAuth.map(x => s"${x._1}:${x._2}@").getOrElse("")}$host${if (port == 80) "" else s":$port"}"
+
   /** URI that refers to the database */
-  val uri = "http://" + auth.map(x => x._1 + ":" + x._2 + "@").getOrElse("") + host + ":" + port
+  val uri = buildURI(auth)
 
   protected def canEqual(that: Any) = that.isInstanceOf[Couch]
 
@@ -197,8 +200,7 @@ class Couch(val host: String = "localhost",
 
   override def hashCode() = toString.hashCode()
 
-  override def toString =
-    "http://" + auth.map(x => x._1 + ":********@").getOrElse("") + host + ":" + port
+  override def toString = buildURI(auth.map(x => (x._1, "********")))
 
   /**
    * Launch a mono-directional replication.
