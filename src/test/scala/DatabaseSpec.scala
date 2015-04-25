@@ -102,6 +102,10 @@ class DatabaseSpec extends WithDbSpecification("db") {
       waitForResult(insertedId(db.insert(JsObject(Nil), "docid"))) must be equalTo "docid"
     }
 
+    "be able to insert a new document with an explicit non-ASCII id" in new freshDb {
+      waitForResult(insertedId(db.insert(JsObject(Nil), "docéçà"))) must be equalTo "docéçà"
+    }
+
     "be able to insert a new document with an explicit id in batch mode" in new freshDb {
       waitForResult(insertedId(db.insert(JsObject(Nil), "docid", batch = true))) must be equalTo "docid"
     }
@@ -167,6 +171,12 @@ class DatabaseSpec extends WithDbSpecification("db") {
       val doc = waitForResult(db(id))
       waitForResult(db.insert(doc ++ Json.obj("key" -> "newValue")))
       (waitForResult(db(id, Seq("rev" -> rev))) \ "key").as[String] must be equalTo "value"
+    }
+
+    "be able to cope with documents containing non-ASCII characters" in new freshDb {
+      private val s = "Épisode àçõœæéèêß"
+      val id = waitForResult(insertedId(db.insert(Json.obj("data" -> s))))
+      (waitForResult(db(id)) \ "data").as[String] must be equalTo s
     }
 
   }
@@ -336,6 +346,16 @@ class DatabaseSpec extends WithDbSpecification("db") {
       db.insert(JsObject(Nil), "docid2")
       db.insert(JsObject(Nil), "docid3")
       waitForResult(result).sorted must be equalTo List("docid1", "docid2", "docid3")
+    }
+
+    "see the creation of new documents with non-ASCII id" in new freshDb {
+      implicit val materializer = ActorFlowMaterializer(None)
+      val changes: Source[JsObject, Unit] = db.continuousChanges()
+      val result = changes.map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
+      db.insert(JsObject(Nil), "docidé")
+      db.insert(JsObject(Nil), "docidà")
+      db.insert(JsObject(Nil), "docidß")
+      waitForResult(result).sorted must be equalTo List("docidß", "docidà", "docidé")
     }
 
     "reconnect automatically" in new freshDb {

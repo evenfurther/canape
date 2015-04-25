@@ -12,6 +12,7 @@ import spray.can.Http.{CloseAll, HostConnectorInfo, HostConnectorSetup}
 import spray.can.client.{ClientConnectionSettings, HostConnectorSettings}
 import spray.http.HttpHeaders.{Accept, Authorization, `User-Agent`}
 import spray.http.MediaTypes.`application/json`
+import spray.http.Uri.Path
 import spray.http._
 import spray.httpx.PlayJsonSupport
 import spray.httpx.RequestBuilding._
@@ -65,9 +66,9 @@ class Couch(val host: String = "localhost",
   private[this] def checkResponse[T: Reads](response: HttpResponse): T = {
     response.status match {
       case status if status.isFailure =>
-        throw StatusError(status, Json.parse(response.entity.asString).as[JsObject])
+        throw StatusError(status, Json.parse(response.entity.asString(HttpCharsets.`UTF-8`)).as[JsObject])
       case _ =>
-        Json.parse(response.entity.asString).validate[T] match {
+        Json.parse(response.entity.asString(HttpCharsets.`UTF-8`)).validate[T] match {
           case JsSuccess(v, _) =>
             v
           case e: JsError =>
@@ -82,7 +83,7 @@ class Couch(val host: String = "localhost",
    * @param query the query string, including the already-encoded optional parameters
    * @return a future containing the HTTP response
    */
-  def makeRawGetRequest(query: String): Future[HttpResponse] =
+  def makeRawGetRequest(query: Uri): Future[HttpResponse] =
     hostConnector.flatMap(_.ask(Get(query)).mapTo[HttpResponse])
 
   /**
@@ -92,7 +93,7 @@ class Couch(val host: String = "localhost",
    * @tparam T the type of the result
    * @return a future containing the required result
    */
-  def makeGetRequest[T: Reads](query: String): Future[T] =
+  def makeGetRequest[T: Reads](query: Uri): Future[T] =
     makeRawGetRequest(query).map(checkResponse[T](_))
 
   /**
@@ -105,7 +106,7 @@ class Couch(val host: String = "localhost",
    *
    * @throws CouchError if an error occurs
    */
-  def makePostRequest[T: Reads](query: String, data: JsObject): Future[T] =
+  def makePostRequest[T: Reads](query: Uri, data: JsObject): Future[T] =
     hostConnector.flatMap(_.ask(Post(query, data)).mapTo[HttpResponse]).map(checkResponse[T](_))
 
   /**
@@ -117,7 +118,7 @@ class Couch(val host: String = "localhost",
    *
    * @throws CouchError if an error occurs
    */
-  def makePostRequest[T: Reads](query: String): Future[T] =
+  def makePostRequest[T: Reads](query: Uri): Future[T] =
     hostConnector.flatMap(_.ask(Post(query, Json.obj())).mapTo[HttpResponse]).map(checkResponse[T](_))
 
   /**
@@ -130,7 +131,7 @@ class Couch(val host: String = "localhost",
    *
    * @throws CouchError if an error occurs
    */
-  def makePostRequest[T: Reads](query: String, data: FormData): Future[T] =
+  def makePostRequest[T: Reads](query: Uri, data: FormData): Future[T] =
     hostConnector.flatMap(_.ask(Post(query, data)(BasicMarshallers.FormDataMarshaller)).mapTo[HttpResponse]).map(checkResponse[T](_))
 
   /**
@@ -143,7 +144,7 @@ class Couch(val host: String = "localhost",
    *
    * @throws CouchError if an error occurs
    */
-  def makePutRequest[T: Reads](query: String, data: JsValue): Future[T] =
+  def makePutRequest[T: Reads](query: Uri, data: JsValue): Future[T] =
     hostConnector.flatMap(_.ask(Put(query, data)).mapTo[HttpResponse]).map(checkResponse[T](_))
 
   /**
@@ -155,7 +156,7 @@ class Couch(val host: String = "localhost",
    *
    * @throws CouchError if an error occurs
    */
-  def makePutRequest[T: Reads](query: String): Future[T] =
+  def makePutRequest[T: Reads](query: Uri): Future[T] =
     hostConnector.flatMap(_.ask(Put(query)).mapTo[HttpResponse]).map(checkResponse[T](_))
 
   /**
@@ -168,7 +169,7 @@ class Couch(val host: String = "localhost",
    *
    * @throws CouchError if an error occurs
    */
-  def makePutRequest[T: Reads](query: String, data: String): Future[T] =
+  def makePutRequest[T: Reads](query: Uri, data: String): Future[T] =
     hostConnector.flatMap(_.ask(Put(query, data)).mapTo[HttpResponse]).map(checkResponse[T](_))
 
   /**
@@ -180,7 +181,7 @@ class Couch(val host: String = "localhost",
    *
    * @throws CouchError if an error occurs
    */
-  def makeDeleteRequest[T: Reads](query: String): Future[T] =
+  def makeDeleteRequest[T: Reads](query: Uri): Future[T] =
     hostConnector.flatMap(_.ask(Delete(query)).mapTo[HttpResponse]).map(checkResponse[T](_))
 
   /**
@@ -193,8 +194,8 @@ class Couch(val host: String = "localhost",
   def sendChunkedRequest(request: HttpRequest, target: ActorRef): Future[Unit] =
     chunkedHostConnector.map(_.tell(request, target))
 
-  private[this] def buildURI(fixedAuth: Option[(String, String)]): String =
-    s"http://${fixedAuth.map(x => s"${x._1}:${x._2}@").getOrElse("")}$host${if (port == 80) "" else s":$port"}"
+  private[this] def buildURI(fixedAuth: Option[(String, String)]): Uri =
+    Uri().withScheme("http").withHost(host).withPort(port).withUserInfo(fixedAuth.map(u => s"${u._1}:${u._2}").getOrElse(""))
 
   /** URI that refers to the database */
   val uri = buildURI(auth)
@@ -208,7 +209,7 @@ class Couch(val host: String = "localhost",
 
   override def hashCode() = toString.hashCode()
 
-  override def toString = buildURI(auth.map(x => (x._1, "********")))
+  override def toString = buildURI(auth.map(x => (x._1, "********"))).toString
 
   /**
    * Launch a mono-directional replication.

@@ -15,19 +15,19 @@ class URISpec extends Specification {
 
   "The 'Couch' class" should {
     "return the right unauthentified URI" in {
-      cunauth.uri mustEqual "http://db.example.com:5984"
+      cunauth.uri.toString mustEqual "http://db.example.com:5984"
     }
 
     "return the right authentified URI" in {
-      cauth.uri mustEqual "http://admin:xyzzy@db.example.com:5984"
+      cauth.uri.toString mustEqual "http://admin:xyzzy@db.example.com:5984"
     }
 
     "complete missing arguments" in {
-      ((new Couch()).uri mustEqual "http://localhost:5984") &&
-      ((new Couch(auth = Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@localhost:5984") &&
-      ((new Couch("db.example.com")).uri mustEqual "http://db.example.com:5984") &&
-      ((new Couch("db.example.com", auth = Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@db.example.com:5984") &&
-      ((new Couch("db.example.com", 80, Some("admin", "xyzzy"))).uri mustEqual "http://admin:xyzzy@db.example.com")
+      ((new Couch()).uri.toString mustEqual "http://localhost:5984") &&
+      ((new Couch(auth = Some("admin", "xyzzy"))).uri.toString mustEqual "http://admin:xyzzy@localhost:5984") &&
+      ((new Couch("db.example.com")).uri.toString mustEqual "http://db.example.com:5984") &&
+      ((new Couch("db.example.com", auth = Some("admin", "xyzzy"))).uri.toString mustEqual "http://admin:xyzzy@db.example.com:5984") &&
+      ((new Couch("db.example.com", 80, Some("admin", "xyzzy"))).uri.toString mustEqual "http://admin:xyzzy@db.example.com")
     }
 
     "mask the password in toString" in {
@@ -50,11 +50,11 @@ class URISpec extends Specification {
 
   "The 'Database' class" should {
     "return the right unauthentified URI" in {
-      dbunauth.uri mustEqual "http://db.example.com:5984/test"
+      dbunauth.uri.toString mustEqual "http://db.example.com:5984/test"
     }
 
     "return the right authentified URI" in {
-      dbauth.uri mustEqual "http://admin:xyzzy@db.example.com:5984/test"
+      dbauth.uri.toString mustEqual "http://admin:xyzzy@db.example.com:5984/test"
     }
 
     "return the right URI in local context" in {
