@@ -1,7 +1,7 @@
 package net.rfc1149.canape
 
 import akka.actor.Status.Failure
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorRefFactory, Props}
 import akka.event.Logging
 import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorPublisherMessage.{Cancel, Request, SubscriptionTimeoutExceeded}
@@ -17,6 +17,8 @@ import scala.concurrent.Future
 case class Database(couch: Couch, databaseName: String) {
 
   import net.rfc1149.canape.Couch._
+
+  private[canape] implicit val dispatcher = couch.dispatcher
 
   val uri = s"${couch.uri}/$databaseName"
   private[this] val localUri = s"/$databaseName"
@@ -97,17 +99,31 @@ case class Database(couch: Couch, databaseName: String) {
     couch.makeGetRequest[Result](encode(id, properties))
 
   /**
-   * Query a view from the database.
+   * Query a view from the database but prevent the reduce part from running.
    *
    * @param design the design document
    * @param name the name of the view
    * @param properties the properties to add to the request
-   * @return a request
+   * @return a future containing the result
    *
    * @throws CouchError if an error occurs
    */
-  def view(design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[Result] =
-    query(s"_design/$design/_view/$name", properties)
+  def mapOnly(design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[Result] =
+    query(s"_design/$design/_view/$name", properties :+ ("reduce" -> "false"))
+
+  /**
+   * Query a view from the database using map/reduce.
+   *
+   * @param design the design document
+   * @param name the name of the view
+   * @param properties the properties to add to the request
+   * @tparam V the value type
+   * @return a future containing a sequence of results
+   */
+  def view[K: Reads, V: Reads](design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[Seq[(K, V)]] =
+    couch.makeGetRequest[JsObject](encode(s"_design/$design/_view/$name", properties)).map(result => (result \ "rows").as[Array[JsValue]] map { row =>
+      (row \ "key").as[K] -> (row \ "value").as[V]
+    })
 
   /**
    * Call an update function.
@@ -279,8 +295,8 @@ case class Database(couch: Couch, databaseName: String) {
   def replicateTo(target: Database, params: JsObject = Json.obj()): Future[JsObject] =
     couch.replicate(this, target, params)
 
-  def continuousChanges(params: Map[String, String] = Map())(implicit system: ActorSystem): Source[JsObject, Unit] =
-    Source(ActorPublisher(system.actorOf(Props(new ContinuousChangesActor(params)))))
+  def continuousChanges(params: Map[String, String] = Map())(implicit factory: ActorRefFactory): Source[JsObject, Unit] =
+    Source(ActorPublisher(factory.actorOf(Props(new ContinuousChangesActor(params)))))
 
   class ContinuousChangesActor(params: Map[String, String]) extends ActorPublisher[JsObject] {
 

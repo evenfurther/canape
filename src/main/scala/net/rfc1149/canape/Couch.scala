@@ -37,7 +37,7 @@ class Couch(val host: String = "localhost",
 
   import net.rfc1149.canape.Couch._
 
-  private[this] implicit val dispatcher = system.dispatcher
+  private[canape] implicit val dispatcher = system.dispatcher
 
   private[this] val canapeConfig = config.getConfig("canape")
   private[this] val userAgent = `User-Agent`(canapeConfig.as[String]("user-agent"))
