@@ -79,12 +79,21 @@ class Couch(val host: String = "localhost",
   /**
    * Build a GET HTTP request.
    *
-   * @param query The query string, including the already-encoded optional parameters.
-   * @return A request.
+   * @param query the query string, including the already-encoded optional parameters
+   * @return a future containing the HTTP response
    */
-  def makeGetRequest[T: Reads](query: String): Future[T] = {
-    hostConnector.flatMap(_.ask(Get(query)).mapTo[HttpResponse]).map(checkResponse[T](_))
-  }
+  def makeRawGetRequest(query: String): Future[HttpResponse] =
+    hostConnector.flatMap(_.ask(Get(query)).mapTo[HttpResponse])
+
+  /**
+   * Build a GET HTTP request.
+   *
+   * @param query the query string, including the already-encoded optional parameters
+   * @tparam T the type of the result
+   * @return a future containing the required result
+   */
+  def makeGetRequest[T: Reads](query: String): Future[T] =
+    makeRawGetRequest(query).map(checkResponse[T](_))
 
   /**
    * Build a POST HTTP request.
