@@ -101,7 +101,7 @@ class Couch(val host: String = "localhost",
    * @param query the query string, including the already-encoded optional parameters
    * @param data the data to post
    * @tparam T the type of the result
-   * @return a request.
+   * @return a future containing the required result
    *
    * @throws CouchError if an error occurs
    */
@@ -113,7 +113,7 @@ class Couch(val host: String = "localhost",
    *
    * @param query the query string, including the already-encoded optional parameters
    * @tparam T the type of the result
-   * @return a request.
+   * @return A future containing the required result
    *
    * @throws CouchError if an error occurs
    */
@@ -126,7 +126,7 @@ class Couch(val host: String = "localhost",
    * @param query the query string, including the already-encoded optional parameters
    * @param data the data to post
    * @tparam T the type of the result
-   * @return a request.
+   * @return a future containing the required result
    *
    * @throws CouchError if an error occurs
    */
@@ -139,7 +139,7 @@ class Couch(val host: String = "localhost",
    * @param query the query string, including the already-encoded optional parameters
    * @param data the data to post
    * @tparam T the type of the result
-   * @return a request.
+   * @return a future containing the required result
    *
    * @throws CouchError if an error occurs
    */
@@ -151,7 +151,7 @@ class Couch(val host: String = "localhost",
    *
    * @param query the query string, including the already-encoded optional parameters
    * @tparam T the type of the result
-   * @return a request.
+   * @return a future containing the required result
    *
    * @throws CouchError if an error occurs
    */
@@ -164,7 +164,7 @@ class Couch(val host: String = "localhost",
    * @param query the query string, including the already-encoded optional parameters
    * @param data the data to post
    * @tparam T the type of the result
-   * @return a request.
+   * @return a future containing the required result
    *
    * @throws CouchError if an error occurs
    */
@@ -176,7 +176,7 @@ class Couch(val host: String = "localhost",
    *
    * @param query the query string, including the already-encoded optional parameters
    * @tparam T the type of the result
-   * @return a request
+   * @return a future containing the required result
    *
    * @throws CouchError if an error occurs
    */
