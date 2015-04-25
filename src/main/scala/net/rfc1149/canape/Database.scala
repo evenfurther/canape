@@ -126,6 +126,18 @@ case class Database(couch: Couch, databaseName: String) {
     })
 
   /**
+   * Query a list from the database.
+   *
+   * @param design the design document
+   * @param list the name of the list
+   * @param view the name of the view whose result will be passed to the list
+   * @param properties the properties to add to the request
+   * @return a future containing a HTTP response
+   */
+  def list(design: String, list: String, view: String, properties: Seq[(String, String)] = Seq()): Future[HttpResponse] =
+    couch.makeRawGetRequest(encode(s"_design/$design/_list/$list/$view", properties))
+
+  /**
    * Call an update function.
    *
    * @param design the design document

@@ -46,8 +46,22 @@ class DatabaseSpec extends WithDbSpecification("db") {
         |   return Math.max.apply(Math, rereduce ? values : values.map(function(p) { return p.age; }));
         | }
       """.stripMargin
+    val list =
+      """
+        | function(head, req) {
+        |   var first = true
+        |   while (row = getRow()) {
+        |     if (!first) {
+        |       send(",");
+        |     }
+        |     first = false;
+        |     send(row.value);
+        |   }
+        | }
+      """.stripMargin
     val common = Json.obj("updates" -> Json.obj("upd" -> upd),
-      "views" -> Json.obj("persons" -> Json.obj("map" -> personsMap, "reduce" -> personsReduce)))
+      "views" -> Json.obj("persons" -> Json.obj("map" -> personsMap, "reduce" -> personsReduce)),
+      "lists" -> Json.obj("list" -> list))
     waitForResult(db.insert(common, "_design/common"))
     waitForResult(Future.sequence(for ((f, l, a) <- List(("Arthur", "Dent", 20), ("Zaphod", "Beeblebrox", 40),
       ("Buffy", "Summers", 23), ("Arthur", "Fubar", 27)))
@@ -411,6 +425,21 @@ class DatabaseSpec extends WithDbSpecification("db") {
       installDesignAndDocs(db)
       val result = waitForResult(db.view[JsValue, JsValue]("common", "persons", Seq("reduce" -> "false")))
       result.size must be equalTo 8
+    }
+  }
+
+  "db.list" should {
+
+    "return correct values when not grouping" in new freshDb {
+      installDesignAndDocs(db)
+      val result = waitForResult(db.list("common", "list", "persons")).entity.asString
+      result must be equalTo "40"
+    }
+
+    "return correct values when grouping" in new freshDb {
+      installDesignAndDocs(db)
+      val result = waitForResult(db.list("common", "list", "persons", Seq("group" -> "true"))).entity.asString.split(',').map(_.toInt).sorted
+      result must be equalTo Array(20, 23, 23, 27, 27, 40, 40)
     }
   }
 
