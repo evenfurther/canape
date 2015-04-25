@@ -80,10 +80,9 @@ class Couch(val host: String = "localhost",
    * Build a GET HTTP request.
    *
    * @param query The query string, including the already-encoded optional parameters.
-   * @tparam T The type of the chunks (if allowChunks is true) or of the result.
    * @return A request.
    */
-  def makeGetRequest[T: Reads](query: String, allowChunks: Boolean = false): Future[T] = {
+  def makeGetRequest[T: Reads](query: String): Future[T] = {
     hostConnector.flatMap(_.ask(Get(query)).mapTo[HttpResponse]).map(checkResponse[T](_))
   }
 
