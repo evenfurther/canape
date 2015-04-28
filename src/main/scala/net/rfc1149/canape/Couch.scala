@@ -285,14 +285,14 @@ class Couch(val host: String = "localhost",
 
 object Couch {
 
-  private implicit def jsonMarshaller[T: Writes]: ToEntityMarshaller[T] =
+  implicit def jsonMarshaller[T: Writes]: ToEntityMarshaller[T] =
     PredefinedToEntityMarshallers.stringMarshaller(`application/json`).compose(implicitly[Writes[T]].writes(_).toString())
 
   implicit def jsonUnmarshaller[T: Reads]()(implicit fm: FlowMaterializer, ec: ExecutionContext): FromEntityUnmarshaller[T] =
     PredefinedFromEntityUnmarshallers.stringUnmarshaller.forContentTypes(`application/json`)
       .map(s => implicitly[Reads[T]].reads(Json.parse(s)).recoverTotal(e => throw DataError(e)))
 
-  private implicit def jsonToEntity[T: Writes](data: T): RequestEntity =
+  implicit def jsonToEntity[T: Writes](data: T): RequestEntity =
     HttpEntity(`application/json`, implicitly[Writes[T]].writes(data).toString().getBytes("UTF-8"))
 
   sealed abstract class CouchError extends Exception
