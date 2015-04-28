@@ -124,8 +124,13 @@ class Couch(val host: String = "localhost",
    *
    * @throws CouchError if an error occurs
    */
-  def makePostRequest[T: Reads](query: Uri): Future[T] =
-    sendRequest(Post(query, Json.obj())).flatMap(checkResponse[T](_))
+  def makePostRequest[T: Reads](query: Uri): Future[T] = {
+    // Because of bug COUCHDB-2583, some methods require an empty payload with content-type
+    // `application/json`, which is invalid. We will generate it anyway to be compatible
+    // with CouchDB 1.6.1.
+    val fakeEmptyJsonPayload = HttpEntity(`application/json`, "")
+    sendRequest(Post(query, fakeEmptyJsonPayload)).flatMap(checkResponse[T](_))
+  }
 
   /**
    * Build a POST HTTP request.
