@@ -1,10 +1,12 @@
+import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorFlowMaterializer
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{Sink, Source}
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
 import play.api.libs.json._
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class DatabaseSpec extends WithDbSpecification("db") {
 
@@ -338,13 +340,12 @@ class DatabaseSpec extends WithDbSpecification("db") {
   }
 
   "db.continuousChanges()" should {
+
     "see the creation of new documents" in new freshDb {
       implicit val materializer = ActorFlowMaterializer(None)
       val changes: Source[JsObject, Unit] = db.continuousChanges()
-      val result = changes.map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
-      db.insert(JsObject(Nil), "docid1")
-      db.insert(JsObject(Nil), "docid2")
-      db.insert(JsObject(Nil), "docid3")
+      val result = changes.via(Database.onlySeq).map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
+      waitEventually(db.insert(JsObject(Nil), "docid1"), db.insert(JsObject(Nil), "docid2"), db.insert(JsObject(Nil), "docid3"))
       waitForResult(result).sorted must be equalTo List("docid1", "docid2", "docid3")
     }
 
@@ -352,33 +353,33 @@ class DatabaseSpec extends WithDbSpecification("db") {
       implicit val materializer = ActorFlowMaterializer(None)
       val changes: Source[JsObject, Unit] = db.continuousChanges()
       val result = changes.map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
-      db.insert(JsObject(Nil), "docidé")
-      db.insert(JsObject(Nil), "docidà")
-      db.insert(JsObject(Nil), "docidß")
+      waitEventually(db.insert(JsObject(Nil), "docidé"), db.insert(JsObject(Nil), "docidà"), db.insert(JsObject(Nil), "docidß"))
       waitForResult(result).sorted must be equalTo List("docidß", "docidà", "docidé")
     }
 
-    "reconnect automatically" in new freshDb {
+    "properly disconnect after a timeout" in new freshDb {
       implicit val materializer = ActorFlowMaterializer(None)
       val changes: Source[JsObject, Unit] = db.continuousChanges(Map("timeout" -> "100"))
-      val result = changes.map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
-      db.insert(JsObject(Nil), "docid1")
-      Thread.sleep(200)
-      db.insert(JsObject(Nil), "docid2")
-      db.insert(JsObject(Nil), "docid3")
-      waitForResult(result).sorted must be equalTo List("docid1", "docid2", "docid3")
+      val result = changes.map(_ \ "id").collect { case JsString(id) => id }.runFold[List[String]](Nil)(_ :+ _)
+      waitForResult(result).sorted must be equalTo List()
+    }
+
+    "see documents operations occuring before the timeout" in new freshDb {
+      implicit val materializer = ActorFlowMaterializer(None)
+      waitForEnd(db.insert(JsObject(Nil), "docid1"), db.insert(JsObject(Nil), "docid2"))
+      val changes: Source[JsObject, Unit] = db.continuousChanges(Map("timeout" -> "100"))
+      val result = changes.map(_ \ "id").collect { case JsString(id) => id }.runFold[List[String]](Nil)(_ :+ _)
+      waitForResult(result).sorted must be equalTo List("docid1", "docid2")
     }
 
     "be able to filter changes" in new freshDb {
       implicit val materializer = ActorFlowMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
-      waitForResult(db.insert(Json.obj("filters" -> Json.obj("namedfoo" -> filter)), "_design/common"))
+      waitForEnd(db.insert(Json.obj("filters" -> Json.obj("namedfoo" -> filter)), "_design/common"))
       val changes: Source[JsObject, Unit] = db.continuousChanges(Map("filter" -> "common/namedfoo"))
       val result = changes.map(j => (j \ "id").as[String]).take(2).runFold[List[String]](Nil)(_ :+ _)
-      waitForResult(db.insert(Json.obj("name" -> "foo"), "docid1"))
-      waitForResult(db.insert(Json.obj("name" -> "bar"), "docid2"))
-      waitForResult(db.insert(Json.obj("name" -> "foo"), "docid3"))
-      waitForResult(db.insert(Json.obj("name" -> "bar"), "docid4"))
+      waitEventually(db.bulkDocs(Seq(Json.obj("name" -> "foo", "_id" -> "docid1"), Json.obj("name" -> "bar", "_id" -> "docid2"),
+        Json.obj("name" -> "foo", "_id" -> "docid3"), Json.obj("name" -> "bar", "_id" -> "docid4"))))
       waitForResult(result).sorted must be equalTo List("docid1", "docid3")
     }
   }
@@ -393,11 +394,28 @@ class DatabaseSpec extends WithDbSpecification("db") {
       newDoc \ "foo" must be equalTo JsString("bar")
     }
 
+    "properly encode values with non-ASCII characters" in new freshDb {
+      installDesignAndDocs(db)
+      val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo" -> "barré")))))
+      newDoc \ "_id" must be equalTo JsString("docid")
+      newDoc \ "_rev" must beAnInstanceOf[JsUndefined]
+      newDoc \ "foo" must be equalTo JsString("barré")
+    }
+
     "properly insert documents" in new freshDb {
       installDesignAndDocs(db)
       waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo" -> "bar")))))
       val newDoc = waitForResult(db("docid"))
       newDoc \ "_id" must be equalTo JsString("docid")
+      (newDoc \ "_rev").as[String] must startWith("1-")
+      newDoc \ "foo" must be equalTo JsString("bar")
+    }
+
+    "properly insert documents with non-ASCII characters in id" in new freshDb {
+      installDesignAndDocs(db)
+      waitForResult(db.update("common", "upd", "docidé", Map("json" -> Json.stringify(Json.obj("foo" -> "bar")))))
+      val newDoc = waitForResult(db("docidé"))
+      newDoc \ "_id" must be equalTo JsString("docidé")
       (newDoc \ "_rev").as[String] must startWith("1-")
       newDoc \ "foo" must be equalTo JsString("bar")
     }
@@ -450,15 +468,20 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
   "db.list" should {
 
+    implicit val materializer = ActorFlowMaterializer(None)
+
+    def responseToString(response: HttpResponse): Future[String] =
+      response.entity.toStrict(FiniteDuration(1, SECONDS)).map(s => new String(s.data.toArray, "UTF-8"))
+
     "return correct values when not grouping" in new freshDb {
       installDesignAndDocs(db)
-      val result = waitForResult(db.list("common", "list", "persons")).entity.asString
+      val result = waitForResult(db.list("common", "list", "persons").flatMap(responseToString))
       result must be equalTo "40"
     }
 
     "return correct values when grouping" in new freshDb {
       installDesignAndDocs(db)
-      val result = waitForResult(db.list("common", "list", "persons", Seq("group" -> "true"))).entity.asString.split(',').map(_.toInt).sorted
+      val result = waitForResult(db.list("common", "list", "persons", Seq("group" -> "true")).flatMap(responseToString)).split(',').map(_.toInt).sorted
       result must be equalTo Array(20, 23, 23, 27, 27, 40, 40)
     }
   }

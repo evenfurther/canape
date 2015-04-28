@@ -1,29 +1,25 @@
 package net.rfc1149.canape
 
-import akka.actor.Status.Failure
-import akka.actor.{ActorRefFactory, Props}
-import akka.event.Logging
-import akka.stream.actor.ActorPublisher
-import akka.stream.actor.ActorPublisherMessage.{Cancel, Request, SubscriptionTimeoutExceeded}
-import akka.stream.scaladsl.Source
+import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
+import akka.stream.scaladsl.{FlattenStrategy, Flow, Source}
+import akka.util.ByteString
 import play.api.libs.json._
-import spray.http.Uri.Path
-import spray.http._
-import spray.httpx.RequestBuilding.Get
 
-import scala.collection.mutable
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 case class Database(couch: Couch, databaseName: String) {
 
-  import net.rfc1149.canape.Couch._
+  import Couch._
+  import Database._
 
   private[canape] implicit val dispatcher = couch.dispatcher
 
   private[this] val localPath: Path = Path(s"/$databaseName")
   val uri: Uri = couch.uri.withPath(localPath)
 
-  override def toString = uri.toString
+  override def toString = uri.toString()
 
   override def hashCode = uri.hashCode
 
@@ -34,9 +30,9 @@ case class Database(couch: Couch, databaseName: String) {
     case _ => false
   }
 
-  def uriFrom(other: Couch): String = if (couch == other) databaseName else uri.toString
+  def uriFrom(other: Couch): String = if (couch == other) databaseName else uri.toString()
 
-  private[this] def encode(extra: String, properties: Seq[(String, String)] = Seq()): Uri = {
+  private def encode(extra: String, properties: Seq[(String, String)] = Seq()): Uri = {
     val components = extra.split('/')
     val base = Uri().withPath(components.foldLeft(localPath)(_ / _))
     if (properties.isEmpty) base else base.withQuery(properties.toMap)
@@ -308,80 +304,36 @@ case class Database(couch: Couch, databaseName: String) {
   def replicateTo(target: Database, params: JsObject = Json.obj()): Future[JsObject] =
     couch.replicate(this, target, params)
 
-  def continuousChanges(params: Map[String, String] = Map())(implicit factory: ActorRefFactory): Source[JsObject, Unit] =
-    Source(ActorPublisher(factory.actorOf(Props(new ContinuousChangesActor(params)))))
-
-  class ContinuousChangesActor(params: Map[String, String]) extends ActorPublisher[JsObject] {
-
-    private[this] val log = Logging(context.system, this)
-
-    // XXXXX We should probably not handle the queue ourselves and let the buffer with overflow
-    // strategies do the job.
-    private[this] val queue: mutable.Queue[JsObject] = mutable.Queue()
-
-    private[this] def startRequest(params: Map[String, String]) = {
-      val request = Get(encode("_changes", ("feed" -> "continuous") +: params.toSeq))
-      couch.sendChunkedRequest(request, self)
-    }
-
-    private var lastSeq: Option[Int] = None
-
-    override def preStart() = startRequest(params)
-
-    override def receive = {
-      case SubscriptionTimeoutExceeded =>
-        context.stop(self)
-      case Request(_) if isActive =>
-        for (_ <- 1L to totalDemand.min(queue.size))
-          onNext(queue.dequeue())
-      case Cancel =>
-        context.stop(self)
-      case start: ChunkedResponseStart =>
-        if (start.response.status.isFailure) {
-          onError(Database.ChangedError(start.response.status))
-          context.stop(self)
-        }
-      case message: MessageChunk =>
-        val stringData: String = new String(message.data.toByteArray, "UTF-8")
-        if (stringData.length > 1) {
-          val value = Json.parse(stringData).as[JsObject]
-          // If we are about to get a disconnection, reconnect if needed with a "since" specification to
-          // ensure that no value will be missed in the interval.
-          value \ "last_seq" match {
-            case JsNumber(seq) =>
-              if (isActive)
-                startRequest(params + ("since" -> seq.toString))
-            case _ =>
-              // Preserve the sequence number in case we restart on a failure.
-              value.validate((__ \ 'seq).json.pick[JsNumber]) match {
-                case JsSuccess(n, _) =>
-                  lastSeq = Some(n.as[Int])
-                  if (isActive && totalDemand > 0)
-                    onNext(value)
-                  else
-                    queue += value
-                case error: JsError  =>
-                  log.warning(s"Received an unknown message: $value")
-              }
-          }
-        }
-      case end: ChunkedMessageEnd =>
-        if (!isActive)
-          context.stop(self)
-      case failure: Failure =>
-        log.debug(s"Received a failure message, restarting")
-        context.system.scheduler.scheduleOnce(couch.changesReconnectionInterval) {
-          startRequest(params ++ lastSeq.map(seq => Map("since" -> seq.toString)).getOrElse(Map()))
-        } (context.dispatcher)
-      case other =>
-        log.warning(s"Received unknown message $other")
-    }
+  /**
+   * Return a continuous changes stream.
+   *
+   * @param params extra parameters to the request
+   * @return a source containing the changes
+   */
+  def continuousChanges(params: Map[String, String] = Map()): Source[JsObject, Unit] = {
+    val request = couch.Get(encode("_changes", (params + ("feed" -> "continuous")).toSeq))
+    couch.sendChunkedRequest(request).map {
+      case Success(response) =>
+        response.entity.dataBytes
+      case Failure(t) =>
+        throw t
+    }.flatten(FlattenStrategy.concat).via(filterJson)
   }
 
 }
 
 object Database {
 
-  case class ChangedError(status: spray.http.StatusCode) extends Exception
+  case class ChangedError(status: akka.http.scaladsl.model.StatusCode) extends Exception
+
+  /**
+   * Filter objects that contains a `seq` field. To be used with [[Database#continousChanges]].
+   */
+  val onlySeq: Flow[JsObject, JsObject, Unit] = Flow[JsObject].filter(_.keys.contains("seq"))
+
+  private val filterJson: Flow[ByteString, JsObject, Unit] =
+    Flow[ByteString].mapConcat { bs =>
+      new String(bs.toArray, "UTF-8").split("\r?\n").filter(_.length > 1).map(Json.parse(_).as[JsObject]).toList
+    }
 
 }

@@ -1,26 +1,27 @@
 package net.rfc1149.canape
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.io.IO
-import akka.pattern.ask
+import akka.actor.ActorSystem
+import akka.event.Logging
+import akka.http.ConnectionPoolSettings
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.Http.HostConnectionPool
+import akka.http.scaladsl.marshalling.{PredefinedToEntityMarshallers, ToEntityMarshaller}
+import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model.MediaTypes.`application/json`
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.{Accept, Authorization, BasicHttpCredentials, `User-Agent`}
+import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
+import akka.stream.{FlowMaterializer, ActorFlowMaterializer}
+import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
 import net.ceedubs.ficus.Ficus._
 import play.api.libs.json._
-import spray.can.Http
-import spray.can.Http.{CloseAll, HostConnectorInfo, HostConnectorSetup}
-import spray.can.client.{ClientConnectionSettings, HostConnectorSettings}
-import spray.http.HttpHeaders.{Accept, Authorization, `User-Agent`}
-import spray.http.MediaTypes.`application/json`
-import spray.http.Uri.Path
-import spray.http._
-import spray.httpx.PlayJsonSupport
-import spray.httpx.RequestBuilding._
-import spray.httpx.marshalling.BasicMarshallers
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.implicitConversions
+import scala.util.Try
 
 /**
  * Connexion to a CouchDB server.
@@ -34,48 +35,54 @@ class Couch(val host: String = "localhost",
             val port: Int = 5984,
             val auth: Option[(String, String)] = None,
             val config: Config = ConfigFactory.load())
-           (implicit system: ActorSystem) extends PlayJsonSupport {
+           (implicit private[canape] val system: ActorSystem) {
 
-  import net.rfc1149.canape.Couch._
+  import Couch._
 
   private[canape] implicit val dispatcher = system.dispatcher
+  private[canape] implicit val fm = ActorFlowMaterializer()
+  private[this] val log = Logging(system, toString())
 
   private[this] val canapeConfig = config.getConfig("canape")
   private[this] val userAgent = `User-Agent`(canapeConfig.as[String]("user-agent"))
   private[this] implicit val timeout: Timeout = canapeConfig.as[FiniteDuration]("request-timeout")
-  private[canape] implicit val changesReconnectionInterval: FiniteDuration = canapeConfig.as[FiniteDuration]("changes-reconnection-interval")
 
-  private[this] def connectionSettings(aggregateChunks: Boolean): ClientConnectionSettings =
-    ClientConnectionSettings(system).copy(responseChunkAggregationLimit = if (aggregateChunks) 1024 * 1024 else 0)
+  private[this] lazy val hostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] =
+    Http().newHostConnectionPool[Any](host, port)
 
-  private[this] def makeHostConnector(aggregateChunks: Boolean): Future[ActorRef] = {
-    // TODO: check gzip handling
-    val authHeader = auth map { case (login, password) => Authorization(BasicHttpCredentials(login, password)) }
-    val headers = userAgent :: Accept(`application/json`) :: authHeader.toList
-    val systemHostConnectorSettings = HostConnectorSettings(system)
-    val settings = systemHostConnectorSettings.copy(connectionSettings = connectionSettings(aggregateChunks),
-      maxRetries = if (aggregateChunks) systemHostConnectorSettings.maxRetries else 0)
-    val setup = HostConnectorSetup(host, port, defaultHeaders = headers, settings = Some(settings))
-    IO(Http).ask(setup).mapTo[HostConnectorInfo].map(_.hostConnector)
+  private[this] lazy val chunkedHostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
+    val connectionPoolSettings = ConnectionPoolSettings.create(system).copy(maxRetries = 0, pipeliningLimit = 1)
+    Http().newHostConnectionPool[Any](host, port, settings = connectionPoolSettings)
   }
 
-  private[this] lazy val hostConnector = makeHostConnector(aggregateChunks = true)
+  def sendRequest(request: HttpRequest): Future[HttpResponse] =
+    Source.single(request -> null).via(hostConnectionPool).runWith(Sink.head).map(_._1.get)
 
-  private[this] lazy val chunkedHostConnector = makeHostConnector(aggregateChunks = false)
-
-  private[this] def checkResponse[T: Reads](response: HttpResponse): T = {
+  private[this] def checkResponse[T: Reads](response: HttpResponse): Future[T] = {
     response.status match {
-      case status if status.isFailure =>
-        throw StatusError(status, Json.parse(response.entity.asString(HttpCharsets.`UTF-8`)).as[JsObject])
+      case status if status.isFailure() =>
+        jsonUnmarshaller[JsObject]().apply(response.entity).map(body => throw new StatusError(status, body))
       case _ =>
-        Json.parse(response.entity.asString(HttpCharsets.`UTF-8`)).validate[T] match {
-          case JsSuccess(v, _) =>
-            v
-          case e: JsError =>
-            throw DataError(e)
-      }
+        jsonUnmarshaller[T]().apply(response.entity)
     }
   }
+
+  private[this] val defaultHeaders = {
+    val authHeader = auth map { case (login, password) => Authorization(BasicHttpCredentials(login, password)) }
+    userAgent :: Accept(`application/json`) :: authHeader.toList
+  }
+
+  // TODO: it should not be exposed
+  private[canape] def Get(query: Uri): HttpRequest = HttpRequest(GET, uri = query, headers = defaultHeaders)
+
+  private[this] def Post[T: ToEntityMarshaller](query: Uri, data: T)(implicit ev: T => RequestEntity): HttpRequest =
+    HttpRequest(POST, uri = query, entity = ev(data), headers = defaultHeaders)
+
+  private[this] def Put[T](query: Uri, data: T = HttpEntity.Empty)(implicit ev: T => RequestEntity): HttpRequest =
+    HttpRequest(PUT, uri = query, entity = ev(data), headers = defaultHeaders)
+
+  private[this] def Delete(query: Uri): HttpRequest =
+    HttpRequest(DELETE, uri = query, headers = defaultHeaders)
 
   /**
    * Build a GET HTTP request.
@@ -83,8 +90,7 @@ class Couch(val host: String = "localhost",
    * @param query the query string, including the already-encoded optional parameters
    * @return a future containing the HTTP response
    */
-  def makeRawGetRequest(query: Uri): Future[HttpResponse] =
-    hostConnector.flatMap(_.ask(Get(query)).mapTo[HttpResponse])
+  def makeRawGetRequest(query: Uri): Future[HttpResponse] = sendRequest(Get(query))
 
   /**
    * Build a GET HTTP request.
@@ -94,7 +100,7 @@ class Couch(val host: String = "localhost",
    * @return a future containing the required result
    */
   def makeGetRequest[T: Reads](query: Uri): Future[T] =
-    makeRawGetRequest(query).map(checkResponse[T](_))
+    makeRawGetRequest(query).flatMap(checkResponse[T](_))
 
   /**
    * Build a POST HTTP request.
@@ -107,7 +113,7 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def makePostRequest[T: Reads](query: Uri, data: JsObject): Future[T] =
-    hostConnector.flatMap(_.ask(Post(query, data)).mapTo[HttpResponse]).map(checkResponse[T](_))
+    sendRequest(Post(query, data)).flatMap(checkResponse[T](_))
 
   /**
    * Build a POST HTTP request.
@@ -119,7 +125,7 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def makePostRequest[T: Reads](query: Uri): Future[T] =
-    hostConnector.flatMap(_.ask(Post(query, Json.obj())).mapTo[HttpResponse]).map(checkResponse[T](_))
+    sendRequest(Post(query, Json.obj())).flatMap(checkResponse[T](_))
 
   /**
    * Build a POST HTTP request.
@@ -131,8 +137,10 @@ class Couch(val host: String = "localhost",
    *
    * @throws CouchError if an error occurs
    */
-  def makePostRequest[T: Reads](query: Uri, data: FormData): Future[T] =
-    hostConnector.flatMap(_.ask(Post(query, data)(BasicMarshallers.FormDataMarshaller)).mapTo[HttpResponse]).map(checkResponse[T](_))
+  def makePostRequest[T: Reads](query: Uri, data: FormData): Future[T] = {
+    val payload = HttpEntity(ContentType(MediaTypes.`application/x-www-form-urlencoded`), data.fields.toString())
+    sendRequest(Post(query, payload)).flatMap(checkResponse[T](_))
+  }
 
   /**
    * Build a PUT HTTP request.
@@ -145,7 +153,7 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def makePutRequest[T: Reads](query: Uri, data: JsValue): Future[T] =
-    hostConnector.flatMap(_.ask(Put(query, data)).mapTo[HttpResponse]).map(checkResponse[T](_))
+    sendRequest(Put(query, data)).flatMap(checkResponse[T](_))
 
   /**
    * Build a PUT HTTP request.
@@ -157,20 +165,7 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def makePutRequest[T: Reads](query: Uri): Future[T] =
-    hostConnector.flatMap(_.ask(Put(query)).mapTo[HttpResponse]).map(checkResponse[T](_))
-
-  /**
-   * Build a PUT HTTP request.
-   *
-   * @param query the query string, including the already-encoded optional parameters
-   * @param data the data to post
-   * @tparam T the type of the result
-   * @return a future containing the required result
-   *
-   * @throws CouchError if an error occurs
-   */
-  def makePutRequest[T: Reads](query: Uri, data: String): Future[T] =
-    hostConnector.flatMap(_.ask(Put(query, data)).mapTo[HttpResponse]).map(checkResponse[T](_))
+    sendRequest(Put(query)).flatMap(checkResponse[T](_))
 
   /**
    * Build a DELETE HTTP request.
@@ -182,17 +177,15 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def makeDeleteRequest[T: Reads](query: Uri): Future[T] =
-    hostConnector.flatMap(_.ask(Delete(query)).mapTo[HttpResponse]).map(checkResponse[T](_))
+    sendRequest(Delete(query)).flatMap(checkResponse[T](_))
 
   /**
-   * Send an arbitrary HTTP request and redirect the answer to a given target.
+   * Send an arbitrary HTTP request.
    *
    * @param request the request to send
-   * @param target the actor which will receive the response elements
-   * @return a future resolved when the connector has been created
    */
-  def sendChunkedRequest(request: HttpRequest, target: ActorRef): Future[Unit] =
-    chunkedHostConnector.map(_.tell(request, target))
+  def sendChunkedRequest(request: HttpRequest): Source[Try[HttpResponse], Unit] =
+    Source.single(request -> null).via(chunkedHostConnectionPool).map(_._1)
 
   private[this] def buildURI(fixedAuth: Option[(String, String)]): Uri =
     Uri().withScheme("http").withHost(host).withPort(port).withUserInfo(fixedAuth.map(u => s"${u._1}:${u._2}").getOrElse(""))
@@ -277,23 +270,37 @@ class Couch(val host: String = "localhost",
 
   /**
    * Release external resources used by this connector.
+   *
+   * @return a future which gets completed when the release is done
    */
-  def releaseExternalResources() = hostConnector foreach (_ ! CloseAll)
+  def releaseExternalResources(): Future[Unit] =
+    Http().shutdownAllConnectionPools()
+
 }
 
 object Couch {
+
+  private implicit def jsonMarshaller[T: Writes]: ToEntityMarshaller[T] =
+    PredefinedToEntityMarshallers.stringMarshaller(`application/json`).compose(implicitly[Writes[T]].writes(_).toString())
+
+  implicit def jsonUnmarshaller[T: Reads]()(implicit fm: FlowMaterializer, ec: ExecutionContext): FromEntityUnmarshaller[T] =
+    PredefinedFromEntityUnmarshallers.stringUnmarshaller.forContentTypes(`application/json`)
+      .map(s => implicitly[Reads[T]].reads(Json.parse(s)).recoverTotal(e => throw DataError(e)))
+
+  private implicit def jsonToEntity[T: Writes](data: T): RequestEntity =
+    HttpEntity(`application/json`, implicitly[Writes[T]].writes(data).toString().getBytes("UTF-8"))
 
   sealed abstract class CouchError extends Exception
 
   case class DataError(error: JsError) extends CouchError
 
   case class StatusError(code: Int, error: String, reason: String) extends CouchError {
-    override def toString = s"StatusError($code, $error, $reason)"
-  }
 
-  object StatusError {
-    def apply(status: spray.http.StatusCode, body: JsObject): StatusError =
-      StatusError(status.intValue, (body \ "error").as[String], (body \ "reason").as[String])
+    def this(status: akka.http.scaladsl.model.StatusCode, body: JsObject) =
+      this(status.intValue, (body \ "error").as[String], (body \ "reason").as[String])
+
+    override def toString = s"StatusError($code, $error, $reason)"
+
   }
 
   /**The Couch instance current status. */
