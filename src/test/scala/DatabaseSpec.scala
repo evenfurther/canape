@@ -382,6 +382,20 @@ class DatabaseSpec extends WithDbSpecification("db") {
         Json.obj("name" -> "foo", "_id" -> "docid3"), Json.obj("name" -> "bar", "_id" -> "docid4"))))
       waitForResult(result).sorted must be equalTo List("docid1", "docid3")
     }
+
+    "fail properly if the database is absent" in new freshDb {
+      implicit val materializer = ActorFlowMaterializer(None)
+      val newDb = db.couch.db("nonexistent-database")
+      val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
+      waitForResult(result) must throwA[RuntimeException]("Not Found")
+    }
+
+    "fail properly if the server is not running" in {
+      implicit val materializer = ActorFlowMaterializer(None)
+      val newDb = new Couch("localhost", 5985).db("not-running-anyway")
+      val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
+      waitForResult(result) must throwA[akka.stream.StreamTcpException]("Connection failed.")
+    }
   }
 
   "db.update" should {

@@ -1,7 +1,7 @@
 package net.rfc1149.canape
 
 import akka.http.scaladsl.model.Uri.Path
-import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
+import akka.http.scaladsl.model.{HttpProtocols, FormData, HttpResponse, Uri}
 import akka.stream.scaladsl.{FlattenStrategy, Flow, Source}
 import akka.util.ByteString
 import play.api.libs.json._
@@ -311,10 +311,12 @@ case class Database(couch: Couch, databaseName: String) {
    * @return a source containing the changes
    */
   def continuousChanges(params: Map[String, String] = Map()): Source[JsObject, Unit] = {
-    val request = couch.Get(encode("_changes", (params + ("feed" -> "continuous")).toSeq))
+    val request = couch.Get(encode("_changes", (params + ("feed" -> "continuous")).toSeq)).withProtocol(HttpProtocols.`HTTP/1.0`)
     couch.sendChunkedRequest(request).map {
-      case Success(response) =>
+      case Success(response) if response.status.isSuccess() =>
         response.entity.dataBytes
+      case Success(response) =>
+        sys.error(response.status.reason())
       case Failure(t) =>
         throw t
     }.flatten(FlattenStrategy.concat).via(filterJson)
