@@ -1,7 +1,6 @@
 package net.rfc1149.canape
 
 import akka.actor.ActorSystem
-import akka.event.Logging
 import akka.http.ConnectionPoolSettings
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.HostConnectionPool
@@ -11,15 +10,15 @@ import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Accept, Authorization, BasicHttpCredentials, `User-Agent`}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
-import akka.stream.{FlowMaterializer, ActorFlowMaterializer}
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.{ActorFlowMaterializer, FlowMaterializer}
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
 import net.ceedubs.ficus.Ficus._
 import play.api.libs.json._
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -41,7 +40,6 @@ class Couch(val host: String = "localhost",
 
   private[canape] implicit val dispatcher = system.dispatcher
   private[canape] implicit val fm = ActorFlowMaterializer()
-  private[this] val log = Logging(system, toString())
 
   private[this] val canapeConfig = config.getConfig("canape")
   private[this] val userAgent = `User-Agent`(canapeConfig.as[String]("user-agent"))
@@ -100,7 +98,7 @@ class Couch(val host: String = "localhost",
    * @return a future containing the required result
    */
   def makeGetRequest[T: Reads](query: Uri): Future[T] =
-    makeRawGetRequest(query).flatMap(checkResponse[T](_))
+    makeRawGetRequest(query).flatMap(checkResponse[T])
 
   /**
    * Build a POST HTTP request.
@@ -113,7 +111,7 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def makePostRequest[T: Reads](query: Uri, data: JsObject): Future[T] =
-    sendRequest(Post(query, data)).flatMap(checkResponse[T](_))
+    sendRequest(Post(query, data)).flatMap(checkResponse[T])
 
   /**
    * Build a POST HTTP request.
@@ -129,7 +127,7 @@ class Couch(val host: String = "localhost",
     // `application/json`, which is invalid. We will generate it anyway to be compatible
     // with CouchDB 1.6.1.
     val fakeEmptyJsonPayload = HttpEntity(`application/json`, "")
-    sendRequest(Post(query, fakeEmptyJsonPayload)).flatMap(checkResponse[T](_))
+    sendRequest(Post(query, fakeEmptyJsonPayload)).flatMap(checkResponse[T])
   }
 
   /**
@@ -144,7 +142,7 @@ class Couch(val host: String = "localhost",
    */
   def makePostRequest[T: Reads](query: Uri, data: FormData): Future[T] = {
     val payload = HttpEntity(ContentType(MediaTypes.`application/x-www-form-urlencoded`), data.fields.toString())
-    sendRequest(Post(query, payload)).flatMap(checkResponse[T](_))
+    sendRequest(Post(query, payload)).flatMap(checkResponse[T])
   }
 
   /**
@@ -158,7 +156,7 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def makePutRequest[T: Reads](query: Uri, data: JsValue): Future[T] =
-    sendRequest(Put(query, data)).flatMap(checkResponse[T](_))
+    sendRequest(Put(query, data)).flatMap(checkResponse[T])
 
   /**
    * Build a PUT HTTP request.
@@ -170,7 +168,7 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def makePutRequest[T: Reads](query: Uri): Future[T] =
-    sendRequest(Put(query)).flatMap(checkResponse[T](_))
+    sendRequest(Put(query)).flatMap(checkResponse[T])
 
   /**
    * Build a DELETE HTTP request.
@@ -182,7 +180,7 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def makeDeleteRequest[T: Reads](query: Uri): Future[T] =
-    sendRequest(Delete(query)).flatMap(checkResponse[T](_))
+    sendRequest(Delete(query)).flatMap(checkResponse[T])
 
   /**
    * Send an arbitrary HTTP request.
@@ -207,7 +205,7 @@ class Couch(val host: String = "localhost",
 
   override def hashCode() = toString.hashCode()
 
-  override def toString = buildURI(auth.map(x => (x._1, "********"))).toString
+  override def toString = buildURI(auth.map(x => (x._1, "********"))).toString()
 
   /**
    * Launch a mono-directional replication.
@@ -302,7 +300,7 @@ object Couch {
   case class StatusError(code: Int, error: String, reason: String) extends CouchError {
 
     def this(status: akka.http.scaladsl.model.StatusCode, body: JsObject) =
-      this(status.intValue, (body \ "error").as[String], (body \ "reason").as[String])
+      this(status.intValue(), (body \ "error").as[String], (body \ "reason").as[String])
 
     override def toString = s"StatusError($code, $error, $reason)"
 
