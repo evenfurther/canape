@@ -48,7 +48,7 @@ class Couch(val host: String = "localhost",
   private[this] lazy val hostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] =
     Http().newHostConnectionPool[Any](host, port)
 
-  private[this] lazy val chunkedHostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
+  private[this] def chunkedHostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
     val connectionPoolSettings = ConnectionPoolSettings.create(system).copy(maxRetries = 0, pipeliningLimit = 1)
     Http().newHostConnectionPool[Any](host, port, settings = connectionPoolSettings)
   }
