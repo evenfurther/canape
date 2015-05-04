@@ -190,7 +190,7 @@ class Couch(val host: String = "localhost",
    * @param request the request to send
    */
   def sendChunkedRequest(request: HttpRequest): Source[Try[HttpResponse], Unit] =
-    Source.single(request -> null).via(chunkedHostConnectionPool).map(_._1)
+    Source.single(request.withProtocol(HttpProtocols.`HTTP/1.0`) -> null).via(chunkedHostConnectionPool).map(_._1)
 
   private[this] def buildURI(fixedAuth: Option[(String, String)]): Uri =
     Uri().withScheme("http").withHost(host).withPort(port).withUserInfo(fixedAuth.map(u => s"${u._1}:${u._2}").getOrElse(""))
