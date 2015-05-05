@@ -10,7 +10,7 @@ import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Accept, Authorization, BasicHttpCredentials, `User-Agent`}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.scaladsl.{Keep, Flow, Sink, Source}
 import akka.stream.{ActorFlowMaterializer, FlowMaterializer}
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
@@ -48,15 +48,33 @@ class Couch(val host: String = "localhost",
   private[this] lazy val hostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] =
     Http().newHostConnectionPool[Any](host, port)
 
-  private[this] def chunkedHostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
+  private[this] def blockingHostConnectionPool : Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
     val connectionPoolSettings = ConnectionPoolSettings.create(system).copy(maxRetries = 0, pipeliningLimit = 1)
-    Http().newHostConnectionPool[Any](host, port, settings = connectionPoolSettings)
+    val pool = Http().newHostConnectionPool[Any](host, port, settings = connectionPoolSettings)
+    val forceProtocol =
+      Flow[(HttpRequest, Any)].map { case (request, marker) => (request.withProtocol(HttpProtocols.`HTTP/1.0`), marker) }
+    forceProtocol.viaMat(pool)(Keep.right)
   }
 
+  /**
+   * Send an arbitrary HTTP request on the regular (non-blocking) pool.
+   *
+   * @param request the request to send
+   */
   def sendRequest(request: HttpRequest): Future[HttpResponse] =
     Source.single(request -> null).via(hostConnectionPool).runWith(Sink.head).map(_._1.get)
 
-  private[this] def checkResponse[T: Reads](response: HttpResponse): Future[T] = {
+  /**
+   * Send an arbitrary HTTP request on the potentially blocking bool.
+   *
+   * @param request the request to send
+   */
+  def sendPotentiallyBlockingRequest(request: HttpRequest): Source[Try[HttpResponse], Unit] =
+    // The request is sent in HTTP/1.0 to ensure that no other request will be enqueued on the same outgoing connection
+    Source.single(request -> null).via(blockingHostConnectionPool).map(_._1)
+
+
+  private[canape] def checkResponse[T: Reads](response: HttpResponse): Future[T] = {
     response.status match {
       case status if status.isFailure() =>
         jsonUnmarshaller[JsObject]().apply(response.entity).map(body => throw new StatusError(status, body))
@@ -181,14 +199,6 @@ class Couch(val host: String = "localhost",
    */
   def makeDeleteRequest[T: Reads](query: Uri): Future[T] =
     sendRequest(Delete(query)).flatMap(checkResponse[T])
-
-  /**
-   * Send an arbitrary HTTP request.
-   *
-   * @param request the request to send
-   */
-  def sendChunkedRequest(request: HttpRequest): Source[Try[HttpResponse], Unit] =
-    Source.single(request -> null).via(chunkedHostConnectionPool).map(_._1)
 
   private[this] def buildURI(fixedAuth: Option[(String, String)]): Uri =
     Uri().withScheme("http").withHost(host).withPort(port).withUserInfo(fixedAuth.map(u => s"${u._1}:${u._2}").getOrElse(""))

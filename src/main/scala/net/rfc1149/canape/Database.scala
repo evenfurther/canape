@@ -1,18 +1,19 @@
 package net.rfc1149.canape
 
 import akka.http.scaladsl.model.Uri.Path
-import akka.http.scaladsl.model.{FormData, HttpProtocols, HttpResponse, Uri}
-import akka.stream.scaladsl.{FlattenStrategy, Flow, Source}
+import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
+import akka.stream.scaladsl.{FlattenStrategy, Flow, Sink, Source}
 import akka.util.ByteString
 import play.api.libs.json._
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 case class Database(couch: Couch, databaseName: String) {
 
   import Couch._
   import Database._
+  import couch.fm
 
   private[canape] implicit val dispatcher = couch.dispatcher
 
@@ -292,8 +293,11 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def changes(params: Map[String, String] = Map()): Future[JsValue] =
-    couch.makeGetRequest[JsValue](encode("_changes", params.toSeq))
+  def changes(params: Map[String, String] = Map()): Future[JsValue] = {
+    val request = couch.Get(encode("_changes", params.toSeq))
+    couch.sendPotentiallyBlockingRequest(request).runWith(Sink.head[Try[HttpResponse]])
+      .map(_.get).flatMap(couch.checkResponse[JsValue])
+  }
 
   def revs_limit(limit: Int): Future[JsValue] =
     couch.makePutRequest[JsValue](encode("_revs_limit"), JsNumber(limit))
@@ -342,8 +346,8 @@ case class Database(couch: Couch, databaseName: String) {
    * @return a source containing the changes
    */
   def continuousChanges(params: Map[String, String] = Map()): Source[JsObject, Unit] = {
-    val request = couch.Get(encode("_changes", (params + ("feed" -> "continuous")).toSeq)).withProtocol(HttpProtocols.`HTTP/1.0`)
-    couch.sendChunkedRequest(request).map {
+    val request = couch.Get(encode("_changes", (params + ("feed" -> "continuous")).toSeq))
+    couch.sendPotentiallyBlockingRequest(request).map {
       case Success(response) if response.status.isSuccess() =>
         response.entity.dataBytes
       case Success(response) =>
