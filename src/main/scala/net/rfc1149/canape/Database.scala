@@ -1,7 +1,7 @@
 package net.rfc1149.canape
 
 import akka.http.scaladsl.model.Uri.Path
-import akka.http.scaladsl.model.{HttpProtocols, FormData, HttpResponse, Uri}
+import akka.http.scaladsl.model.{FormData, HttpProtocols, HttpResponse, Uri}
 import akka.stream.scaladsl.{FlattenStrategy, Flow, Source}
 import akka.util.ByteString
 import play.api.libs.json._
@@ -231,6 +231,25 @@ case class Database(couch: Couch, databaseName: String) {
     couch.makeDeleteRequest[JsValue](encode(id, Seq("rev" -> rev)))
 
   /**
+   * Delete multiple revisions of a document from the database. There will be no error if the document does not exist.
+   *
+   * @param id the id of the document
+   * @param revs the revisions to delete (may be empty)
+   * @param allOrNothing `true` if all deletions must succeed or fail atomically
+   * @return a list of revisions that have been succesfully deleted
+   */
+  def delete(id: String, revs: Seq[String], allOrNothing: Boolean = false): Future[Seq[String]] =
+    revs match {
+      case Nil =>
+        Future.successful(Nil)
+      case revs@(rev :: Nil) =>
+        delete(id, rev).map(_ => revs).recover { case _ => Seq() }
+      case _ =>
+        bulkDocs(revs.map(rev => Json.obj("_id" -> id, "_rev" -> rev, "_deleted" -> true)), allOrNothing = allOrNothing)
+          .map(_.collect { case doc if !doc.keys.contains("error") => (doc \ "rev").as[String] })
+    }
+
+  /**
    * Delete a document from the database.
    *
    * @param doc the document which must contains an `_id` and a `_rev` field
@@ -242,6 +261,18 @@ case class Database(couch: Couch, databaseName: String) {
     val id = (doc \ "_id").as[String]
     val rev = (doc \ "_rev").as[String]
     delete(id, rev)
+  }
+
+  /**
+   * Delete all revisions of a document from the database. There will be no error if the document does not exist.
+   *
+   * @param id the id of the document
+   * @return a future with all the document revisions that have been deleted
+   */
+  def delete(id: String): Future[Seq[String]] = {
+    this(id, Seq("conflicts" -> "true")).map(doc => (doc \ "_rev").as[String] :: (doc \ "_conflicts").asOpt[List[String]].getOrElse(Nil)) flatMap {
+      delete(id, _, allOrNothing = false)
+    }
   }
 
   /**

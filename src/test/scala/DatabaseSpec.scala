@@ -1,6 +1,6 @@
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorFlowMaterializer
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.Source
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
 import play.api.libs.json._
@@ -206,6 +206,48 @@ class DatabaseSpec extends WithDbSpecification("db") {
       val doc = waitForResult(db(id))
       waitForResult(db.insert(doc ++ Json.obj("key" -> "newValue")))
       waitForResult(db.delete(id, rev)) must throwA[StatusError]
+    }
+
+    "be able to bulk delete zero revisions of a non-existent document" in new freshDb {
+      waitForResult(db.delete("docid", Seq())) must beEmpty
+    }
+
+    "be able to bulk delete one revision of a document" in new freshDb {
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj())))
+      waitForResult(db.delete(id, Seq(rev))) must be equalTo Seq(rev)
+      waitForResult(db(id)) must throwA[StatusError]
+    }
+
+    "be able to not fail at bulk deleting a unique non-existing revision of a document" in new freshDb {
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj())))
+      waitForResult(db.delete(id, Seq(rev.dropRight(8) + "00000000"))) must beEmpty
+      (waitForResult(db(id)) \ "_rev").as[String] must be equalTo rev
+    }
+
+    "be able to not fail at bulk deleting a unique revision of a non-existing document" in new freshDb {
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj())))
+      waitForResult(db.delete("docid", Seq(rev.dropRight(8) + "00000000"))) must beEmpty
+    }
+
+    "be able to delete selected revisions of a document" in new freshDb {
+      val revs = waitForResult(db.bulkDocs(List("foo", "bar", "baz").map(v => Json.obj("_id" -> "docid", "value" -> v)),
+        allOrNothing = true)).map(doc => (doc \ "rev").as[String])
+      waitForResult(db.delete("docid", revs.drop(1))) must have size 2
+      waitForResult(db.delete("docid", revs.take(1))) must have size 1
+      waitForResult(db.delete("docid", revs.take(1))) must beEmpty
+    }
+
+    "be able to delete a document given only its id" in new freshDb {
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
+      waitForResult(db.delete(id)) must be equalTo Seq(rev)
+      waitForResult(db.delete(id)) must throwA[StatusError]
+    }
+
+    "be able to delete multiple revisions of a document given only its id" in new freshDb {
+      waitForResult(db.bulkDocs(List("foo", "bar", "baz").map(v => Json.obj("_id" -> "docid", "value" -> v)),
+        allOrNothing = true))
+      waitForResult(db.delete("docid")) must have size 3
+      waitForResult(db.delete("docid")) must throwA[StatusError]
     }
   }
 
