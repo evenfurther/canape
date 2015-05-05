@@ -74,15 +74,6 @@ class Couch(val host: String = "localhost",
     Source.single(request -> null).via(blockingHostConnectionPool).map(_._1)
 
 
-  private[canape] def checkResponse[T: Reads](response: HttpResponse): Future[T] = {
-    response.status match {
-      case status if status.isFailure() =>
-        jsonUnmarshaller[JsObject]().apply(response.entity).map(body => throw new StatusError(status, body))
-      case _ =>
-        jsonUnmarshaller[T]().apply(response.entity)
-    }
-  }
-
   private[this] val defaultHeaders = {
     val authHeader = auth map { case (login, password) => Authorization(BasicHttpCredentials(login, password)) }
     userAgent :: Accept(`application/json`) :: authHeader.toList
@@ -292,6 +283,15 @@ class Couch(val host: String = "localhost",
 }
 
 object Couch {
+
+  private[canape] def checkResponse[T: Reads](response: HttpResponse)(implicit fm: FlowMaterializer, ec: ExecutionContext): Future[T] = {
+    response.status match {
+      case status if status.isFailure() =>
+        jsonUnmarshaller[JsObject]().apply(response.entity).map(body => throw new StatusError(status, body))
+      case _ =>
+        jsonUnmarshaller[T]().apply(response.entity)
+    }
+  }
 
   implicit def jsonMarshaller[T: Writes]: ToEntityMarshaller[T] =
     PredefinedToEntityMarshallers.stringMarshaller(`application/json`).compose(implicitly[Writes[T]].writes(_).toString())
