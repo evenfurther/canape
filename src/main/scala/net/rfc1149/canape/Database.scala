@@ -304,7 +304,7 @@ case class Database(couch: Couch, databaseName: String) {
    */
   def changesSource(params: Map[String, String] = Map()): Source[JsValue, Unit] = {
     val request = couch.Get(encode("_changes", params.toSeq))
-    couch.sendPotentiallyBlockingRequest(request).mapAsync(1)(response => checkResponse[JsValue](response.get))
+    couch.sendPotentiallyBlockingRequest(request).via(checkResponse[JsValue])
   }
 
   def revs_limit(limit: Int): Future[JsValue] =

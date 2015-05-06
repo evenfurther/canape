@@ -293,6 +293,10 @@ object Couch {
     }
   }
 
+  private[canape] def checkResponse[T: Reads](implicit fm: FlowMaterializer, ec: ExecutionContext): Flow[Try[HttpResponse], T, Unit] = {
+    Flow[Try[HttpResponse]].mapAsync[T](1)(response => checkResponse[T](response.get))
+  }
+
   implicit def jsonMarshaller[T: Writes]: ToEntityMarshaller[T] =
     PredefinedToEntityMarshallers.stringMarshaller(`application/json`).compose(implicitly[Writes[T]].writes(_).toString())
 
