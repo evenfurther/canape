@@ -293,10 +293,19 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @throws CouchError if an error occurs
    */
-  def changes(params: Map[String, String] = Map()): Future[JsValue] = {
+  def changes(params: Map[String, String] = Map()): Future[JsValue] =
+    changesSource(params).runWith(Sink.head)
+
+  /**
+   * Request the list of changes from the database in a non-continuous way.
+   *
+   * @param params the parameters to add to the request
+   * @return a source with the only change
+   */
+  def changesSource(params: Map[String, String] = Map()): Source[JsValue, Unit] = {
     val request = couch.Get(encode("_changes", params.toSeq))
-    couch.sendPotentiallyBlockingRequest(request).runWith(Sink.head[Try[HttpResponse]])
-      .map(_.get).flatMap(checkResponse[JsValue])
+    couch.sendPotentiallyBlockingRequest(request)
+      .map(response => Source(checkResponse[JsValue](response.get))).flatten(FlattenStrategy.concat[JsValue])
   }
 
   def revs_limit(limit: Int): Future[JsValue] =
