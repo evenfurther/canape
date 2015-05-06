@@ -284,7 +284,7 @@ class Couch(val host: String = "localhost",
 
 object Couch {
 
-  private[canape] def checkResponse[T: Reads](response: HttpResponse)(implicit fm: FlowMaterializer, ec: ExecutionContext): Future[T] = {
+  def checkResponse[T: Reads](response: HttpResponse)(implicit fm: FlowMaterializer, ec: ExecutionContext): Future[T] = {
     response.status match {
       case status if status.isFailure() =>
         jsonUnmarshaller[JsObject]().apply(response.entity).map(body => throw new StatusError(status, body))
