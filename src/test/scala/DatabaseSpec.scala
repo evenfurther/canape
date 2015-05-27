@@ -414,7 +414,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       waitForResult(result).sorted must be equalTo List("docid1", "docid2")
     }
 
-    "be able to filter changes" in new freshDb {
+    "be able to filter changes with a stored filter" in new freshDb {
       implicit val materializer = ActorFlowMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
       waitForEnd(db.insert(Json.obj("filters" -> Json.obj("namedfoo" -> filter)), "_design/common"))
@@ -423,6 +423,16 @@ class DatabaseSpec extends WithDbSpecification("db") {
       waitEventually(db.bulkDocs(Seq(Json.obj("name" -> "foo", "_id" -> "docid1"), Json.obj("name" -> "bar", "_id" -> "docid2"),
         Json.obj("name" -> "foo", "_id" -> "docid3"), Json.obj("name" -> "bar", "_id" -> "docid4"))))
       waitForResult(result).sorted must be equalTo List("docid1", "docid3")
+    }
+
+    "be able to filter changes by document ids" in new freshDb {
+      implicit val materializer = ActorFlowMaterializer(None)
+      val filter = """function(doc, req) { return doc.name == "foo"; }"""
+      val changes: Source[JsObject, Unit] = db.continuousChanges(Map("filter" -> "_doc_ids"), Json.obj("doc_ids" -> List("docid1", "docid4")))
+      val result = changes.map(j => (j \ "id").as[String]).take(2).runFold[List[String]](Nil)(_ :+ _)
+      waitEventually(db.bulkDocs(Seq(Json.obj("name" -> "foo", "_id" -> "docid1"), Json.obj("name" -> "bar", "_id" -> "docid2"),
+        Json.obj("name" -> "foo", "_id" -> "docid3"), Json.obj("name" -> "bar", "_id" -> "docid4"))))
+      waitForResult(result).sorted must be equalTo List("docid1", "docid4")
     }
 
     "fail properly if the database is absent" in new freshDb {

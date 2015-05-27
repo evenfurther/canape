@@ -7,7 +7,7 @@ import akka.util.ByteString
 import play.api.libs.json._
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 case class Database(couch: Couch, databaseName: String) {
 
@@ -300,10 +300,11 @@ case class Database(couch: Couch, databaseName: String) {
    * Request the list of changes from the database in a non-continuous way.
    *
    * @param params the parameters to add to the request
+   * @param extraParams the extra parameters to add to the request, such as a long list of doc ids
    * @return a source with the only change
    */
-  def changesSource(params: Map[String, String] = Map()): Source[JsValue, Unit] = {
-    val request = couch.Get(encode("_changes", params.toSeq))
+  def changesSource(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsValue, Unit] = {
+    val request = couch.Post(encode("_changes", params.toSeq), extraParams)
     couch.sendPotentiallyBlockingRequest(request).via(checkResponse[JsValue])
   }
 
@@ -350,11 +351,12 @@ case class Database(couch: Couch, databaseName: String) {
   /**
    * Return a continuous changes stream.
    *
-   * @param params extra parameters to the request
+   * @param params the additional parameters to the request
+   * @param extraParams the extra parameters to the request such as a long list of doc ids
    * @return a source containing the changes
    */
-  def continuousChanges(params: Map[String, String] = Map()): Source[JsObject, Unit] = {
-    val request = couch.Get(encode("_changes", (params + ("feed" -> "continuous")).toSeq))
+  def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, Unit] = {
+    val request = couch.Post(encode("_changes", (params + ("feed" -> "continuous")).toSeq), extraParams)
     couch.sendPotentiallyBlockingRequest(request).map {
       case Success(response) if response.status.isSuccess() =>
         response.entity.dataBytes

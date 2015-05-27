@@ -48,12 +48,11 @@ class Couch(val host: String = "localhost",
   private[this] lazy val hostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] =
     Http().newHostConnectionPool[Any](host, port)
 
+  // Create a new blocking connection pool because reusing an existing one leads to unexpected spurious disconnections.
   private[this] def blockingHostConnectionPool : Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
     val connectionPoolSettings = ConnectionPoolSettings.create(system).copy(maxRetries = 0, pipeliningLimit = 1)
     val pool = Http().newHostConnectionPool[Any](host, port, settings = connectionPoolSettings)
-    val forceProtocol =
-      Flow[(HttpRequest, Any)].map { case (request, marker) => (request.withProtocol(HttpProtocols.`HTTP/1.0`), marker) }
-    forceProtocol.viaMat(pool)(Keep.right)
+    Flow[(HttpRequest, Any)].viaMat(pool)(Keep.right)
   }
 
   /**
@@ -70,8 +69,13 @@ class Couch(val host: String = "localhost",
    * @param request the request to send
    */
   def sendPotentiallyBlockingRequest(request: HttpRequest): Source[Try[HttpResponse], Unit] =
+    request.method match {
+      case HttpMethods.POST =>
+        Source.single(request -> null).via(blockingHostConnectionPool).map(_._1)
+      case _ =>
+        Source.failed(new IllegalArgumentException("potentially blocking request must use POST method"))
+    }
     // The request is sent in HTTP/1.0 to ensure that no other request will be enqueued on the same outgoing connection
-    Source.single(request -> null).via(blockingHostConnectionPool).map(_._1)
 
 
   private[this] val defaultHeaders = {
@@ -79,10 +83,9 @@ class Couch(val host: String = "localhost",
     userAgent :: Accept(`application/json`) :: authHeader.toList
   }
 
-  // TODO: it should not be exposed
-  private[canape] def Get(query: Uri): HttpRequest = HttpRequest(GET, uri = query, headers = defaultHeaders)
+  private[this] def Get(query: Uri): HttpRequest = HttpRequest(GET, uri = query, headers = defaultHeaders)
 
-  private[this] def Post[T: ToEntityMarshaller](query: Uri, data: T)(implicit ev: T => RequestEntity): HttpRequest =
+  private[canape] def Post[T: ToEntityMarshaller](query: Uri, data: T)(implicit ev: T => RequestEntity): HttpRequest =
     HttpRequest(POST, uri = query, entity = ev(data), headers = defaultHeaders)
 
   private[this] def Put[T](query: Uri, data: T = HttpEntity.Empty)(implicit ev: T => RequestEntity): HttpRequest =
