@@ -11,9 +11,9 @@ crossScalaVersions := Seq(scalaVersion.value, "2.10.4")
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.3.10",
-  "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-RC2",
-  "com.typesafe.akka" %% "akka-http-scala-experimental" % "1.0-RC2",
+  "com.typesafe.akka" %% "akka-actor" % "2.3.11",
+  "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-RC3",
+  "com.typesafe.akka" %% "akka-http-experimental" % "1.0-RC3",
   "com.typesafe.play" %% "play-json" % "2.3.8",
   "net.ceedubs" %% "ficus" % "1.1.2",
   "org.specs2" %% "specs2-core" % "2.4.15" % "test"
