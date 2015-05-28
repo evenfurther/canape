@@ -428,7 +428,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "be able to filter changes by document ids" in new freshDb {
       implicit val materializer = ActorFlowMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
-      val changes: Source[JsObject, Unit] = db.continuousChanges(Map("filter" -> "_doc_ids"), Json.obj("doc_ids" -> List("docid1", "docid4")))
+      val changes: Source[JsObject, Unit] = db.continuousChangesByDocIds(List("docid1", "docid4"))
       val result = changes.map(j => (j \ "id").as[String]).take(2).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.bulkDocs(Seq(Json.obj("name" -> "foo", "_id" -> "docid1"), Json.obj("name" -> "bar", "_id" -> "docid2"),
         Json.obj("name" -> "foo", "_id" -> "docid3"), Json.obj("name" -> "bar", "_id" -> "docid4"))))
