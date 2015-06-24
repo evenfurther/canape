@@ -6,8 +6,6 @@ version := "0.0.7-SNAPSHOT"
 
 scalaVersion := "2.11.7"
 
-crossScalaVersions := Seq(scalaVersion.value, "2.10.4")
-
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= Seq(
