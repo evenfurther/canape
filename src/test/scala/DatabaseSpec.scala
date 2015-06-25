@@ -1,5 +1,5 @@
 import akka.http.scaladsl.model.HttpResponse
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
@@ -384,7 +384,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
   "db.continuousChanges()" should {
 
     "see the creation of new documents" in new freshDb {
-      implicit val materializer = ActorFlowMaterializer(None)
+      implicit val materializer = ActorMaterializer(None)
       val changes: Source[JsObject, Unit] = db.continuousChanges()
       val result = changes.via(Database.onlySeq).map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.insert(JsObject(Nil), "docid1"), db.insert(JsObject(Nil), "docid2"), db.insert(JsObject(Nil), "docid3"))
@@ -392,7 +392,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "see the creation of new documents with non-ASCII id" in new freshDb {
-      implicit val materializer = ActorFlowMaterializer(None)
+      implicit val materializer = ActorMaterializer(None)
       val changes: Source[JsObject, Unit] = db.continuousChanges()
       val result = changes.map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.insert(JsObject(Nil), "docidé"), db.insert(JsObject(Nil), "docidà"), db.insert(JsObject(Nil), "docidß"))
@@ -400,14 +400,14 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "properly disconnect after a timeout" in new freshDb {
-      implicit val materializer = ActorFlowMaterializer(None)
+      implicit val materializer = ActorMaterializer(None)
       val changes: Source[JsObject, Unit] = db.continuousChanges(Map("timeout" -> "100"))
       val result = changes.map(_ \ "id").collect { case JsString(id) => id }.runFold[List[String]](Nil)(_ :+ _)
       waitForResult(result).sorted must be equalTo List()
     }
 
     "see documents operations occuring before the timeout" in new freshDb {
-      implicit val materializer = ActorFlowMaterializer(None)
+      implicit val materializer = ActorMaterializer(None)
       waitForEnd(db.insert(JsObject(Nil), "docid1"), db.insert(JsObject(Nil), "docid2"))
       val changes: Source[JsObject, Unit] = db.continuousChanges(Map("timeout" -> "100"))
       val result = changes.map(_ \ "id").collect { case JsString(id) => id }.runFold[List[String]](Nil)(_ :+ _)
@@ -415,7 +415,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "be able to filter changes with a stored filter" in new freshDb {
-      implicit val materializer = ActorFlowMaterializer(None)
+      implicit val materializer = ActorMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
       waitForEnd(db.insert(Json.obj("filters" -> Json.obj("namedfoo" -> filter)), "_design/common"))
       val changes: Source[JsObject, Unit] = db.continuousChanges(Map("filter" -> "common/namedfoo"))
@@ -426,7 +426,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "be able to filter changes by document ids" in new freshDb {
-      implicit val materializer = ActorFlowMaterializer(None)
+      implicit val materializer = ActorMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
       val changes: Source[JsObject, Unit] = db.continuousChangesByDocIds(List("docid1", "docid4"))
       val result = changes.map(j => (j \ "id").as[String]).take(2).runFold[List[String]](Nil)(_ :+ _)
@@ -436,14 +436,14 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "fail properly if the database is absent" in new freshDb {
-      implicit val materializer = ActorFlowMaterializer(None)
+      implicit val materializer = ActorMaterializer(None)
       val newDb = db.couch.db("nonexistent-database")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
       waitForResult(result) must throwA[RuntimeException]("Not Found")
     }
 
     "fail properly if the server is not running" in {
-      implicit val materializer = ActorFlowMaterializer(None)
+      implicit val materializer = ActorMaterializer(None)
       val newDb = new Couch("localhost", 5985).db("not-running-anyway")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
       waitForResult(result) must throwA[akka.stream.StreamTcpException]("Connection failed.")
@@ -534,7 +534,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
   "db.list" should {
 
-    implicit val materializer = ActorFlowMaterializer(None)
+    implicit val materializer = ActorMaterializer(None)
 
     def responseToString(response: HttpResponse): Future[String] =
       response.entity.toStrict(FiniteDuration(1, SECONDS)).map(s => new String(s.data.toArray, "UTF-8"))

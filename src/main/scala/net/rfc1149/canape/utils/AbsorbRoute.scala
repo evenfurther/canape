@@ -3,7 +3,7 @@ package utils
 
 import akka.stream.FanOutShape.{Init, Name}
 import akka.stream.scaladsl.{FlexiRoute, Flow, FlowGraph, Sink}
-import akka.stream.{FanOutShape, OperationAttributes}
+import akka.stream.{Attributes, FanOutShape}
 
 case class AbsorbRouteShape[A](_init: Init[A] = Name[A]("Absorb")) extends FanOutShape[A](_init) {
   val out = newOutlet[A]("out")
@@ -11,7 +11,7 @@ case class AbsorbRouteShape[A](_init: Init[A] = Name[A]("Absorb")) extends FanOu
   protected override def construct(i: Init[A]) = new AbsorbRouteShape(i)
   }
 
-class AbsorbRoute[A] extends FlexiRoute[A, AbsorbRouteShape[A]](AbsorbRouteShape(), OperationAttributes.name("Absorb")) {
+class AbsorbRoute[A] extends FlexiRoute[A, AbsorbRouteShape[A]](AbsorbRouteShape(), Attributes.name("Absorb")) {
 
   import FlexiRoute._
 

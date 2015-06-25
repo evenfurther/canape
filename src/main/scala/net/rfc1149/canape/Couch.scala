@@ -10,8 +10,8 @@ import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Accept, Authorization, BasicHttpCredentials, `User-Agent`}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
-import akka.stream.scaladsl.{Keep, Flow, Sink, Source}
-import akka.stream.{ActorFlowMaterializer, FlowMaterializer}
+import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
+import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
 import net.ceedubs.ficus.Ficus._
@@ -39,7 +39,7 @@ class Couch(val host: String = "localhost",
   import Couch._
 
   private[canape] implicit val dispatcher = system.dispatcher
-  private[canape] implicit val fm = ActorFlowMaterializer()
+  private[canape] implicit val fm = ActorMaterializer()
 
   private[this] val canapeConfig = config.getConfig("canape")
   private[this] val userAgent = `User-Agent`(canapeConfig.as[String]("user-agent"))
@@ -287,7 +287,7 @@ class Couch(val host: String = "localhost",
 
 object Couch {
 
-  def checkResponse[T: Reads](response: HttpResponse)(implicit fm: FlowMaterializer, ec: ExecutionContext): Future[T] = {
+  def checkResponse[T: Reads](response: HttpResponse)(implicit fm: Materializer, ec: ExecutionContext): Future[T] = {
     response.status match {
       case status if status.isFailure() =>
         jsonUnmarshaller[JsObject]().apply(response.entity).map(body => throw new StatusError(status, body))
@@ -296,14 +296,14 @@ object Couch {
     }
   }
 
-  private[canape] def checkResponse[T: Reads](implicit fm: FlowMaterializer, ec: ExecutionContext): Flow[Try[HttpResponse], T, Unit] = {
+  private[canape] def checkResponse[T: Reads](implicit fm: Materializer, ec: ExecutionContext): Flow[Try[HttpResponse], T, Unit] = {
     Flow[Try[HttpResponse]].mapAsync[T](1)(response => checkResponse[T](response.get))
   }
 
   implicit def jsonMarshaller[T: Writes]: ToEntityMarshaller[T] =
     PredefinedToEntityMarshallers.stringMarshaller(`application/json`).compose(implicitly[Writes[T]].writes(_).toString())
 
-  implicit def jsonUnmarshaller[T: Reads]()(implicit fm: FlowMaterializer, ec: ExecutionContext): FromEntityUnmarshaller[T] =
+  implicit def jsonUnmarshaller[T: Reads]()(implicit fm: Materializer, ec: ExecutionContext): FromEntityUnmarshaller[T] =
     PredefinedFromEntityUnmarshallers.stringUnmarshaller.forContentTypes(`application/json`)
       .map(s => implicitly[Reads[T]].reads(Json.parse(s)).recoverTotal(e => throw DataError(e)))
 

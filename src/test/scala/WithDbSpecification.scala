@@ -2,7 +2,6 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.event.Logging
-import akka.stream.ActorFlowMaterializer
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
 import org.specs2.mutable._
