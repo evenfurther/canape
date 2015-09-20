@@ -4,5 +4,3 @@ scala:
   - 2.11.7
 services:
   - couchdb
-before_script:
-  - curl -X PUT http://localhost:5984/_config/admins/admin -d '"admin"'

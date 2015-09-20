@@ -10,8 +10,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
 // This requires a local standard CouchDB instance. The "canape-test-*" databases
-// will be created, destroyed and worked into. There must be an "admin"/"admin"
-// account.
+// will be created, destroyed and worked into.
 
 abstract class WithDbSpecification(dbSuffix: String) extends Specification {
 
@@ -19,7 +18,7 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
   implicit val dispatcher = system.dispatcher
   implicit val timeout: Duration = (5, SECONDS)
 
-  val couch = new Couch // (auth = Some("admin", "admin"))
+  val couch = new Couch
 
   trait freshDb extends BeforeAfter {
 
