@@ -19,7 +19,7 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
   implicit val dispatcher = system.dispatcher
   implicit val timeout: Duration = (5, SECONDS)
 
-  val couch = new Couch(auth = Some("admin", "admin"))
+  val couch = new Couch // (auth = Some("admin", "admin"))
 
   trait freshDb extends BeforeAfter {
 
