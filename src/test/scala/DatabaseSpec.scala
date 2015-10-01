@@ -306,7 +306,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "return a correct values enumeration when an element has been inserted" in new freshDb {
       waitForResult(db.insert(Json.obj("key" -> "value"), "docid"))
-      val JsString(rev) = waitForResult(db.allDocs()).values[JsValue].head \ "rev"
+      val rev = (waitForResult(db.allDocs()).values[JsValue].head \ "rev").as[String]
       rev must be matching "1-[0-9a-f]{32}"
     }
 
@@ -332,27 +332,25 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "return full docs in include_docs mode" in new freshDb {
       waitForResult(db.insert(Json.obj("key" -> "value")))
-      waitForResult(db.allDocs(Map("include_docs" -> "true"))).docs[JsValue].head \ "key" must
-        be equalTo JsString("value")
+      (waitForResult(db.allDocs(Map("include_docs" -> "true"))).docs[JsValue].head \ "key").as[String] must be equalTo "value"
     }
 
     "return full docs in include_docs mode and option" in new freshDb {
       waitForResult(db.insert(Json.obj("key" -> "value"), "docid"))
-      (waitForResult(db.allDocs(Map("include_docs" -> "true"))).docs[JsValue].head \ "key") must
-        be equalTo JsString("value")
+      (waitForResult(db.allDocs(Map("include_docs" -> "true"))).docs[JsValue].head \ "key").as[String] must be equalTo "value"
     }
 
   }
 
   "db.compact()" should {
     "return with success" in new freshDb {
-      waitForResult(db.compact()) \ "ok" must be equalTo JsBoolean(true)
+      (waitForResult(db.compact()) \ "ok").as[Boolean] must beTrue
     }
   }
 
   "db.ensureFullCommit()" should {
     "return with success" in new freshDb {
-      waitForResult(db.ensureFullCommit()) \ "ok" must be equalTo JsBoolean(true)
+      (waitForResult(db.ensureFullCommit()) \ "ok").as[Boolean] must beTrue
     }
   }
 
@@ -363,14 +361,14 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "contain the only change" in new freshDb {
       val id = waitForResult(insertedId(db.insert(Json.obj())))
-      (waitForResult(db.changes()) \ "results").as[List[JsObject]].head \ "id" must be equalTo JsString(id)
+      ((waitForResult(db.changes()) \ "results").as[List[JsObject]].head \ "id").as[String] must be equalTo id
     }
 
     "return the change in long-polling state" in new freshDb {
       val changes = db.changes(Map("feed" -> "longpoll"))
       changes.isCompleted must beFalse
       val id = waitForResult(insertedId(db.insert(Json.obj())))
-      (waitForResult(changes) \ "results").as[List[JsObject]].head \ "id" must be equalTo JsString(id)
+      ((waitForResult(changes) \ "results").as[List[JsObject]].head \ "id").as[String] must be equalTo id
     }
   }
 
@@ -402,7 +400,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "properly disconnect after a timeout" in new freshDb {
       implicit val materializer = ActorMaterializer(None)
       val changes: Source[JsObject, Unit] = db.continuousChanges(Map("timeout" -> "100"))
-      val result = changes.map(_ \ "id").collect { case JsString(id) => id }.runFold[List[String]](Nil)(_ :+ _)
+      val result = changes.map(_ \ "id").collect { case JsDefined(JsString(id)) => id }.runFold[List[String]](Nil)(_ :+ _)
       waitForResult(result).sorted must be equalTo List()
     }
 
@@ -410,7 +408,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       implicit val materializer = ActorMaterializer(None)
       waitForEnd(db.insert(JsObject(Nil), "docid1"), db.insert(JsObject(Nil), "docid2"))
       val changes: Source[JsObject, Unit] = db.continuousChanges(Map("timeout" -> "100"))
-      val result = changes.map(_ \ "id").collect { case JsString(id) => id }.runFold[List[String]](Nil)(_ :+ _)
+      val result = changes.map(_ \ "id").collect { case JsDefined(JsString(id)) => id }.runFold[List[String]](Nil)(_ :+ _)
       waitForResult(result).sorted must be equalTo List("docid1", "docid2")
     }
 
@@ -455,35 +453,35 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "properly encode values" in new freshDb {
       installDesignAndDocs(db)
       val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo" -> "bar")))))
-      newDoc \ "_id" must be equalTo JsString("docid")
-      newDoc \ "_rev" must beAnInstanceOf[JsUndefined]
-      newDoc \ "foo" must be equalTo JsString("bar")
+      (newDoc \ "_id").as[String] must be equalTo "docid"
+      (newDoc \ "_rev").toOption must beNone
+      (newDoc \ "foo").as[String] must be equalTo "bar"
     }
 
     "properly encode values with non-ASCII characters" in new freshDb {
       installDesignAndDocs(db)
       val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo" -> "barré")))))
-      newDoc \ "_id" must be equalTo JsString("docid")
-      newDoc \ "_rev" must beAnInstanceOf[JsUndefined]
-      newDoc \ "foo" must be equalTo JsString("barré")
+      (newDoc \ "_id").as[String] must be equalTo "docid"
+      (newDoc \ "_rev").toOption must beNone
+      (newDoc \ "foo").as[String] must be equalTo "barré"
     }
 
     "properly insert documents" in new freshDb {
       installDesignAndDocs(db)
       waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo" -> "bar")))))
       val newDoc = waitForResult(db("docid"))
-      newDoc \ "_id" must be equalTo JsString("docid")
+      (newDoc \ "_id").as[String] must be equalTo "docid"
       (newDoc \ "_rev").as[String] must startWith("1-")
-      newDoc \ "foo" must be equalTo JsString("bar")
+      (newDoc \ "foo").as[String] must be equalTo "bar"
     }
 
     "properly insert documents with non-ASCII characters in id" in new freshDb {
       installDesignAndDocs(db)
       waitForResult(db.update("common", "upd", "docidé", Map("json" -> Json.stringify(Json.obj("foo" -> "bar")))))
       val newDoc = waitForResult(db("docidé"))
-      newDoc \ "_id" must be equalTo JsString("docidé")
+      (newDoc \ "_id").as[String] must be equalTo "docidé"
       (newDoc \ "_rev").as[String] must startWith("1-")
-      newDoc \ "foo" must be equalTo JsString("bar")
+      (newDoc \ "foo").as[String] must be equalTo "bar"
     }
 
     "properly update documents" in new freshDb {
@@ -491,10 +489,10 @@ class DatabaseSpec extends WithDbSpecification("db") {
       waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo" -> "bar")))))
       waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo2" -> "bar2")))))
       val updatedDoc = waitForResult(db("docid"))
-      updatedDoc \ "_id" must be equalTo JsString("docid")
+      (updatedDoc \ "_id").as[String] must be equalTo "docid"
       (updatedDoc \ "_rev").as[String] must startWith("2-")
-      updatedDoc \ "foo" must beAnInstanceOf[JsUndefined]
-      updatedDoc \ "foo2" must be equalTo JsString("bar2")
+      (updatedDoc \ "foo").toOption must beNone
+      (updatedDoc \ "foo2").as[String] must be equalTo "bar2"
     }
   }
 

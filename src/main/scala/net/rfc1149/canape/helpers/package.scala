@@ -31,14 +31,14 @@ package object helpers {
   }
 
   def getConflicting(db: Database, doc: JsObject)(implicit context: ExecutionContext): Future[Seq[JsObject]] = {
-    val JsString(id) = doc \ "_id"
+    val id = (doc \ "_id").as[String]
     val revs = (doc \ "_conflicts").as[Seq[String]]
     getRevs(db, id, revs) map { doc +: _ }
   }
 
   def getConflictingRevs(db: Database, id: String)(implicit context: ExecutionContext): Future[Seq[String]] =
     db(id, Map("conflicts" -> "true")) map { js: JsValue =>
-      (js \ "_rev").as[String] +: (js \ "_conflicts").as[Option[List[String]]].getOrElse(Seq())
+      (js \ "_rev").as[String] +: (js \ "_conflicts").asOpt[List[String]].getOrElse(Seq())
     }
 
 }

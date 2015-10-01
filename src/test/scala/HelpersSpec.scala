@@ -63,7 +63,7 @@ class HelpersSpec extends WithDbSpecification("helpers") {
           docs.head - "extra" ++ Json.obj("extra" -> extra)
       })
       waitForResult(getConflictingRevs(db, "docid")) must have size(1)
-      (waitForResult(db("docid")) \ "extra") must be equalTo(Json.parse("""["one", "other", "yet-another"]"""))
+      (waitForResult(db("docid")) \ "extra").get must be equalTo(Json.parse("""["one", "other", "yet-another"]"""))
     }
 
   }
