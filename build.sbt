@@ -9,7 +9,7 @@ scalaVersion := "2.11.7"
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.3.13",
+  "com.typesafe.akka" %% "akka-actor" % "2.4.0",
   "com.typesafe.akka" %% "akka-stream-experimental" % "1.0",
   "com.typesafe.akka" %% "akka-http-experimental" % "1.0",
   "com.typesafe.play" %% "play-json" % "2.3.9",
