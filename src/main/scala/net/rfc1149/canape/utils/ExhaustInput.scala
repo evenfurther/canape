@@ -8,10 +8,10 @@ object ExhaustInput {
   def apply[T](): ExhaustInput[T] = new ExhaustInput[T]
 }
 
-class ExhaustInput[T] extends GraphStage[UniformFanInShape[T, T]] {
+class ExhaustInput[T] extends GraphStage[FlowShape[T, T]] {
   val in: Inlet[T] = Inlet[T]("ExhaustInput.in")
   val out: Outlet[T] = Outlet[T]("ExhaustInput.out")
-  override val shape: UniformFanInShape[T, T] = UniformFanInShape(out, in)
+  override val shape: FlowShape[T, T] = FlowShape(in, out)
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
 
