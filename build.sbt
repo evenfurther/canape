@@ -2,7 +2,7 @@ name := "canape"
 
 organization := "net.rfc1149"
 
-version := "0.0.7-SNAPSHOT"
+version := "0.0.8-SNAPSHOT"
 
 scalaVersion := "2.11.7"
 
@@ -10,8 +10,8 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.4.0",
-  "com.typesafe.akka" %% "akka-stream-experimental" % "1.0",
-  "com.typesafe.akka" %% "akka-http-experimental" % "1.0",
+  "com.typesafe.akka" %% "akka-stream-experimental" % "2.0-M1",
+  "com.typesafe.akka" %% "akka-http-experimental" % "2.0-M1",
   "com.typesafe.play" %% "play-json" % "2.4.3",
   "net.ceedubs" %% "ficus" % "1.1.2",
   "org.specs2" %% "specs2-core" % "3.6.4" % "test"

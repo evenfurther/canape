@@ -1,8 +1,8 @@
 package net.rfc1149.canape
 
-import akka.http.scaladsl.model.Uri.Path
+import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
-import akka.stream.scaladsl.{FlattenStrategy, Flow, Sink, Source}
+import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.util.ByteString
 import play.api.libs.json._
 
@@ -36,7 +36,7 @@ case class Database(couch: Couch, databaseName: String) {
   private def encode(extra: String, properties: Seq[(String, String)] = Seq()): Uri = {
     val components = extra.split('/')
     val base = Uri().withPath(components.foldLeft(localPath)(_ / _))
-    if (properties.isEmpty) base else base.withQuery(properties.toMap)
+    if (properties.isEmpty) base else base.withQuery(Query(properties.toMap))
   }
 
   /**
@@ -200,8 +200,9 @@ case class Database(couch: Couch, databaseName: String) {
     couch.makePostRequest[Seq[JsObject]](encode("_bulk_docs"), args)
   }
 
-  private[this] def batchMode(query: Uri, batch: Boolean) =
-    if (batch) query.withQuery(("batch" -> "ok") +: query.query) else query
+  private[this] def batchMode(query: Uri, batch: Boolean) = {
+    if (batch) query.withQuery(("batch" -> "ok") +: query.query()) else query
+  }
 
   /**
    * Insert a document into the database.
@@ -237,7 +238,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param id the id of the document
    * @param revs the revisions to delete (may be empty)
    * @param allOrNothing `true` if all deletions must succeed or fail atomically
-   * @return a list of revisions that have been succesfully deleted
+   * @return a list of revisions that have been successfully deleted
    */
   def delete(id: String, revs: Seq[String], allOrNothing: Boolean = false): Future[Seq[String]] =
     revs match {
@@ -357,14 +358,14 @@ case class Database(couch: Couch, databaseName: String) {
    */
   def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, Unit] = {
     val request = couch.Post(encode("_changes", (params + ("feed" -> "continuous")).toSeq), extraParams)
-    couch.sendPotentiallyBlockingRequest(request).map {
+    couch.sendPotentiallyBlockingRequest(request).flatMapConcat {
       case Success(response) if response.status.isSuccess() =>
         response.entity.dataBytes
       case Success(response) =>
         sys.error(response.status.reason())
       case Failure(t) =>
         throw t
-    }.flatten(FlattenStrategy.concat).via(filterJson)
+    }.via(filterJson)
   }
 
   /**
