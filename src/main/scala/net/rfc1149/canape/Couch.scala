@@ -1,7 +1,7 @@
 package net.rfc1149.canape
 
 import akka.actor.ActorSystem
-import akka.http.ConnectionPoolSettings
+import akka.http.{ClientConnectionSettings, ConnectionPoolSettings}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.HostConnectionPool
 import akka.http.scaladsl.marshalling.{PredefinedToEntityMarshallers, ToEntityMarshaller}
@@ -50,7 +50,8 @@ class Couch(val host: String = "localhost",
 
   // Create a new blocking connection pool because reusing an existing one leads to unexpected spurious disconnections.
   private[this] def blockingHostConnectionPool : Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
-    val connectionPoolSettings = ConnectionPoolSettings.create(system).copy(maxRetries = 0, pipeliningLimit = 1)
+    val clientConnectionSettings = ClientConnectionSettings.create(system).copy(idleTimeout = Duration.Inf)
+    val connectionPoolSettings = ConnectionPoolSettings.create(system).copy(maxRetries = 0, pipeliningLimit = 1, connectionSettings = clientConnectionSettings)
     val pool = Http().newHostConnectionPool[Any](host, port, settings = connectionPoolSettings)
     Flow[(HttpRequest, Any)].viaMat(pool)(Keep.right)
   }
