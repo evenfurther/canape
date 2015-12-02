@@ -9,9 +9,9 @@ scalaVersion := "2.11.7"
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.0",
-  "com.typesafe.akka" %% "akka-stream-experimental" % "2.0-M1",
-  "com.typesafe.akka" %% "akka-http-experimental" % "2.0-M1",
+  "com.typesafe.akka" %% "akka-actor" % "2.4.1",
+  "com.typesafe.akka" %% "akka-stream-experimental" % "2.0-M2",
+  "com.typesafe.akka" %% "akka-http-experimental" % "2.0-M2",
   "com.typesafe.play" %% "play-json" % "2.4.3",
   "net.ceedubs" %% "ficus" % "1.1.2",
   "org.specs2" %% "specs2-core" % "3.6.4" % "test"

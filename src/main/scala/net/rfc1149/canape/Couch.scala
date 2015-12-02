@@ -61,8 +61,16 @@ class Couch(val host: String = "localhost",
    *
    * @param request the request to send
    */
-  def sendRequest(request: HttpRequest): Future[HttpResponse] =
-    Source.single(request -> null).via(hostConnectionPool).runWith(Sink.head).map(_._1.get)
+  def sendRequest(request: HttpRequest): Future[HttpResponse] = {
+    system.log.debug(s"Sending ${request.getUri()}")
+    val req: Source[(Try[HttpResponse], Any), Unit] = Source.single(request -> null).via(hostConnectionPool)
+    val req2: Source[(Try[HttpResponse], Any), Unit] = req.recover {
+      case t: Throwable =>
+        system.log.error(s"Failed request ${request.getUri()}", t)
+        throw t
+    }
+    req2.runWith(Sink.head).map(_._1.get)
+  }
 
   /**
    * Send an arbitrary HTTP request on the potentially blocking bool.
