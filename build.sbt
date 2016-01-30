@@ -10,9 +10,9 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.4.1",
-  "com.typesafe.akka" %% "akka-stream-experimental" % "2.0-M2",
-  "com.typesafe.akka" %% "akka-http-experimental" % "2.0-M2",
-  "com.typesafe.play" %% "play-json" % "2.4.3",
+  "com.typesafe.akka" %% "akka-stream-experimental" % "2.0.3",
+  "com.typesafe.akka" %% "akka-http-experimental" % "2.0.3",
+  "com.typesafe.play" %% "play-json" % "2.4.6",
   "net.ceedubs" %% "ficus" % "1.1.2",
   "org.specs2" %% "specs2-core" % "3.6.4" % "test"
 )

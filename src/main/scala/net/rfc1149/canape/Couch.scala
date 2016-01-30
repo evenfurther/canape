@@ -1,7 +1,6 @@
 package net.rfc1149.canape
 
 import akka.actor.ActorSystem
-import akka.http.{ClientConnectionSettings, ConnectionPoolSettings}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.HostConnectionPool
 import akka.http.scaladsl.marshalling.{PredefinedToEntityMarshallers, ToEntityMarshaller}
@@ -10,6 +9,7 @@ import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Accept, Authorization, BasicHttpCredentials, `User-Agent`}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
+import akka.http.{ClientConnectionSettings, ConnectionPoolSettings}
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
@@ -162,7 +162,7 @@ class Couch(val host: String = "localhost",
    * @throws CouchError if an error occurs
    */
   def makePostRequest[T: Reads](query: Uri, data: FormData): Future[T] = {
-    val payload = HttpEntity(ContentType(MediaTypes.`application/x-www-form-urlencoded`), data.fields.toString())
+    val payload = HttpEntity(ContentType(MediaTypes.`application/x-www-form-urlencoded`, HttpCharsets.`UTF-8`), data.fields.toString())
     sendRequest(Post(query, payload)).flatMap(checkResponse[T])
   }
 

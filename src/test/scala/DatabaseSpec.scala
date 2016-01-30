@@ -355,6 +355,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
   }
 
   "db.changes()" should {
+
     "represent an empty set" in new freshDb {
       (waitForResult(db.changes()) \ "results").as[List[JsObject]] must beEmpty
     }
