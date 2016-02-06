@@ -1,5 +1,6 @@
 package net.rfc1149.canape
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.HostConnectionPool
@@ -8,8 +9,8 @@ import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Accept, Authorization, BasicHttpCredentials, `User-Agent`}
+import akka.http.scaladsl.settings.{ConnectionPoolSettings, ClientConnectionSettings}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
-import akka.http.{ClientConnectionSettings, ConnectionPoolSettings}
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
@@ -46,12 +47,12 @@ class Couch(val host: String = "localhost",
   private[this] implicit val timeout: Timeout = canapeConfig.as[FiniteDuration]("request-timeout")
 
   private[this] lazy val hostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] =
-    Http().newHostConnectionPool[Any](host, port)
+    Http().newHostConnectionPool[Any](host, port, settings = ConnectionPoolSettings(config))
 
   // Create a new blocking connection pool because reusing an existing one leads to unexpected spurious disconnections.
   private[this] def blockingHostConnectionPool : Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
-    val clientConnectionSettings = ClientConnectionSettings.create(system).copy(idleTimeout = Duration.Inf)
-    val connectionPoolSettings = ConnectionPoolSettings.create(system).copy(maxRetries = 0, pipeliningLimit = 1, connectionSettings = clientConnectionSettings)
+    val clientConnectionSettings = ClientConnectionSettings(config).withIdleTimeout(Duration.Inf)
+    val connectionPoolSettings = ConnectionPoolSettings(config).withMaxRetries(0).withPipeliningLimit(1).withConnectionSettings(clientConnectionSettings)
     val pool = Http().newHostConnectionPool[Any](host, port, settings = connectionPoolSettings)
     Flow[(HttpRequest, Any)].viaMat(pool)(Keep.right)
   }
@@ -63,8 +64,8 @@ class Couch(val host: String = "localhost",
    */
   def sendRequest(request: HttpRequest): Future[HttpResponse] = {
     system.log.debug(s"Sending ${request.getUri()}")
-    val req: Source[(Try[HttpResponse], Any), Unit] = Source.single(request -> null).via(hostConnectionPool)
-    val req2: Source[(Try[HttpResponse], Any), Unit] = req.recover {
+    val req: Source[(Try[HttpResponse], Any), NotUsed] = Source.single(request -> null).via(hostConnectionPool)
+    val req2: Source[(Try[HttpResponse], Any), NotUsed] = req.recover {
       case t: Throwable =>
         system.log.error(s"Failed request ${request.getUri()}", t)
         throw t
@@ -77,7 +78,7 @@ class Couch(val host: String = "localhost",
    *
    * @param request the request to send
    */
-  def sendPotentiallyBlockingRequest(request: HttpRequest): Source[Try[HttpResponse], Unit] =
+  def sendPotentiallyBlockingRequest(request: HttpRequest): Source[Try[HttpResponse], NotUsed] =
     request.method match {
       case HttpMethods.POST =>
         Source.single(request -> null).via(blockingHostConnectionPool).map(_._1)
@@ -305,7 +306,7 @@ object Couch {
     }
   }
 
-  private[canape] def checkResponse[T: Reads](implicit fm: Materializer, ec: ExecutionContext): Flow[Try[HttpResponse], T, Unit] = {
+  private[canape] def checkResponse[T: Reads](implicit fm: Materializer, ec: ExecutionContext): Flow[Try[HttpResponse], T, NotUsed] = {
     Flow[Try[HttpResponse]].mapAsync[T](1)(response => checkResponse[T](response.get))
   }
 

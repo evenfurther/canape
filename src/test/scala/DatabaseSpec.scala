@@ -1,3 +1,4 @@
+import akka.NotUsed
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
@@ -384,7 +385,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "see the creation of new documents" in new freshDb {
       implicit val materializer = ActorMaterializer(None)
-      val changes: Source[JsObject, Unit] = db.continuousChanges()
+      val changes: Source[JsObject, NotUsed] = db.continuousChanges()
       val result = changes.via(Database.onlySeq).map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.insert(JsObject(Nil), "docid1"), db.insert(JsObject(Nil), "docid2"), db.insert(JsObject(Nil), "docid3"))
       waitForResult(result).sorted must be equalTo List("docid1", "docid2", "docid3")
@@ -392,7 +393,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "see the creation of new documents with non-ASCII id" in new freshDb {
       implicit val materializer = ActorMaterializer(None)
-      val changes: Source[JsObject, Unit] = db.continuousChanges()
+      val changes: Source[JsObject, NotUsed] = db.continuousChanges()
       val result = changes.map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.insert(JsObject(Nil), "docidé"), db.insert(JsObject(Nil), "docidà"), db.insert(JsObject(Nil), "docidß"))
       waitForResult(result).sorted must be equalTo List("docidß", "docidà", "docidé")
@@ -400,7 +401,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "properly disconnect after a timeout" in new freshDb {
       implicit val materializer = ActorMaterializer(None)
-      val changes: Source[JsObject, Unit] = db.continuousChanges(Map("timeout" -> "100"))
+      val changes: Source[JsObject, NotUsed] = db.continuousChanges(Map("timeout" -> "100"))
       val result = changes.map(_ \ "id").collect { case JsDefined(JsString(id)) => id }.runFold[List[String]](Nil)(_ :+ _)
       waitForResult(result).sorted must be equalTo List()
     }
@@ -408,7 +409,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "see documents operations occuring before the timeout" in new freshDb {
       implicit val materializer = ActorMaterializer(None)
       waitForEnd(db.insert(JsObject(Nil), "docid1"), db.insert(JsObject(Nil), "docid2"))
-      val changes: Source[JsObject, Unit] = db.continuousChanges(Map("timeout" -> "100"))
+      val changes: Source[JsObject, NotUsed] = db.continuousChanges(Map("timeout" -> "100"))
       val result = changes.map(_ \ "id").collect { case JsDefined(JsString(id)) => id }.runFold[List[String]](Nil)(_ :+ _)
       waitForResult(result).sorted must be equalTo List("docid1", "docid2")
     }
@@ -417,7 +418,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       implicit val materializer = ActorMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
       waitForEnd(db.insert(Json.obj("filters" -> Json.obj("namedfoo" -> filter)), "_design/common"))
-      val changes: Source[JsObject, Unit] = db.continuousChanges(Map("filter" -> "common/namedfoo"))
+      val changes: Source[JsObject, NotUsed] = db.continuousChanges(Map("filter" -> "common/namedfoo"))
       val result = changes.map(j => (j \ "id").as[String]).take(2).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.bulkDocs(Seq(Json.obj("name" -> "foo", "_id" -> "docid1"), Json.obj("name" -> "bar", "_id" -> "docid2"),
         Json.obj("name" -> "foo", "_id" -> "docid3"), Json.obj("name" -> "bar", "_id" -> "docid4"))))
@@ -427,7 +428,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "be able to filter changes by document ids" in new freshDb {
       implicit val materializer = ActorMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
-      val changes: Source[JsObject, Unit] = db.continuousChangesByDocIds(List("docid1", "docid4"))
+      val changes: Source[JsObject, NotUsed] = db.continuousChangesByDocIds(List("docid1", "docid4"))
       val result = changes.map(j => (j \ "id").as[String]).take(2).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.bulkDocs(Seq(Json.obj("name" -> "foo", "_id" -> "docid1"), Json.obj("name" -> "bar", "_id" -> "docid2"),
         Json.obj("name" -> "foo", "_id" -> "docid3"), Json.obj("name" -> "bar", "_id" -> "docid4"))))

@@ -1,5 +1,6 @@
 package net.rfc1149.canape
 
+import akka.NotUsed
 import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
 import akka.stream.scaladsl.{Flow, Sink, Source}
@@ -304,7 +305,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param extraParams the extra parameters to add to the request, such as a long list of doc ids
    * @return a source with the only change
    */
-  def changesSource(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsValue, Unit] = {
+  def changesSource(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsValue, NotUsed] = {
     val request = couch.Post(encode("_changes", params.toSeq), extraParams)
     couch.sendPotentiallyBlockingRequest(request).via(checkResponse[JsValue])
   }
@@ -356,7 +357,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param extraParams the extra parameters to the request such as a long list of doc ids
    * @return a source containing the changes
    */
-  def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, Unit] = {
+  def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, NotUsed] = {
     val request = couch.Post(encode("_changes", (params + ("feed" -> "continuous")).toSeq), extraParams)
     couch.sendPotentiallyBlockingRequest(request).flatMapConcat {
       case Success(response) if response.status.isSuccess() =>
@@ -376,7 +377,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param extraParams the extra parameters to the request (passed in the body)
    * @return a source containing the changes
    */
-  def continuousChangesByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, Unit] =
+  def continuousChangesByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, NotUsed] =
     continuousChanges(params + ("filter" -> "_doc_ids"), extraParams ++ Json.obj("doc_ids" -> docIds))
 
 }
@@ -388,9 +389,9 @@ object Database {
   /**
    * Filter objects that contains a `seq` field. To be used with [[Database#continousChanges]].
    */
-  val onlySeq: Flow[JsObject, JsObject, Unit] = Flow[JsObject].filter(_.keys.contains("seq"))
+  val onlySeq: Flow[JsObject, JsObject, NotUsed] = Flow[JsObject].filter(_.keys.contains("seq"))
 
-  private val filterJson: Flow[ByteString, JsObject, Unit] =
+  private val filterJson: Flow[ByteString, JsObject, NotUsed] =
     Flow[ByteString].mapConcat { bs =>
       new String(bs.toArray, "UTF-8").split("\r?\n").filter(_.length > 1).map(Json.parse(_).as[JsObject]).toList
     }
