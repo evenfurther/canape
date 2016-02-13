@@ -5,13 +5,13 @@ import play.api.libs.json.{JsValue, Json}
 
 class URISpec extends Specification {
 
-  import implicits._
-
   implicit val system = ActorSystem()
   implicit val dispatcher = system.dispatcher
 
   val cunauth = new Couch("db.example.com", 5984)
   val cauth = new Couch("db.example.com", 5984, Some(("admin", "xyzzy")))
+  val scunauth = new Couch("db.example.com", 5984, secure = true)
+  val scauth = new Couch("db.example.com", 5984, Some(("admin", "xyzzy")), secure = true)
 
   "The 'Couch' class" should {
     "return the right unauthentified URI" in {
@@ -22,18 +22,28 @@ class URISpec extends Specification {
       cauth.uri.toString mustEqual "http://admin:xyzzy@db.example.com:5984"
     }
 
+    "return the right unauthentified URI in secure mode" in {
+      scunauth.uri.toString mustEqual "https://db.example.com:5984"
+    }
+
+    "return the right authentified URI in secure mode" in {
+      scauth.uri.toString mustEqual "https://admin:xyzzy@db.example.com:5984"
+    }
+
     "complete missing arguments" in {
-      ((new Couch()).uri.toString mustEqual "http://localhost:5984") &&
-      ((new Couch(auth = Some("admin", "xyzzy"))).uri.toString mustEqual "http://admin:xyzzy@localhost:5984") &&
-      ((new Couch("db.example.com")).uri.toString mustEqual "http://db.example.com:5984") &&
-      ((new Couch("db.example.com", auth = Some("admin", "xyzzy"))).uri.toString mustEqual "http://admin:xyzzy@db.example.com:5984") &&
-      ((new Couch("db.example.com", 80, Some("admin", "xyzzy"))).uri.toString mustEqual "http://admin:xyzzy@db.example.com")
+      (new Couch().uri.toString mustEqual "http://localhost:5984") &&
+      (new Couch(auth = Some("admin", "xyzzy")).uri.toString mustEqual "http://admin:xyzzy@localhost:5984") &&
+      (new Couch("db.example.com").uri.toString mustEqual "http://db.example.com:5984") &&
+      (new Couch("db.example.com", auth = Some("admin", "xyzzy")).uri.toString mustEqual "http://admin:xyzzy@db.example.com:5984") &&
+      (new Couch("db.example.com", 80, Some("admin", "xyzzy")).uri.toString mustEqual "http://admin:xyzzy@db.example.com")
     }
 
     "mask the password in toString" in {
-      ((new Couch()).toString mustEqual "http://localhost:5984") &&
-      ((new Couch(auth = Some("admin", "xyzzy"))).toString mustEqual "http://admin:********@localhost:5984") &&
-      ((new Couch("db.example.com", 80, Some("admin", "xyzzy"))).toString mustEqual "http://admin:********@db.example.com")
+      (new Couch().toString mustEqual "http://localhost:5984") &&
+      (new Couch(auth = Some("admin", "xyzzy")).toString mustEqual "http://admin:********@localhost:5984") &&
+      (new Couch(auth = Some("admin", "xyzzy"), secure = true).toString mustEqual "https://admin:********@localhost:5984") &&
+      (new Couch("db.example.com", 80, Some("admin", "xyzzy")).toString mustEqual "http://admin:********@db.example.com") &&
+      (new Couch("db.example.com", 443, Some("admin", "xyzzy"), true).toString mustEqual "https://admin:********@db.example.com")
     }
 
     "properly analyze the status" in {

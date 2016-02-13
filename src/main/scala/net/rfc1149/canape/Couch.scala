@@ -24,16 +24,22 @@ import scala.language.implicitConversions
 import scala.util.Try
 
 /**
- * Connexion to a CouchDB server.
- *
- * @param host the server host name or IP address
- * @param port the server port
- * @param auth an optional (login, password) pair
- */
+  * Connexion to a CouchDB server.
+  *
+  * @param host the server host name or IP address
+  * @param port the server port
+  * @param auth an optional (login, password) pair
+  * @param secure use HTTPS instead of HTTP
+  * @param config alternate configuration to use
+  *
+  * @note HTTPS does not work with virtual servers using SNI with Akka 2.4.2-RC2,
+  *       see [[https://github.com/akka/akka/issues/19287#issuecomment-183680774]].
+  */
 
 class Couch(val host: String = "localhost",
             val port: Int = 5984,
             val auth: Option[(String, String)] = None,
+            val secure: Boolean = false,
             val config: Config = ConfigFactory.load())
            (implicit private[canape] val system: ActorSystem) {
 
@@ -46,22 +52,30 @@ class Couch(val host: String = "localhost",
   private[this] val userAgent = `User-Agent`(canapeConfig.as[String]("user-agent"))
   private[this] implicit val timeout: Timeout = canapeConfig.as[FiniteDuration]("request-timeout")
 
+  private[this] def createPool(settings: ConnectionPoolSettings): Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
+    val pool =
+      if (secure)
+        Http().newHostConnectionPoolHttps[Any](host, port, settings = settings)
+      else
+        Http().newHostConnectionPool[Any](host, port, settings = settings)
+    Flow[(HttpRequest, Any)].viaMat(pool)(Keep.right)
+  }
+
   private[this] lazy val hostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] =
-    Http().newHostConnectionPool[Any](host, port, settings = ConnectionPoolSettings(config))
+    createPool(ConnectionPoolSettings(config))
 
   // Create a new blocking connection pool because reusing an existing one leads to unexpected spurious disconnections.
   private[this] def blockingHostConnectionPool : Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
     val clientConnectionSettings = ClientConnectionSettings(config).withIdleTimeout(Duration.Inf)
     val connectionPoolSettings = ConnectionPoolSettings(config).withMaxRetries(0).withPipeliningLimit(1).withConnectionSettings(clientConnectionSettings)
-    val pool = Http().newHostConnectionPool[Any](host, port, settings = connectionPoolSettings)
-    Flow[(HttpRequest, Any)].viaMat(pool)(Keep.right)
+    createPool(connectionPoolSettings)
   }
 
   /**
-   * Send an arbitrary HTTP request on the regular (non-blocking) pool.
-   *
-   * @param request the request to send
-   */
+    * Send an arbitrary HTTP request on the regular (non-blocking) pool.
+    *
+    * @param request the request to send
+    */
   def sendRequest(request: HttpRequest): Future[HttpResponse] = {
     system.log.debug(s"Sending ${request.getUri()}")
     val req: Source[(Try[HttpResponse], Any), NotUsed] = Source.single(request -> null).via(hostConnectionPool)
@@ -74,10 +88,10 @@ class Couch(val host: String = "localhost",
   }
 
   /**
-   * Send an arbitrary HTTP request on the potentially blocking bool.
-   *
-   * @param request the request to send
-   */
+    * Send an arbitrary HTTP request on the potentially blocking bool.
+    *
+    * @param request the request to send
+    */
   def sendPotentiallyBlockingRequest(request: HttpRequest): Source[Try[HttpResponse], NotUsed] =
     request.method match {
       case HttpMethods.POST =>
@@ -85,8 +99,6 @@ class Couch(val host: String = "localhost",
       case _ =>
         Source.failed(new IllegalArgumentException("potentially blocking request must use POST method"))
     }
-    // The request is sent in HTTP/1.0 to ensure that no other request will be enqueued on the same outgoing connection
-
 
   private[this] val defaultHeaders = {
     val authHeader = auth map { case (login, password) => Authorization(BasicHttpCredentials(login, password)) }
@@ -105,45 +117,43 @@ class Couch(val host: String = "localhost",
     HttpRequest(DELETE, uri = query, headers = defaultHeaders)
 
   /**
-   * Build a GET HTTP request.
-   *
-   * @param query the query string, including the already-encoded optional parameters
-   * @return a future containing the HTTP response
-   */
+    * Build a GET HTTP request.
+    *
+    * @param query the query string, including the already-encoded optional parameters
+    * @return a future containing the HTTP response
+    */
   def makeRawGetRequest(query: Uri): Future[HttpResponse] = sendRequest(Get(query))
 
   /**
-   * Build a GET HTTP request.
-   *
-   * @param query the query string, including the already-encoded optional parameters
-   * @tparam T the type of the result
-   * @return a future containing the required result
-   */
+    * Build a GET HTTP request.
+    *
+    * @param query the query string, including the already-encoded optional parameters
+    * @tparam T the type of the result
+    * @return a future containing the required result
+    */
   def makeGetRequest[T: Reads](query: Uri): Future[T] =
     makeRawGetRequest(query).flatMap(checkResponse[T])
 
   /**
-   * Build a POST HTTP request.
-   *
-   * @param query the query string, including the already-encoded optional parameters
-   * @param data the data to post
-   * @tparam T the type of the result
-   * @return a future containing the required result
-   *
-   * @throws CouchError if an error occurs
-   */
+    * Build a POST HTTP request.
+    *
+    * @param query the query string, including the already-encoded optional parameters
+    * @param data the data to post
+    * @tparam T the type of the result
+    * @return a future containing the required result
+    * @throws CouchError if an error occurs
+    */
   def makePostRequest[T: Reads](query: Uri, data: JsObject): Future[T] =
     sendRequest(Post(query, data)).flatMap(checkResponse[T])
 
   /**
-   * Build a POST HTTP request.
-   *
-   * @param query the query string, including the already-encoded optional parameters
-   * @tparam T the type of the result
-   * @return A future containing the required result
-   *
-   * @throws CouchError if an error occurs
-   */
+    * Build a POST HTTP request.
+    *
+    * @param query the query string, including the already-encoded optional parameters
+    * @tparam T the type of the result
+    * @return A future containing the required result
+    * @throws CouchError if an error occurs
+    */
   def makePostRequest[T: Reads](query: Uri): Future[T] = {
     // Because of bug COUCHDB-2583, some methods require an empty payload with content-type
     // `application/json`, which is invalid. We will generate it anyway to be compatible
@@ -153,59 +163,55 @@ class Couch(val host: String = "localhost",
   }
 
   /**
-   * Build a POST HTTP request.
-   *
-   * @param query the query string, including the already-encoded optional parameters
-   * @param data the data to post
-   * @tparam T the type of the result
-   * @return a future containing the required result
-   *
-   * @throws CouchError if an error occurs
-   */
+    * Build a POST HTTP request.
+    *
+    * @param query the query string, including the already-encoded optional parameters
+    * @param data the data to post
+    * @tparam T the type of the result
+    * @return a future containing the required result
+    * @throws CouchError if an error occurs
+    */
   def makePostRequest[T: Reads](query: Uri, data: FormData): Future[T] = {
     val payload = HttpEntity(ContentType(MediaTypes.`application/x-www-form-urlencoded`, HttpCharsets.`UTF-8`), data.fields.toString())
     sendRequest(Post(query, payload)).flatMap(checkResponse[T])
   }
 
   /**
-   * Build a PUT HTTP request.
-   *
-   * @param query the query string, including the already-encoded optional parameters
-   * @param data the data to post
-   * @tparam T the type of the result
-   * @return a future containing the required result
-   *
-   * @throws CouchError if an error occurs
-   */
+    * Build a PUT HTTP request.
+    *
+    * @param query the query string, including the already-encoded optional parameters
+    * @param data the data to post
+    * @tparam T the type of the result
+    * @return a future containing the required result
+    * @throws CouchError if an error occurs
+    */
   def makePutRequest[T: Reads](query: Uri, data: JsValue): Future[T] =
     sendRequest(Put(query, data)).flatMap(checkResponse[T])
 
   /**
-   * Build a PUT HTTP request.
-   *
-   * @param query the query string, including the already-encoded optional parameters
-   * @tparam T the type of the result
-   * @return a future containing the required result
-   *
-   * @throws CouchError if an error occurs
-   */
+    * Build a PUT HTTP request.
+    *
+    * @param query the query string, including the already-encoded optional parameters
+    * @tparam T the type of the result
+    * @return a future containing the required result
+    * @throws CouchError if an error occurs
+    */
   def makePutRequest[T: Reads](query: Uri): Future[T] =
     sendRequest(Put(query)).flatMap(checkResponse[T])
 
   /**
-   * Build a DELETE HTTP request.
-   *
-   * @param query the query string, including the already-encoded optional parameters
-   * @tparam T the type of the result
-   * @return a future containing the required result
-   *
-   * @throws CouchError if an error occurs
-   */
+    * Build a DELETE HTTP request.
+    *
+    * @param query the query string, including the already-encoded optional parameters
+    * @tparam T the type of the result
+    * @return a future containing the required result
+    * @throws CouchError if an error occurs
+    */
   def makeDeleteRequest[T: Reads](query: Uri): Future[T] =
     sendRequest(Delete(query)).flatMap(checkResponse[T])
 
   private[this] def buildURI(fixedAuth: Option[(String, String)]): Uri =
-    Uri().withScheme("http").withHost(host).withPort(port).withUserInfo(fixedAuth.map(u => s"${u._1}:${u._2}").getOrElse(""))
+    Uri().withScheme(if (secure) "https" else "http").withHost(host).withPort(port).withUserInfo(fixedAuth.map(u => s"${u._1}:${u._2}").getOrElse(""))
 
   /** URI that refers to the database */
   val uri = buildURI(auth)
@@ -222,74 +228,71 @@ class Couch(val host: String = "localhost",
   override def toString = buildURI(auth.map(x => (x._1, "********"))).toString()
 
   /**
-   * Launch a mono-directional replication.
-   *
-   * @param source the database to replicate from
-   * @param target the database to replicate into
-   * @param params extra parameters to the request
-   * @return a request
-   *
-   * @throws CouchError if an error occurs
-   */
+    * Launch a mono-directional replication.
+    *
+    * @param source the database to replicate from
+    * @param target the database to replicate into
+    * @param params extra parameters to the request
+    * @return a request
+    * @throws CouchError if an error occurs
+    */
   def replicate(source: Database, target: Database, params: JsObject = Json.obj()): Future[JsObject] = {
     makePostRequest[JsObject]("/_replicate", params ++ Json.obj("source" -> source.uriFrom(this), "target" -> target.uriFrom(this)))
   }
 
   /**
-   * CouchDB installation status.
-   *
-   * @return a request
-   *
-   * @throws CouchError if an error occurs
-   */
+    * CouchDB installation status.
+    *
+    * @return a request
+    * @throws CouchError if an error occurs
+    */
   def status(): Future[Status] = makeGetRequest[Status]("/")
 
   /**
-   * CouchDB active tasks.
-   *
-   * @return a request
-   *
-   * @throws CouchError if an error occurs
-   */
+    * CouchDB active tasks.
+    *
+    * @return a request
+    * @throws CouchError if an error occurs
+    */
   def activeTasks(): Future[List[JsObject]] = makeGetRequest[List[JsObject]]("/_active_tasks")
 
   /**
-   * Request UUIDs from the database.
-   *
-   * @param count the number of UUIDs to return
-   * @return a sequence of UUIDs
-   */
+    * Request UUIDs from the database.
+    *
+    * @param count the number of UUIDs to return
+    * @return a sequence of UUIDs
+    */
   def getUUIDs(count: Int): Future[Seq[String]] =
     makeGetRequest[JsObject](s"/_uuids?count=$count") map { r => (r \ "uuids").as[Seq[String]] }
 
   /**
-   * Request an UUID from the database.
-   *
-   * @return an UUID
-   */
+    * Request an UUID from the database.
+    *
+    * @return an UUID
+    */
   def getUUID: Future[String] = getUUIDs(1).map(_.head)
 
   /**
-   * Get a named database. This does not attempt to connect to the database or check
-   * its existence.
-   *
-   * @param databaseName the database name
-   * @return an object representing this database
-   */
+    * Get a named database. This does not attempt to connect to the database or check
+    * its existence.
+    *
+    * @param databaseName the database name
+    * @return an object representing this database
+    */
   def db(databaseName: String) = Database(this, databaseName)
 
   /**
-   * Get the list of existing databases.
-   *
-   * @return a list of databases on this server
-   */
+    * Get the list of existing databases.
+    *
+    * @return a list of databases on this server
+    */
   def databases(): Future[List[String]] = makeGetRequest[List[String]]("/_all_dbs")
 
   /**
-   * Release external resources used by this connector.
-   *
-   * @return a future which gets completed when the release is done
-   */
+    * Release external resources used by this connector.
+    *
+    * @return a future which gets completed when the release is done
+    */
   def releaseExternalResources(): Future[Unit] =
     Http().shutdownAllConnectionPools()
 
