@@ -5,4 +5,7 @@ sudo: false
 scala:
   - 2.11.7
 services:
-  - couchdb
+  - docker
+before_install:
+  - docker pull rfc1149/couchdb:1.6.1
+  - docker run -d -p 5984:5984 rfc1149/couchdb:1.6.1
