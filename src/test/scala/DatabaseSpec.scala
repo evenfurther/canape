@@ -442,11 +442,18 @@ class DatabaseSpec extends WithDbSpecification("db") {
       waitForResult(result) must throwA[RuntimeException]("Not Found")
     }
 
-    "fail properly if the server is not running" in {
+    "fail properly if the HTTP server is not running" in {
       implicit val materializer = ActorMaterializer(None)
       val newDb = new Couch("localhost", 5985).db("not-running-anyway")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
-      waitForResult(result) must throwA[RuntimeException]("Tcp command")
+      waitForResult(result) must throwA[RuntimeException]
+    }
+
+    "fail properly if the HTTPS server is not running" in {
+      implicit val materializer = ActorMaterializer(None)
+      val newDb = new Couch("localhost", 5985, secure = true).db("not-running-anyway")
+      val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
+      waitForResult(result) must throwA[RuntimeException]
     }
   }
 
