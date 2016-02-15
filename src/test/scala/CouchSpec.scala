@@ -1,9 +1,19 @@
+import net.rfc1149.canape.Couch
+
 class CouchSpec extends WithDbSpecification("couch") {
 
   "couch.status()" should {
 
     "have a version we are comfortable working with" in {
       waitForResult(couch.status()).version must beGreaterThan("1.6.0")
+    }
+
+    "fail properly if the HTTP server is not running" in {
+      waitForResult(new Couch("localhost", 5985).status()) must throwA[RuntimeException]
+    }
+
+    "fail properly if the HTTPS server is not running" in {
+      waitForResult(new Couch("localhost", 5985, secure = true).status()) must throwA[RuntimeException]
     }
 
   }

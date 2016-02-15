@@ -8,7 +8,7 @@ import akka.http.scaladsl.marshalling.{PredefinedToEntityMarshallers, ToEntityMa
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{Accept, Authorization, BasicHttpCredentials, `User-Agent`}
+import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.settings.{ConnectionPoolSettings, ClientConnectionSettings}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
@@ -31,7 +31,6 @@ import scala.util.Try
   * @param auth an optional (login, password) pair
   * @param secure use HTTPS instead of HTTP
   * @param config alternate configuration to use
-  *
   * @note HTTPS does not work with virtual servers using SNI with Akka 2.4.2-RC2,
   *       see [[https://github.com/akka/akka/issues/19287#issuecomment-183680774]].
   */
@@ -64,12 +63,18 @@ class Couch(val host: String = "localhost",
   private[this] lazy val hostConnectionPool: Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] =
     createPool(ConnectionPoolSettings(config))
 
-  // Create a new blocking connection pool because reusing an existing one leads to unexpected spurious disconnections.
-  private[this] def blockingHostConnectionPool : Flow[(HttpRequest, Any), (Try[HttpResponse], Any), HostConnectionPool] = {
+  private[this] val blockingHostConnectionFlow = {
     val clientConnectionSettings = ClientConnectionSettings(config).withIdleTimeout(Duration.Inf)
-    val connectionPoolSettings = ConnectionPoolSettings(config).withMaxRetries(0).withPipeliningLimit(1).withConnectionSettings(clientConnectionSettings)
-    createPool(connectionPoolSettings)
+    if (secure)
+      Http().outgoingConnectionHttps(host, port, settings = clientConnectionSettings)
+    else
+      Http().outgoingConnection(host, port, settings = clientConnectionSettings)
   }
+
+  // Because of bug COUCHDB-2583, some methods require an empty payload with content-type
+  // `application/json`, which is invalid. We will generate it anyway to be compatible
+  // with CouchDB 1.6.1.
+  private[this] val fakeEmptyJsonPayload = HttpEntity(`application/json`, "")
 
   /**
     * Send an arbitrary HTTP request on the regular (non-blocking) pool.
@@ -77,11 +82,11 @@ class Couch(val host: String = "localhost",
     * @param request the request to send
     */
   def sendRequest(request: HttpRequest): Future[HttpResponse] = {
-    system.log.debug(s"Sending ${request.getUri()}")
+    system.log.debug(s"Sending ${request.method} ${request.getUri()}")
     val req: Source[(Try[HttpResponse], Any), NotUsed] = Source.single(request -> null).via(hostConnectionPool)
     val req2: Source[(Try[HttpResponse], Any), NotUsed] = req.recover {
       case t: Throwable =>
-        system.log.error(s"Failed request ${request.getUri()}", t)
+        system.log.info(s"Failed request ${request.getUri()}")
         throw t
     }
     req2.runWith(Sink.head).map(_._1.get)
@@ -92,13 +97,17 @@ class Couch(val host: String = "localhost",
     *
     * @param request the request to send
     */
-  def sendPotentiallyBlockingRequest(request: HttpRequest): Source[Try[HttpResponse], NotUsed] =
+  def sendPotentiallyBlockingRequest(request: HttpRequest): Future[HttpResponse] = {
+    system.log.debug(s"Sending (potentially blocking) ${request.method} ${request.getUri()}")
     request.method match {
       case HttpMethods.POST =>
-        Source.single(request -> null).via(blockingHostConnectionPool).map(_._1)
+        val future = Source.single(request).via(blockingHostConnectionFlow).runWith(Sink.head)
+        future.onFailure { case t: Throwable => system.log.info(s"Failed potentially blocking request ${request.getUri()}") }
+        future
       case _ =>
-        Source.failed(new IllegalArgumentException("potentially blocking request must use POST method"))
+        Future.failed(new IllegalArgumentException("potentially blocking request must use POST method"))
     }
+  }
 
   private[this] val defaultHeaders = {
     val authHeader = auth map { case (login, password) => Authorization(BasicHttpCredentials(login, password)) }
@@ -155,10 +164,6 @@ class Couch(val host: String = "localhost",
     * @throws CouchError if an error occurs
     */
   def makePostRequest[T: Reads](query: Uri): Future[T] = {
-    // Because of bug COUCHDB-2583, some methods require an empty payload with content-type
-    // `application/json`, which is invalid. We will generate it anyway to be compatible
-    // with CouchDB 1.6.1.
-    val fakeEmptyJsonPayload = HttpEntity(`application/json`, "")
     sendRequest(Post(query, fakeEmptyJsonPayload)).flatMap(checkResponse[T])
   }
 

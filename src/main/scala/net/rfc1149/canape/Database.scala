@@ -3,12 +3,11 @@ package net.rfc1149.canape
 import akka.NotUsed
 import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.scaladsl.{Flow, Source}
 import akka.util.ByteString
 import play.api.libs.json._
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 case class Database(couch: Couch, databaseName: String) {
 
@@ -52,7 +51,6 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @param id the id of the document
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def apply(id: String): Future[JsObject] =
@@ -64,7 +62,6 @@ case class Database(couch: Couch, databaseName: String) {
    * @param id the id of the document
    * @param rev the revision of the document
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def apply(id: String, rev: String): Future[JsObject] =
@@ -76,7 +73,6 @@ case class Database(couch: Couch, databaseName: String) {
    * @param id the id of the document
    * @param properties the properties to add to the request
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def apply(id: String, properties: Map[String, String]): Future[JsValue] =
@@ -88,7 +84,6 @@ case class Database(couch: Couch, databaseName: String) {
    * @param id the id of the document
    * @param properties the properties to add to the request
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def apply(id: String, properties: Seq[(String, String)]): Future[JsValue] =
@@ -104,7 +99,6 @@ case class Database(couch: Couch, databaseName: String) {
    * @param name the name of the view
    * @param properties the properties to add to the request
    * @return a future containing the result
-   *
    * @throws CouchError if an error occurs
    */
   def mapOnly(design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[Result] =
@@ -143,7 +137,6 @@ case class Database(couch: Couch, databaseName: String) {
    * @param name the name of the update function
    * @param data the data to pass to the update function
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def update(design: String, name: String, id: String, data: Map[String, String]): Future[JsValue] =
@@ -153,7 +146,6 @@ case class Database(couch: Couch, databaseName: String) {
    * Retrieve the list of public documents from the database.
    *
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def allDocs(): Future[Result] = allDocs(Map())
@@ -163,7 +155,6 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @param params the properties to add to the request
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def allDocs(params: Map[String, String]): Future[Result] =
@@ -173,7 +164,6 @@ case class Database(couch: Couch, databaseName: String) {
    * Create the database.
    *
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def create(): Future[JsValue] = couch.makePutRequest[JsValue](encode(""))
@@ -182,7 +172,6 @@ case class Database(couch: Couch, databaseName: String) {
    * Compact the database.
    *
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def compact(): Future[JsValue] = couch.makePostRequest[JsValue](encode("_compact"))
@@ -193,7 +182,6 @@ case class Database(couch: Couch, databaseName: String) {
    * @param docs the documents to insert
    * @param allOrNothing force an insertion of all documents
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def bulkDocs(docs: Seq[JsObject], allOrNothing: Boolean = false): Future[Seq[JsObject]] = {
@@ -212,7 +200,6 @@ case class Database(couch: Couch, databaseName: String) {
    * @param id the id of the document if it is known and absent from the document itself
    * @param batch allow the insertion in batch (unchecked) mode
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def insert(doc: JsObject, id: String = null, batch: Boolean = false): Future[JsValue] =
@@ -227,7 +214,6 @@ case class Database(couch: Couch, databaseName: String) {
    * @param id the id of the document
    * @param rev the revision to delete
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def delete(id: String, rev: String): Future[JsValue] =
@@ -257,7 +243,6 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @param doc the document which must contains an `_id` and a `_rev` field
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def delete[T](doc: JsObject): Future[JsValue] = {
@@ -282,7 +267,6 @@ case class Database(couch: Couch, databaseName: String) {
    * Delete the database.
    *
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def delete(): Future[JsValue] = couch.makeDeleteRequest[JsValue](encode(""))
@@ -291,24 +275,11 @@ case class Database(couch: Couch, databaseName: String) {
    * Request the list of changes from the database in a non-continuous way.
    *
    * @param params the parameters to add to the request
-   * @return a request
-   *
-   * @throws CouchError if an error occurs
+   * @param extraParams the extra parameters to add to the request, such as a long list of doc ids, or `null`
+   * @return a future with the only change
    */
-  def changes(params: Map[String, String] = Map()): Future[JsValue] =
-    changesSource(params).runWith(Sink.head)
-
-  /**
-   * Request the list of changes from the database in a non-continuous way.
-   *
-   * @param params the parameters to add to the request
-   * @param extraParams the extra parameters to add to the request, such as a long list of doc ids
-   * @return a source with the only change
-   */
-  def changesSource(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsValue, NotUsed] = {
-    val request = couch.Post(encode("_changes", params.toSeq), extraParams)
-    couch.sendPotentiallyBlockingRequest(request).via(checkResponse[JsValue])
-  }
+  def changes(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Future[JsValue] =
+    couch.sendPotentiallyBlockingRequest(couch.Post(encode("_changes", params.toSeq), extraParams)).flatMap(checkResponse[JsValue])
 
   def revs_limit(limit: Int): Future[JsValue] =
     couch.makePutRequest[JsValue](encode("_revs_limit"), JsNumber(limit))
@@ -320,7 +291,6 @@ case class Database(couch: Couch, databaseName: String) {
    * Ensure that the database has been written to the permanent storage.
    *
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def ensureFullCommit(): Future[JsValue] =
@@ -332,7 +302,6 @@ case class Database(couch: Couch, databaseName: String) {
    * @param source the database to replicate from
    * @param params extra parameters to the request
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def replicateFrom(source: Database, params: JsObject = Json.obj()): Future[JsObject] =
@@ -344,7 +313,6 @@ case class Database(couch: Couch, databaseName: String) {
    * @param target the database to replicate to
    * @param params extra parameters to the request
    * @return a request
-   *
    * @throws CouchError if an error occurs
    */
   def replicateTo(target: Database, params: JsObject = Json.obj()): Future[JsObject] =
@@ -359,14 +327,11 @@ case class Database(couch: Couch, databaseName: String) {
    */
   def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, NotUsed] = {
     val request = couch.Post(encode("_changes", (params + ("feed" -> "continuous")).toSeq), extraParams)
-    couch.sendPotentiallyBlockingRequest(request).flatMapConcat {
-      case Success(response) if response.status.isSuccess() =>
-        response.entity.dataBytes
-      case Success(response) =>
-        sys.error(response.status.reason())
-      case Failure(t) =>
-        throw t
-    }.via(filterJson)
+    val body = couch.sendPotentiallyBlockingRequest(request).map {
+      case response if response.status.isSuccess() => response.entity.dataBytes
+      case response => sys.error(response.status.reason())
+    }
+    Source.fromFuture(body).flatMapConcat(_.via(filterJson))
   }
 
   /**

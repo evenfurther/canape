@@ -1,7 +1,8 @@
 import akka.NotUsed
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{Sink, Source}
+import akka.testkit.TestProbe
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
 import play.api.libs.json._
@@ -143,6 +144,11 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "return a consistent rev" in new freshDb {
       waitForResult(insertedRev(db.insert(JsObject(Nil), "docid"))) must be matching "1-[0-9a-f]{32}"
+    }
+
+    "fail properly if the database is absent" in new freshDb {
+      val newDb = db.couch.db("nonexistent-database")
+      waitForResult(insertedRev(newDb.insert(JsObject(Nil)))) must throwA[StatusError]
     }
 
   }
@@ -389,6 +395,20 @@ class DatabaseSpec extends WithDbSpecification("db") {
       val result = changes.via(Database.onlySeq).map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.insert(JsObject(Nil), "docid1"), db.insert(JsObject(Nil), "docid2"), db.insert(JsObject(Nil), "docid3"))
       waitForResult(result).sorted must be equalTo List("docid1", "docid2", "docid3")
+    }
+
+    "see the creation of new documents as soon as they are created" in new freshDb {
+      implicit val materializer = ActorMaterializer(None)
+      val probe = TestProbe()
+      val changes: Source[JsObject, NotUsed] = db.continuousChanges()
+      val result = changes.via(Database.onlySeq).map(j => (j \ "id").as[String]).take(3).runWith(Sink.actorRef(probe.ref, "end"))
+      waitEventually(db.insert(JsObject(Nil), "docid1"))
+      probe.expectMsg(5.seconds, "docid1")
+      waitEventually(db.insert(JsObject(Nil), "docid2"))
+      probe.expectMsg(5.seconds, "docid2")
+      waitEventually(db.insert(JsObject(Nil), "docid3"))
+      probe.expectMsg(5.seconds, "docid3")
+      probe.expectMsg(5.seconds, "end")
     }
 
     "see the creation of new documents with non-ASCII id" in new freshDb {
