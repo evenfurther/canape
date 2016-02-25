@@ -97,15 +97,18 @@ class Couch(val host: String = "localhost",
     *
     * @param request the request to send
     */
-  def sendPotentiallyBlockingRequest(request: HttpRequest): Future[HttpResponse] = {
+  def sendPotentiallyBlockingRequest(request: HttpRequest): Source[HttpResponse, NotUsed] = {
     system.log.debug(s"Sending (potentially blocking) ${request.method} ${request.getUri()}")
     request.method match {
       case HttpMethods.POST =>
-        val future = Source.single(request).via(blockingHostConnectionFlow).runWith(Sink.head)
-        future.onFailure { case t: Throwable => system.log.info(s"Failed potentially blocking request ${request.getUri()}") }
-        future
+        val logger = Flow[HttpResponse].recoverWith {
+          case t: Throwable =>
+            system.log.info(s"Failed potentially blocking request ${request.getUri()}")
+            throw t
+        }.to(Sink.ignore)
+        Source.single(request).via(blockingHostConnectionFlow).alsoTo(logger)
       case _ =>
-        Future.failed(new IllegalArgumentException("potentially blocking request must use POST method"))
+        throw new IllegalArgumentException("potentially blocking request must use POST method")
     }
   }
 
@@ -305,10 +308,16 @@ class Couch(val host: String = "localhost",
 
 object Couch {
 
+  def statusErrorFromResponse(response: HttpResponse)(implicit fm: Materializer, ec: ExecutionContext): Future[Nothing] = {
+    jsonUnmarshaller[JsObject]().apply(response.entity).map(new StatusError(response.status, _))
+      .fallbackTo(Future.successful(new StatusError(response.status)))   // Do not fail in cascade for a non CouchDB JS response
+      .map(throw _)
+  }
+
   def checkResponse[T: Reads](response: HttpResponse)(implicit fm: Materializer, ec: ExecutionContext): Future[T] = {
     response.status match {
       case status if status.isFailure() =>
-        jsonUnmarshaller[JsObject]().apply(response.entity).map(body => throw new StatusError(status, body))
+        statusErrorFromResponse(response)
       case _ =>
         jsonUnmarshaller[T]().apply(response.entity)
     }
@@ -337,7 +346,12 @@ object Couch {
     def this(status: akka.http.scaladsl.model.StatusCode, body: JsObject) =
       this(status.intValue(), (body \ "error").as[String], (body \ "reason").as[String])
 
+    def this(status: akka.http.scaladsl.model.StatusCode) =
+      this(status.intValue(), status.defaultMessage(), status.reason())
+
     override def toString = s"StatusError($code, $error, $reason)"
+
+    override def getMessage = s"$code $reason: $error"
 
   }
 

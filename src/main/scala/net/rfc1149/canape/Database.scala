@@ -3,7 +3,7 @@ package net.rfc1149.canape
 import akka.NotUsed
 import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
-import akka.stream.scaladsl.{Flow, Source}
+import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.util.ByteString
 import play.api.libs.json._
 
@@ -279,7 +279,8 @@ case class Database(couch: Couch, databaseName: String) {
    * @return a future with the only change
    */
   def changes(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Future[JsValue] =
-    couch.sendPotentiallyBlockingRequest(couch.Post(encode("_changes", params.toSeq), extraParams)).flatMap(checkResponse[JsValue])
+    couch.sendPotentiallyBlockingRequest(couch.Post(encode("_changes", params.toSeq), extraParams))
+      .runWith(Sink.head).flatMap(checkResponse[JsValue])
 
   def revs_limit(limit: Int): Future[JsValue] =
     couch.makePutRequest[JsValue](encode("_revs_limit"), JsNumber(limit))
@@ -327,11 +328,10 @@ case class Database(couch: Couch, databaseName: String) {
    */
   def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, NotUsed] = {
     val request = couch.Post(encode("_changes", (params + ("feed" -> "continuous")).toSeq), extraParams)
-    val body = couch.sendPotentiallyBlockingRequest(request).map {
-      case response if response.status.isSuccess() => response.entity.dataBytes
-      case response => sys.error(response.status.reason())
+    couch.sendPotentiallyBlockingRequest(request).flatMapConcat {
+      case response if response.status.isSuccess() => response.entity.dataBytes.via(filterJson)
+      case response => Source.fromFuture(statusErrorFromResponse(response))
     }
-    Source.fromFuture(body).flatMapConcat(_.via(filterJson))
   }
 
   /**

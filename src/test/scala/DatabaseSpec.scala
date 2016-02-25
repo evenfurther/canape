@@ -459,7 +459,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       implicit val materializer = ActorMaterializer(None)
       val newDb = db.couch.db("nonexistent-database")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
-      waitForResult(result) must throwA[RuntimeException]("Not Found")
+      waitForResult(result) must throwA[StatusError]("404 no_db_file: not_found")
     }
 
     "fail properly if the HTTP server is not running" in {
@@ -474,6 +474,13 @@ class DatabaseSpec extends WithDbSpecification("db") {
       val newDb = new Couch("localhost", 5985, secure = true).db("not-running-anyway")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
       waitForResult(result) must throwA[RuntimeException]
+    }
+
+    "fail properly if the database is deleted during the request" in new freshDb {
+      implicit val materializer = ActorMaterializer(None)
+      val result = db.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
+      waitForResult(db.delete())
+      waitForResult(result) must throwA[StatusError]("404 no_db_file: not_found")
     }
   }
 
