@@ -81,16 +81,8 @@ class Couch(val host: String = "localhost",
     *
     * @param request the request to send
     */
-  def sendRequest(request: HttpRequest): Future[HttpResponse] = {
-    system.log.debug(s"Sending ${request.method} ${request.getUri()}")
-    val req: Source[(Try[HttpResponse], Any), NotUsed] = Source.single(request -> null).via(hostConnectionPool)
-    val req2: Source[(Try[HttpResponse], Any), NotUsed] = req.recover {
-      case t: Throwable =>
-        system.log.info(s"Failed request ${request.getUri()}")
-        throw t
-    }
-    req2.runWith(Sink.head).map(_._1.get)
-  }
+  def sendRequest(request: HttpRequest): Future[HttpResponse] =
+    Source.single(request -> null).via(hostConnectionPool).runWith(Sink.head).map(_._1.get)
 
   /**
     * Send an arbitrary HTTP request on the potentially blocking bool.
@@ -98,15 +90,9 @@ class Couch(val host: String = "localhost",
     * @param request the request to send
     */
   def sendPotentiallyBlockingRequest(request: HttpRequest): Source[HttpResponse, NotUsed] = {
-    system.log.debug(s"Sending (potentially blocking) ${request.method} ${request.getUri()}")
     request.method match {
       case HttpMethods.POST =>
-        val logger = Flow[HttpResponse].recoverWith {
-          case t: Throwable =>
-            system.log.info(s"Failed potentially blocking request ${request.getUri()}")
-            throw t
-        }.to(Sink.ignore)
-        Source.single(request).via(blockingHostConnectionFlow).alsoTo(logger)
+        Source.single(request).via(blockingHostConnectionFlow)
       case _ =>
         throw new IllegalArgumentException("potentially blocking request must use POST method")
     }
