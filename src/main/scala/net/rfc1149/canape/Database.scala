@@ -1,13 +1,14 @@
 package net.rfc1149.canape
 
 import akka.NotUsed
+import akka.actor.Props
 import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.util.ByteString
 import play.api.libs.json._
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
 
 case class Database(couch: Couch, databaseName: String) {
 
@@ -320,11 +321,11 @@ case class Database(couch: Couch, databaseName: String) {
     couch.replicate(this, target, params)
 
   /**
-   * Return a continuous changes stream.
+   * Return a one-time continuous changes stream.
    *
    * @param params the additional parameters to the request
    * @param extraParams the extra parameters to the request such as a long list of doc ids
-   * @return a source containing the changes
+   * @return a source containing the changes as well as the termination marker when the connection closes without error
    */
   def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, NotUsed] = {
     val request = couch.Post(encode("_changes", (params + ("feed" -> "continuous")).toSeq), extraParams)
@@ -335,15 +336,46 @@ case class Database(couch: Couch, databaseName: String) {
   }
 
   /**
-   * Return a continuous changes stream when some document ids are concerned.
+    * Return a one-time continuous changes stream.
    *
    * @param docIds the document ids to watch
    * @param params the additional parameters to the request
    * @param extraParams the extra parameters to the request (passed in the body)
-   * @return a source containing the changes
+   * @return a source containing the changes as well as the termination marker when the connection closes without error
    */
   def continuousChangesByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, NotUsed] =
     continuousChanges(params + ("filter" -> "_doc_ids"), extraParams ++ Json.obj("doc_ids" -> docIds))
+
+  /**
+    * Return a continuous chances stream.
+    *
+    * @param params the additional parameters to the request
+    * @param extraParams the extra parameters to the request such as a long list of doc ids
+    * @param initialSeq the latest uninteresting sequence number, retrieved from the database if not provided
+    * @return a source containing the changes and the latest uninteresting sequence number used as the materialized value
+    */
+  def changesSource(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(),
+                    initialSeq: Long = -1): Source[JsObject, Future[Long]] = {
+    Source.actorPublisher(Props(new ChangesSource(this, params, extraParams, initialSeq)))
+      .mapMaterializedValue { actorRef =>
+        val promise = Promise[Long]
+        actorRef ! ChangesSource.InitialSequencePromise(promise)
+        promise.future
+      }
+  }
+
+  /**
+    * Return a continuous chances stream.
+    *
+    * @param docIds the document ids to watch
+    * @param params the additional parameters to the request
+    * @param extraParams the extra parameters to the request (passed in the body)
+    * @param initialSeq the latest uninteresting sequence number, retrieved from the database if not provided
+    * @return a source containing the changes and the latest uninteresting sequence number used as the materialized value
+    */
+  def changesSourceByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(),
+                            initialSeq: Long = -1): Source[JsObject, Future[Long]] =
+    changesSource(params + ("filter" -> "_doc_ids"), extraParams ++ Json.obj("doc_ids" -> docIds), initialSeq)
 
 }
 
