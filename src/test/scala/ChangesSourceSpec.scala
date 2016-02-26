@@ -1,13 +1,19 @@
+import java.util.concurrent.TimeUnit
+
+import akka.actor.{ActorRef, Props}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.testkit.TestProbe
+import com.typesafe.config.Config
 import net.rfc1149.canape.Couch.StatusError
+import net.rfc1149.canape.{ChangesSource, Couch, Database}
+import org.specs2.mock._
 import play.api.libs.json._
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
-class ChangesSourceSpec extends WithDbSpecification("db") {
+class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
 
   "db.changesSource()" should {
 
@@ -76,6 +82,22 @@ class ChangesSourceSpec extends WithDbSpecification("db") {
       waitEventually(db.insert(JsObject(Nil), "docid3"))
       probe.expectMsg(5.seconds, "docid3")
       probe.expectMsg(5.seconds, "end")
+    }
+
+    "reconnect after an error" in new freshDb {
+      implicit val materializer = ActorMaterializer(None)
+
+      val mockedConfig: Config = mock[Config].getDuration("canape.changes-source-reconnection-delay", TimeUnit.MILLISECONDS) returns 50
+      val mockedCouch: Couch = mock[Couch].config returns mockedConfig
+      val mockedDb = mock[Database]
+      mockedDb.continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject()) returns
+        (Source.repeat(Json.obj("seq" -> 42, "id" -> "someid")).take(100) ++ Source.failed(new RuntimeException()))
+      mockedDb.couch returns mockedCouch
+
+      val changes: Source[JsObject, ActorRef] = Source.actorPublisher(Props(new ChangesSource(mockedDb, initialSeq = 0)))
+      val result = changes.map(j => (j \ "id").as[String]).take(950).runFold(0) { case (n, _) => n + 1 }
+      waitForResult(result) must be equalTo 950
+      there was atLeast(10)(mockedDb).continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject())
     }
 
     "see the creation of new documents with non-ASCII id" in new freshDb {
