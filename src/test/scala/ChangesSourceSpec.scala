@@ -1,7 +1,7 @@
 import java.util.concurrent.TimeUnit
 
 import akka.actor.{ActorRef, Props}
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorMaterializer, OverflowStrategy, ThrottleMode}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.testkit.TestProbe
 import com.typesafe.config.Config
@@ -98,6 +98,23 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
       val result = changes.map(j => (j \ "id").as[String]).take(950).runFold(0) { case (n, _) => n + 1 }
       waitForResult(result) must be equalTo 950
       there was atLeast(10)(mockedDb).continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject())
+    }
+
+    "see everything up-to the error" in new freshDb {
+      implicit val materializer = ActorMaterializer(None)
+
+      val mockedConfig: Config = mock[Config].getDuration("canape.changes-source-reconnection-delay", TimeUnit.MILLISECONDS) returns 50
+      val mockedCouch: Couch = mock[Couch].config returns mockedConfig
+      val mockedDb = mock[Database]
+      mockedDb.continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject()) returns
+        (Source(1 to 10).map(n => Json.obj("seq" -> JsNumber(30 + n))) ++ Source.failed(new RuntimeException())) thenReturns
+        (Source(1 to 5).map(n => Json.obj("seq" -> JsNumber(n))))
+      mockedDb.couch returns mockedCouch
+
+      val changes: Source[JsObject, ActorRef] = Source.actorPublisher(Props(new ChangesSource(mockedDb, initialSeq = 0)))
+      val result = changes.map(j => (j \ "seq").as[Long]).take(15).runFold(0L) { case (n, e) => n.max(e) }
+      waitForResult(result) must be equalTo 40
+      there was atLeast(2)(mockedDb).continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject())
     }
 
     "see the creation of new documents with non-ASCII id" in new freshDb {
