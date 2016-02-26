@@ -1,6 +1,6 @@
 package net.rfc1149.canape
 
-import akka.NotUsed
+import akka.{Done, NotUsed}
 import akka.actor.Props
 import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
@@ -325,14 +325,28 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @param params the additional parameters to the request
    * @param extraParams the extra parameters to the request such as a long list of doc ids
-   * @return a source containing the changes as well as the termination marker when the connection closes without error
+   * @return a source containing the changes as well as the termination marker when the connection closes without error,
+    *         the materialized value contains Done or an error if the HTTP request was unsuccesful
    */
-  def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, NotUsed] = {
+  def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, Future[Done]] = {
+    val promise = Promise[Done]
     val request = couch.Post(encode("_changes", (params + ("feed" -> "continuous")).toSeq), extraParams)
-    couch.sendPotentiallyBlockingRequest(request).flatMapConcat {
-      case response if response.status.isSuccess() => response.entity.dataBytes.via(filterJson)
-      case response => Source.fromFuture(statusErrorFromResponse(response))
-    }
+    couch.sendPotentiallyBlockingRequest(request)
+      .recoverWith {
+        case t =>
+          promise.failure(t)
+          Source.failed(t)
+        }
+      .flatMapConcat {
+        case response if response.status.isSuccess() =>
+          promise.success(Done)
+          response.entity.dataBytes.via(filterJson)
+        case response =>
+          val error = statusErrorFromResponse(response)
+          promise.completeWith(error)
+          Source.fromFuture(error)
+      }
+      .mapMaterializedValue(_ => promise.future)
   }
 
   /**
@@ -341,9 +355,10 @@ case class Database(couch: Couch, databaseName: String) {
    * @param docIds the document ids to watch
    * @param params the additional parameters to the request
    * @param extraParams the extra parameters to the request (passed in the body)
-   * @return a source containing the changes as well as the termination marker when the connection closes without error
+   * @return a source containing the changes as well as the termination marker when the connection closes without error,
+    *         the materialized value contains Done or an error if the HTTP request was unsuccesful
    */
-  def continuousChangesByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, NotUsed] =
+  def continuousChangesByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, Future[Done]] =
     continuousChanges(params + ("filter" -> "_doc_ids"), extraParams ++ Json.obj("doc_ids" -> docIds))
 
   /**
@@ -351,15 +366,16 @@ case class Database(couch: Couch, databaseName: String) {
     *
     * @param params the additional parameters to the request
     * @param extraParams the extra parameters to the request such as a long list of doc ids
-    * @param initialSeq the latest uninteresting sequence number, retrieved from the database if not provided
-    * @return a source containing the changes and the latest uninteresting sequence number used as the materialized value
+    * @param sinceSeq the latest uninteresting sequence number, or the current database state if not provided
+    * @return a source containing the changes, materialized as a Done object when connected for the first time
+    *         to the database with a successful HTTP response code
     */
   def changesSource(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(),
-                    initialSeq: Long = -1): Source[JsObject, Future[Long]] = {
-    Source.actorPublisher(Props(new ChangesSource(this, params, extraParams, initialSeq)))
+                    sinceSeq: Long = -1): Source[JsObject, Future[Done]] = {
+    Source.actorPublisher(Props(new ChangesSource(this, params, extraParams, sinceSeq)))
       .mapMaterializedValue { actorRef =>
-        val promise = Promise[Long]
-        actorRef ! ChangesSource.InitialSequencePromise(promise)
+        val promise = Promise[Done]
+        actorRef ! ChangesSource.ConnectionPromise(promise)
         promise.future
       }
   }
@@ -370,12 +386,13 @@ case class Database(couch: Couch, databaseName: String) {
     * @param docIds the document ids to watch
     * @param params the additional parameters to the request
     * @param extraParams the extra parameters to the request (passed in the body)
-    * @param initialSeq the latest uninteresting sequence number, retrieved from the database if not provided
-    * @return a source containing the changes and the latest uninteresting sequence number used as the materialized value
+    * @param sinceSeq the latest uninteresting sequence number, or the current database state if not provided
+    * @return a source containing the changes, materialized as a Done object when connected for the first time
+    *         to the database with a successful HTTP response code
     */
   def changesSourceByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(),
-                            initialSeq: Long = -1): Source[JsObject, Future[Long]] =
-    changesSource(params + ("filter" -> "_doc_ids"), extraParams ++ Json.obj("doc_ids" -> docIds), initialSeq)
+                            sinceSeq: Long = -1): Source[JsObject, Future[Done]] =
+    changesSource(params + ("filter" -> "_doc_ids"), extraParams ++ Json.obj("doc_ids" -> docIds), sinceSeq)
 
 }
 

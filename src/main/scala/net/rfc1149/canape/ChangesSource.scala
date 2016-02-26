@@ -1,6 +1,6 @@
 package net.rfc1149.canape
 
-import akka.actor.Stash
+import akka.Done
 import akka.actor.Status.Failure
 import akka.pattern.pipe
 import akka.stream.ActorMaterializer
@@ -14,8 +14,8 @@ import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 import scala.concurrent.Promise
 import scala.concurrent.duration.FiniteDuration
 
-class ChangesSource(database: Database, params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(), initialSeq: Long = -1)
-  extends ActorPublisher[JsObject] with Stash {
+class ChangesSource(database: Database, params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(), private var sinceSeq: Long = -1)
+  extends ActorPublisher[JsObject] {
 
   import ChangesSource._
 
@@ -28,16 +28,17 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
   private[this] var queue: SinkQueue[JsObject] = null
   private[this] var sendInProgress = false
 
-  private[this] var computedInitialSeq: Long = -1
-  private[this] var sinceSeq: Long = -1
+  private[this] val connectionEstablished = Promise[Done]
 
   private[this] def connect() = {
     assert(totalDemand > 0, "unneeded connections to the changes stream")
     assert(queue == null, "queue still exists when reconnecting")
     assert(!sendInProgress, "send in progress while reconnecting")
-    assert(sinceSeq >= 0)
     ongoingConnection = true
-    queue = database.continuousChanges(params + ("since" -> sinceSeq.toString), extraParams).toMat(Sink.queue())(Keep.right).run()
+    val requestSinceSeq = if (sinceSeq == -1) "now" else sinceSeq.toString
+    queue = database.continuousChanges(params + ("since" -> requestSinceSeq), extraParams)
+        .mapMaterializedValue(done => done.onSuccess { case d => connectionEstablished.trySuccess(d) })
+        .toMat(Sink.queue())(Keep.right).run()
     sendFromQueue()
   }
 
@@ -45,48 +46,6 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
     assert(!sendInProgress, "unable to resolve two futures at the same time")
     sendInProgress = true
     queue.pull().transform(Change, ChangesError).pipeTo(self)
-  }
-
-  override def preStart() = {
-    sinceSeq = initialSeq
-    if (sinceSeq == -1) {
-      context.become(receiveInitialSequence)
-      self ! GetInitialSequence
-    } else {
-      computedInitialSeq = initialSeq
-    }
-  }
-
-  def receiveInitialSequence: Receive = {
-
-    case Cancel =>
-      // We have not obtained the initial sequence yet, so let's stop trying
-      context.stop(self)
-
-    case GetInitialSequence =>
-      database.status().map(js => (js \ "update_seq").as[Long]).transform(InitialSequence, GetInitialSequenceError).pipeTo(self)
-
-    case InitialSequence(n) =>
-      assert(sinceSeq == -1)
-      sinceSeq = n
-      computedInitialSeq = sinceSeq
-      context.become(receive)
-      unstashAll()
-
-    case Failure(GetInitialSequenceError(t)) =>
-      t match {
-        case _: StatusError =>
-          // An HTTP error means that the database server is alive, but has a problem (for example, the database
-          // does not exist). This should be handled downstream, as we do not want to hammer the server.
-          onError(t)
-          context.stop(self)
-        case _ =>
-          context.system.scheduler.scheduleOnce(reconnectionDelay, self, GetInitialSequence)
-      }
-
-    case _ =>
-      stash()
-
   }
 
   def receive: Receive = {
@@ -138,8 +97,8 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
     case Reconnect =>
       connect()
 
-    case InitialSequencePromise(promise) =>
-      promise.success(computedInitialSeq)
+    case ConnectionPromise(promise) =>
+      promise.completeWith(connectionEstablished.future)
 
   }
 
@@ -149,10 +108,7 @@ object ChangesSource {
 
   private case class Change(change: Option[JsObject])
   private case class ChangesError(throwable: Throwable) extends Exception
-  private case object GetInitialSequence
-  private case class InitialSequence(initialSequence: Long)
   private case object Reconnect
-  private case class GetInitialSequenceError(throwable: Throwable) extends Exception
-  private[canape] case class InitialSequencePromise(promise: Promise[Long])
+  private[canape] case class ConnectionPromise(promise: Promise[Done])
 
 }
