@@ -20,7 +20,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
   "db.changesSource()" should {
 
     "respect the since parameter" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       waitForResult(db.insert(JsObject(Nil), "docid0"))
       val changes: Source[JsObject, Future[Done]] = db.changesSource(sinceSeq = 0)
       val result = changes.map(j => (j \ "id").as[String]).take(4).runFold[List[String]](Nil)(_ :+ _)
@@ -29,7 +28,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "signal the connection without the initial since parameter" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       waitForResult(db.insert(JsObject(Nil), "docid0"))
       val changes: Source[JsObject, Future[Done]] = db.changesSource()
       val (done, result) = changes.map(j => (j \ "id").as[String]).take(3).toMat(Sink.fold[List[String], String](Nil)(_ :+ _))(Keep.both).run()
@@ -39,7 +37,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "reconnect in case of a timeout" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       waitForResult(db.insert(JsObject(Nil), "docid0"))
       val changes: Source[JsObject, Future[Done]] = db.changesSource(sinceSeq = 0, params = Map("timeout" -> "1"))
       val (done, result) = changes.map(j => (j \ "id").as[String]).take(4).toMat(Sink.fold[List[String], String](Nil)(_ :+ _))(Keep.both).run()
@@ -49,7 +46,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "terminate on error if the database is deleted" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       waitForResult(db.insert(JsObject(Nil), "docid0"))
       val changes: Source[JsObject, Future[Done]] = db.changesSource()
       val result = changes.runWith(Sink.ignore)
@@ -61,7 +57,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "return the existing documents before the error if the database is deleted" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       waitForResult(db.insert(JsObject(Nil), "docid0"))
       val changes: Source[JsObject, Future[Done]] = db.changesSource(sinceSeq = 0).recoverWith { case _ => Source.empty }
       val result = changes.map(j => (j \ "id").as[String]).runFold[List[String]](Nil)(_ :+ _)
@@ -73,7 +68,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "see the creation of new documents as soon as they are created" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val probe = TestProbe()
       val changes: Source[JsObject, Future[Done]] = db.changesSource(sinceSeq = 0)
       val result = changes.map(j => (j \ "id").as[String]).take(3).runWith(Sink.actorRef(probe.ref, "end"))
@@ -87,7 +81,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "reconnect after an error" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
 
       val config = ConfigFactory.parseString("changes-source.reconnection-delay=50ms")
       val mockedCouch: Couch = mock[Couch].canapeConfig returns config
@@ -103,7 +96,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "see everything up-to the error" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
 
       val config = ConfigFactory.parseString("changes-source.reconnection-delay=50ms")
       val mockedCouch: Couch = mock[Couch].canapeConfig returns config
@@ -120,7 +112,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "handle errors due to backpressure" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
 
       val config = ConfigFactory.parseString("changes-source.reconnection-delay=200ms")
       val mockedCouch: Couch = mock[Couch].canapeConfig returns config
@@ -136,7 +127,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "see the creation of new documents with non-ASCII id" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val changes: Source[JsObject, Future[Done]] = db.changesSource(sinceSeq = 0)
       val result = changes.map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.insert(JsObject(Nil), "docidé"), db.insert(JsObject(Nil), "docidà"), db.insert(JsObject(Nil), "docidß"))
@@ -144,7 +134,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "be able to filter changes with a stored filter" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
       waitForEnd(db.insert(Json.obj("filters" -> Json.obj("namedfoo" -> filter)), "_design/common"))
       val changes: Source[JsObject, Future[Done]] = db.changesSource(sinceSeq = 0, params = Map("filter" -> "common/namedfoo"))
@@ -155,7 +144,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "be able to filter changes by document ids" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
       val changes: Source[JsObject, Future[Done]] = db.changesSourceByDocIds(List("docid1", "docid4"), sinceSeq = 0)
       val result = changes.map(j => (j \ "id").as[String]).take(2).runFold[List[String]](Nil)(_ :+ _)
@@ -165,7 +153,6 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "fail properly if the database is absent" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val newDb = db.couch.db("nonexistent-database")
       val result = newDb.changesSource().runFold[List[JsObject]](Nil)(_ :+ _)
       waitForResult(result) must throwA[StatusError]("404 no_db_file: not_found")

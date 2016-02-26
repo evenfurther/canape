@@ -1,7 +1,6 @@
 import java.util.concurrent.TimeoutException
 
 import akka.Done
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, Sink}
 import akka.testkit.TestProbe
 import net.rfc1149.canape.Couch.StatusError
@@ -16,7 +15,6 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
   "db.continuousChanges()" should {
 
     "see the creation of new documents" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val changes = db.continuousChanges()
       val result = changes.via(Database.onlySeq).map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.insert(JsObject(Nil), "docid1"), db.insert(JsObject(Nil), "docid2"), db.insert(JsObject(Nil), "docid3"))
@@ -24,7 +22,6 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     }
 
     "see the creation of new documents as soon as they are created" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val probe = TestProbe()
       val changes = db.continuousChanges()
       val result = changes.via(Database.onlySeq).map(j => (j \ "id").as[String]).take(3).runWith(Sink.actorRef(probe.ref, "end"))
@@ -38,7 +35,6 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     }
 
     "see the creation of new documents with non-ASCII id" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val changes = db.continuousChanges()
       val result = changes.map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.insert(JsObject(Nil), "docidé"), db.insert(JsObject(Nil), "docidà"), db.insert(JsObject(Nil), "docidß"))
@@ -46,32 +42,27 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     }
 
     "allow the specification of a timeout" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val result = db.continuousChanges(Map("timeout" -> "10")).runWith(Sink.ignore)
       Await.result(result, 500.milliseconds) must be equalTo(Done)
     }
 
     "allow the specification of a timeout with explicit erasure of the heartbeat" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val result = db.continuousChanges(Map("timeout" -> "10", "heartbeat" -> "")).runWith(Sink.ignore)
       Await.result(result, 500.milliseconds) must be equalTo(Done)
     }
 
     "allow the specification of a heartbeat" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val result = db.continuousChanges(Map("timeout" -> "10", "heartbeat" -> "30000")).runWith(Sink.ignore)
       Await.result(result, 500.milliseconds) must throwA[TimeoutException]
     }
 
     "properly disconnect after a timeout" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val changes = db.continuousChanges(Map("timeout" -> "100"))
       val result = changes.map(_ \ "id").collect { case JsDefined(JsString(id)) => id }.runFold[List[String]](Nil)(_ :+ _)
       waitForResult(result).sorted must be equalTo List()
     }
 
     "see documents operations occurring before the timeout" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       waitForEnd(db.insert(JsObject(Nil), "docid1"), db.insert(JsObject(Nil), "docid2"))
       val changes = db.continuousChanges(Map("timeout" -> "100"))
       val result = changes.map(_ \ "id").collect { case JsDefined(JsString(id)) => id }.runFold[List[String]](Nil)(_ :+ _)
@@ -79,7 +70,6 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     }
 
     "be able to filter changes with a stored filter" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
       waitForEnd(db.insert(Json.obj("filters" -> Json.obj("namedfoo" -> filter)), "_design/common"))
       val changes = db.continuousChanges(Map("filter" -> "common/namedfoo"))
@@ -90,7 +80,6 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     }
 
     "be able to filter changes by document ids" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
       val changes = db.continuousChangesByDocIds(List("docid1", "docid4"))
       val result = changes.map(j => (j \ "id").as[String]).take(2).runFold[List[String]](Nil)(_ :+ _)
@@ -100,48 +89,41 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     }
 
     "report connection success through the materialized value" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val result = db.continuousChanges().toMat(Sink.ignore)(Keep.left).run()
       waitForResult(result) must be equalTo Done
     }
 
     "report a missing database through the materialized value" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val newDb = db.couch.db("nonexistent-database")
       val result = newDb.continuousChanges().toMat(Sink.ignore)(Keep.left).run()
       waitForResult(result) must throwA[StatusError]("404 no_db_file: not_found")
     }
 
     "report a connection error through the materialized value" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val newDb = new Couch("localhost", 5985).db("not-running-anyway")
       val result = newDb.continuousChanges().toMat(Sink.ignore)(Keep.left).run()
       waitForResult(result) must throwA[RuntimeException]
     }
 
     "fail properly if the database is absent" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val newDb = db.couch.db("nonexistent-database")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
       waitForResult(result) must throwA[StatusError]("404 no_db_file: not_found")
     }
 
     "fail properly if the HTTP server is not running" in {
-      implicit val materializer = ActorMaterializer(None)
       val newDb = new Couch("localhost", 5985).db("not-running-anyway")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
       waitForResult(result) must throwA[RuntimeException]
     }
 
     "fail properly if the HTTPS server is not running" in {
-      implicit val materializer = ActorMaterializer(None)
       val newDb = new Couch("localhost", 5985, secure = true).db("not-running-anyway")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
       waitForResult(result) must throwA[RuntimeException]
     }
 
     "terminate properly if the database is deleted during the request" in new freshDb {
-      implicit val materializer = ActorMaterializer(None)
       val result = db.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
       waitForResult(db.insert(JsObject(Nil), "docid1"))
       waitForResult(db.insert(JsObject(Nil), "docid2"))

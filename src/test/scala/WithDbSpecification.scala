@@ -2,6 +2,7 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.event.Logging
+import akka.stream.ActorMaterializer
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
 import org.specs2.mutable._
@@ -17,6 +18,7 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
   implicit val system = ActorSystem("canape-test")
   implicit val dispatcher = system.dispatcher
   implicit val timeout: Duration = (5, SECONDS)
+  implicit val materializer =  ActorMaterializer.create(system)
 
   val couch = new Couch
 

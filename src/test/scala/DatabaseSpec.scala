@@ -1,5 +1,4 @@
 import akka.http.scaladsl.model.HttpResponse
-import akka.stream.ActorMaterializer
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
 import play.api.libs.json._
@@ -467,8 +466,6 @@ class DatabaseSpec extends WithDbSpecification("db") {
   }
 
   "db.list" should {
-
-    implicit val materializer = ActorMaterializer(None)
 
     def responseToString(response: HttpResponse): Future[String] =
       response.entity.toStrict(FiniteDuration(1, SECONDS)).map(s => new String(s.data.toArray, "UTF-8"))
