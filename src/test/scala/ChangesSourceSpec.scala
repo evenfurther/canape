@@ -1,18 +1,16 @@
-import java.util.concurrent.TimeUnit
-
-import akka.actor.{ActorRef, Props}
 import akka.Done
-import akka.stream.{ActorMaterializer, OverflowStrategy, ThrottleMode}
+import akka.actor.{ActorRef, Props}
 import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.stream.{ActorMaterializer, OverflowStrategy, ThrottleMode}
 import akka.testkit.TestProbe
-import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape.{ChangesSource, Couch, Database}
 import org.specs2.mock._
 import play.api.libs.json._
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
 
@@ -91,8 +89,8 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     "reconnect after an error" in new freshDb {
       implicit val materializer = ActorMaterializer(None)
 
-      val mockedConfig: Config = mock[Config].getDuration("canape.changes-source-reconnection-delay", TimeUnit.MILLISECONDS) returns 50
-      val mockedCouch: Couch = mock[Couch].config returns mockedConfig
+      val config = ConfigFactory.parseString("changes-source.reconnection-delay=50ms")
+      val mockedCouch: Couch = mock[Couch].canapeConfig returns config
       val mockedDb = mock[Database]
       mockedDb.continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject()) returns
         addDone(Source.repeat(Json.obj("seq" -> 42, "id" -> "someid")).take(100) ++ Source.failed(new RuntimeException()))
@@ -107,8 +105,8 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     "see everything up-to the error" in new freshDb {
       implicit val materializer = ActorMaterializer(None)
 
-      val mockedConfig: Config = mock[Config].getDuration("canape.changes-source-reconnection-delay", TimeUnit.MILLISECONDS) returns 50
-      val mockedCouch: Couch = mock[Couch].config returns mockedConfig
+      val config = ConfigFactory.parseString("changes-source.reconnection-delay=50ms")
+      val mockedCouch: Couch = mock[Couch].canapeConfig returns config
       val mockedDb = mock[Database]
       mockedDb.continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject()) returns
         addDone(Source(1 to 10).map(n => Json.obj("seq" -> JsNumber(30 + n))) ++ Source.failed(new RuntimeException())) thenReturns
@@ -124,8 +122,8 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     "handle errors due to backpressure" in new freshDb {
       implicit val materializer = ActorMaterializer(None)
 
-      val mockedConfig: Config = mock[Config].getDuration("canape.changes-source-reconnection-delay", TimeUnit.MILLISECONDS) returns 200
-      val mockedCouch: Couch = mock[Couch].config returns mockedConfig
+      val config = ConfigFactory.parseString("changes-source.reconnection-delay=200ms")
+      val mockedCouch: Couch = mock[Couch].canapeConfig returns config
       val mockedDb = mock[Database]
       mockedDb.continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject()) returns
         addDone(Source.repeat(Json.obj("seq" -> 42, "id" -> "someid")).buffer(10, OverflowStrategy.fail))

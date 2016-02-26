@@ -21,8 +21,8 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
 
   private[this] implicit val executionContext = context.system.dispatcher
   private[this] implicit val materializer = ActorMaterializer()
-  private[this] implicit val reconnectionDelay =
-    database.couch.config.as[FiniteDuration]("canape.changes-source-reconnection-delay")
+  private[this] val reconnectionDelay =
+    database.couch.canapeConfig.as[FiniteDuration]("changes-source.reconnection-delay")
 
   private[this] var ongoingConnection = false
   private[this] var queue: SinkQueue[JsObject] = null

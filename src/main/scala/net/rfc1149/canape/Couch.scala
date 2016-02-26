@@ -47,7 +47,7 @@ class Couch(val host: String = "localhost",
   private[canape] implicit val dispatcher = system.dispatcher
   private[canape] implicit val fm = ActorMaterializer()
 
-  private[this] val canapeConfig = config.getConfig("canape")
+  val canapeConfig = config.getConfig("canape")
   private[this] val userAgent = `User-Agent`(canapeConfig.as[String]("user-agent"))
   private[this] implicit val timeout: Timeout = canapeConfig.as[FiniteDuration]("request-timeout")
 

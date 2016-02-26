@@ -1,3 +1,5 @@
+import java.util.concurrent.TimeoutException
+
 import akka.Done
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, Sink}
@@ -6,6 +8,7 @@ import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
 import play.api.libs.json._
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class ContinuousChangesSpec extends WithDbSpecification("db") {
@@ -40,6 +43,24 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
       val result = changes.map(j => (j \ "id").as[String]).take(3).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.insert(JsObject(Nil), "docidé"), db.insert(JsObject(Nil), "docidà"), db.insert(JsObject(Nil), "docidß"))
       waitForResult(result).sorted must be equalTo List("docidß", "docidà", "docidé")
+    }
+
+    "allow the specification of a timeout" in new freshDb {
+      implicit val materializer = ActorMaterializer(None)
+      val result = db.continuousChanges(Map("timeout" -> "10")).runWith(Sink.ignore)
+      Await.result(result, 500.milliseconds) must be equalTo(Done)
+    }
+
+    "allow the specification of a timeout with explicit erasure of the heartbeat" in new freshDb {
+      implicit val materializer = ActorMaterializer(None)
+      val result = db.continuousChanges(Map("timeout" -> "10", "heartbeat" -> "")).runWith(Sink.ignore)
+      Await.result(result, 500.milliseconds) must be equalTo(Done)
+    }
+
+    "allow the specification of a heartbeat" in new freshDb {
+      implicit val materializer = ActorMaterializer(None)
+      val result = db.continuousChanges(Map("timeout" -> "10", "heartbeat" -> "30000")).runWith(Sink.ignore)
+      Await.result(result, 500.milliseconds) must throwA[TimeoutException]
     }
 
     "properly disconnect after a timeout" in new freshDb {

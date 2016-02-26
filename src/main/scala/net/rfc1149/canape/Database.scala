@@ -7,7 +7,9 @@ import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.util.ByteString
 import play.api.libs.json._
+import net.ceedubs.ficus.Ficus._
 
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{Future, Promise}
 
 case class Database(couch: Couch, databaseName: String) {
@@ -330,7 +332,18 @@ case class Database(couch: Couch, databaseName: String) {
    */
   def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, Future[Done]] = {
     val promise = Promise[Done]
-    val request = couch.Post(encode("_changes", (params + ("feed" -> "continuous")).toSeq), extraParams)
+    val requestParams = {
+      val heartBeatParam = (params.get("timeout"), params.get("heartbeat")) match {
+        case (Some(t), Some(h)) if h.nonEmpty => Map("heartbeat" -> h)  // Timeout will be ignored by the DB, but the user has chosen
+        case (Some(t), _)                     => Map()                  // Use provided timeout only
+        case (None, Some(""))                 => Map()                  // Disable heartbeat
+        case (None, Some(h))                  => Map("heartbeat" -> h)  // Use provided heartbeat
+        case (None, None)                     => Map("heartbeat" ->     // Use default heartbeat from configuration
+          couch.canapeConfig.as[FiniteDuration]("continuous-changes.heartbeat-interval").toMillis.toString)
+      }
+      params - "heartbeat" ++ heartBeatParam
+    }
+    val request = couch.Post(encode("_changes", (requestParams + ("feed" -> "continuous")).toSeq), extraParams)
     couch.sendPotentiallyBlockingRequest(request)
       .recoverWith {
         case t =>
