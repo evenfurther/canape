@@ -6,13 +6,13 @@ import akka.pattern.pipe
 import akka.stream.ActorMaterializer
 import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
-import akka.stream.scaladsl.{Keep, Sink, SinkQueue, Source}
+import akka.stream.scaladsl.{Keep, Sink, SinkQueue}
 import net.ceedubs.ficus.Ficus._
 import net.rfc1149.canape.Couch.StatusError
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 
 import scala.concurrent.Promise
-import scala.concurrent.duration._
+import scala.concurrent.duration.FiniteDuration
 
 class ChangesSource(database: Database, params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(), initialSeq: Long = -1)
   extends ActorPublisher[JsObject] with Stash {
@@ -31,21 +31,18 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
   private[this] var computedInitialSeq: Long = -1
   private[this] var sinceSeq: Long = -1
 
-  private[this] def connect(delay: FiniteDuration) = {
+  private[this] def connect() = {
     assert(totalDemand > 0, "unneeded connections to the changes stream")
     assert(queue == null, "queue still exists when reconnecting")
     assert(!sendInProgress, "send in progress while reconnecting")
     assert(sinceSeq >= 0)
     ongoingConnection = true
-    val source = Source.empty.initialDelay(delay)
-      .concat(database.continuousChanges(params + ("since" -> sinceSeq.toString), extraParams))
-    queue = source.toMat(Sink.queue())(Keep.right).run()
+    queue = database.continuousChanges(params + ("since" -> sinceSeq.toString), extraParams).toMat(Sink.queue())(Keep.right).run()
     sendFromQueue()
   }
 
   private[this] def sendFromQueue() = {
     assert(!sendInProgress, "unable to resolve two futures at the same time")
-    assert(queue != null)
     sendInProgress = true
     queue.pull().transform(Change, ChangesError).pipeTo(self)
   }
@@ -99,10 +96,11 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
       // the backpressure to act on the TCP layer and make the connection fail.
       context.stop(self)
 
-    case Request(_) =>
+    case Request(n) =>
       if (!ongoingConnection)
-        connect(0.second)
-      else if (!sendInProgress)
+        connect()
+      else if (n == totalDemand)
+        // We had a total demand of 0, which means that nobody is waiting for the next value
         sendFromQueue()
 
     case Change(Some(change)) =>
@@ -122,7 +120,7 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
       sendInProgress = false
       queue = null
       assert(totalDemand > 0)
-      connect(0.second)
+      connect()
 
     case Failure(ChangesError(t)) =>
       sendInProgress = false
@@ -134,8 +132,11 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
           onError(t)
           context.stop(self)
         case _ =>
-          connect(reconnectionDelay)
+          context.system.scheduler.scheduleOnce(reconnectionDelay, self, Reconnect)
       }
+
+    case Reconnect =>
+      connect()
 
     case InitialSequencePromise(promise) =>
       promise.success(computedInitialSeq)
@@ -150,6 +151,7 @@ object ChangesSource {
   private case class ChangesError(throwable: Throwable) extends Exception
   private case object GetInitialSequence
   private case class InitialSequence(initialSequence: Long)
+  private case object Reconnect
   private case class GetInitialSequenceError(throwable: Throwable) extends Exception
   private[canape] case class InitialSequencePromise(promise: Promise[Long])
 

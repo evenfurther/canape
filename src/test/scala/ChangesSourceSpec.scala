@@ -117,6 +117,22 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
       there was atLeast(2)(mockedDb).continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject())
     }
 
+    "handle errors due to backpressure" in new freshDb {
+      implicit val materializer = ActorMaterializer(None)
+
+      val mockedConfig: Config = mock[Config].getDuration("canape.changes-source-reconnection-delay", TimeUnit.MILLISECONDS) returns 200
+      val mockedCouch: Couch = mock[Couch].config returns mockedConfig
+      val mockedDb = mock[Database]
+      mockedDb.continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject()) returns
+        (Source.repeat(Json.obj("seq" -> 42, "id" -> "someid")).buffer(10, OverflowStrategy.fail))
+      mockedDb.couch returns mockedCouch
+
+      val changes: Source[JsObject, ActorRef] = Source.actorPublisher(Props(new ChangesSource(mockedDb, initialSeq = 0)))
+      val result = changes.throttle(100, 1.second, 100, ThrottleMode.Shaping).map(j => (j \ "id").as[String]).take(120).runFold(0) { case (n, _) => n + 1 }
+      Await.result(result, 15.seconds) must be equalTo 120
+      there was atLeast(5)(mockedDb).continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject())
+    }
+
     "see the creation of new documents with non-ASCII id" in new freshDb {
       implicit val materializer = ActorMaterializer(None)
       val changes: Source[JsObject, Future[Long]] = db.changesSource(initialSeq = 0)
