@@ -2,6 +2,7 @@ import java.util.concurrent.TimeoutException
 
 import akka.Done
 import akka.stream.scaladsl.{Keep, Sink}
+import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit.TestProbe
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
@@ -22,16 +23,15 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     }
 
     "see the creation of new documents as soon as they are created" in new freshDb {
-      val probe = TestProbe()
       val changes = db.continuousChanges()
-      val result = changes.via(Database.onlySeq).map(j => (j \ "id").as[String]).take(3).runWith(Sink.actorRef(probe.ref, "end"))
+      val downstream = changes.via(Database.onlySeq).map(j => (j \ "id").as[String]).take(3).toMat(TestSink.probe)(Keep.right).run()
       waitEventually(db.insert(JsObject(Nil), "docid1"))
-      probe.expectMsg(5.seconds, "docid1")
+      downstream.requestNext("docid1")
       waitEventually(db.insert(JsObject(Nil), "docid2"))
-      probe.expectMsg(5.seconds, "docid2")
+      downstream.requestNext("docid2")
       waitEventually(db.insert(JsObject(Nil), "docid3"))
-      probe.expectMsg(5.seconds, "docid3")
-      probe.expectMsg(5.seconds, "end")
+      downstream.requestNext("docid3")
+      downstream.request(1).expectComplete()
     }
 
     "see the creation of new documents with non-ASCII id" in new freshDb {

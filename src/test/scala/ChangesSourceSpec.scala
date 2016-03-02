@@ -1,8 +1,8 @@
 import akka.Done
 import akka.actor.{ActorRef, Props}
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import akka.stream.{ActorMaterializer, OverflowStrategy, ThrottleMode}
-import akka.testkit.TestProbe
+import akka.stream.testkit.scaladsl.TestSink
+import akka.stream.{OverflowStrategy, ThrottleMode}
 import com.typesafe.config.ConfigFactory
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape.{ChangesSource, Couch, Database}
@@ -68,16 +68,15 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
     }
 
     "see the creation of new documents as soon as they are created" in new freshDb {
-      val probe = TestProbe()
       val changes: Source[JsObject, Future[Done]] = db.changesSource(sinceSeq = 0)
-      val result = changes.map(j => (j \ "id").as[String]).take(3).runWith(Sink.actorRef(probe.ref, "end"))
+      val downstream = changes.map(j => (j \ "id").as[String]).take(3).toMat(TestSink.probe)(Keep.right).run()
       waitEventually(db.insert(JsObject(Nil), "docid1"))
-      probe.expectMsg(5.seconds, "docid1")
+      downstream.requestNext("docid1")
       waitEventually(db.insert(JsObject(Nil), "docid2"))
-      probe.expectMsg(5.seconds, "docid2")
+      downstream.requestNext("docid2")
       waitEventually(db.insert(JsObject(Nil), "docid3"))
-      probe.expectMsg(5.seconds, "docid3")
-      probe.expectMsg(5.seconds, "end")
+      downstream.requestNext("docid3")
+      downstream.request(1).expectComplete()
     }
 
     "reconnect after an error" in new freshDb {
