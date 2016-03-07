@@ -9,8 +9,9 @@ import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.settings.{ConnectionPoolSettings, ClientConnectionSettings}
+import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
+import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
@@ -296,7 +297,7 @@ object Couch {
 
   def statusErrorFromResponse(response: HttpResponse)(implicit fm: Materializer, ec: ExecutionContext): Future[Nothing] = {
     jsonUnmarshaller[JsObject]().apply(response.entity).map(new StatusError(response.status, _))
-      .fallbackTo(Future.successful(new StatusError(response.status)))   // Do not fail in cascade for a non CouchDB JS response
+      .fallbackTo(FastFuture.successful(new StatusError(response.status)))   // Do not fail in cascade for a non CouchDB JS response
       .map(throw _)
   }
 

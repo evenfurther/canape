@@ -1,13 +1,14 @@
 package net.rfc1149.canape
 
-import akka.{Done, NotUsed}
 import akka.actor.Props
 import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
+import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.util.ByteString
-import play.api.libs.json._
+import akka.{Done, NotUsed}
 import net.ceedubs.ficus.Ficus._
+import play.api.libs.json._
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{Future, Promise}
@@ -233,7 +234,7 @@ case class Database(couch: Couch, databaseName: String) {
   def delete(id: String, revs: Seq[String], allOrNothing: Boolean = false): Future[Seq[String]] =
     revs match {
       case Nil =>
-        Future.successful(Nil)
+        FastFuture.successful(Nil)
       case revs@(rev :: Nil) =>
         delete(id, rev).map(_ => revs).recover { case _ => Seq() }
       case _ =>

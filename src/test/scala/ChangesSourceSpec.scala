@@ -1,5 +1,6 @@
 import akka.Done
 import akka.actor.{ActorRef, Props}
+import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.testkit.scaladsl.TestSink
 import akka.stream.{OverflowStrategy, ThrottleMode}
@@ -15,7 +16,7 @@ import scala.concurrent.{Await, Future}
 class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
 
   def addDone[T, M](source: Source[T, M]): Source[T, Future[Done]] =
-    source.mapMaterializedValue(_ => Future.successful(Done))
+    source.mapMaterializedValue(_ => FastFuture.successful(Done))
 
   "db.changesSource()" should {
 
