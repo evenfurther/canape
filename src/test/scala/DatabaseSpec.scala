@@ -111,11 +111,15 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "be able to insert a new document with an implicit id" in new freshDb {
-      waitForResult(insertedId(db.insert(JsObject(Nil)))) must be matching "[0-9a-f]{32}"
+      val r = waitForResult(insertedId(db.insert(JsObject(Nil))))
+      r must have size 32
+      r must be matching "[0-9a-f]{32}"
     }
 
     "be able to insert a new document with an implicit id in batch mode" in new freshDb {
-      waitForResult(insertedId(db.insert(JsObject(Nil), batch = true))) must be matching "[0-9a-f]{32}"
+      val r = waitForResult(insertedId(db.insert(JsObject(Nil), batch = true)))
+      r must have size 32
+      r must be matching "[0-9a-f]{32}"
     }
 
     "be able to insert a new document with an embedded id" in new freshDb {
