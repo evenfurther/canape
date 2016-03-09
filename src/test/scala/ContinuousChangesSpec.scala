@@ -3,7 +3,6 @@ import java.util.concurrent.TimeoutException
 import akka.Done
 import akka.stream.scaladsl.{Keep, Sink}
 import akka.stream.testkit.scaladsl.TestSink
-import akka.testkit.TestProbe
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
 import play.api.libs.json._
@@ -24,7 +23,7 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
 
     "see the creation of new documents as soon as they are created" in new freshDb {
       val changes = db.continuousChanges()
-      val downstream = changes.via(Database.onlySeq).map(j => (j \ "id").as[String]).take(3).toMat(TestSink.probe)(Keep.right).run()
+      val downstream = changes.map(j => (j \ "id").as[String]).take(3).runWith(TestSink.probe)
       waitEventually(db.insert(JsObject(Nil), "docid1"))
       downstream.requestNext("docid1")
       waitEventually(db.insert(JsObject(Nil), "docid2"))
