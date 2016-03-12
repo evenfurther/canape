@@ -4,18 +4,19 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.HostConnectionPool
-import akka.http.scaladsl.marshalling.{PredefinedToEntityMarshallers, ToEntityMarshaller}
+import akka.http.scaladsl.marshalling.{Marshal, ToEntityMarshaller}
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import net.ceedubs.ficus.Ficus._
 import play.api.libs.json._
 
@@ -41,7 +42,7 @@ class Couch(val host: String = "localhost",
             val auth: Option[(String, String)] = None,
             val secure: Boolean = false,
             val config: Config = ConfigFactory.load())
-           (implicit private[canape] val system: ActorSystem) {
+           (implicit private[canape] val system: ActorSystem) extends PlayJsonSupport {
 
   import Couch._
 
@@ -90,13 +91,13 @@ class Couch(val host: String = "localhost",
     *
     * @param request the request to send
     */
-  def sendPotentiallyBlockingRequest(request: HttpRequest): Source[HttpResponse, NotUsed] = {
-    request.method match {
-      case HttpMethods.POST =>
-        Source.single(request).via(blockingHostConnectionFlow)
-      case _ =>
-        throw new IllegalArgumentException("potentially blocking request must use POST method")
-    }
+  def sendPotentiallyBlockingRequest(request: Future[HttpRequest]): Source[HttpResponse, NotUsed] = {
+    Source.fromFuture(request).map[HttpRequest] { r =>
+      r.method match {
+        case HttpMethods.POST => r
+        case _                => throw new IllegalArgumentException("potentially blocking request must use POST method")
+      }
+    }.via(blockingHostConnectionFlow)
   }
 
   private[this] val defaultHeaders = {
@@ -106,11 +107,11 @@ class Couch(val host: String = "localhost",
 
   private[this] def Get(query: Uri): HttpRequest = HttpRequest(GET, uri = query, headers = defaultHeaders)
 
-  private[canape] def Post[T: ToEntityMarshaller](query: Uri, data: T)(implicit ev: T => RequestEntity): HttpRequest =
-    HttpRequest(POST, uri = query, entity = ev(data), headers = defaultHeaders)
+  private[canape] def Post[T: ToEntityMarshaller](query: Uri, data: T): Future[HttpRequest] =
+    Marshal(data).to[RequestEntity].map(e => HttpRequest(POST, uri = query, entity = e, headers = defaultHeaders))
 
-  private[this] def Put[T](query: Uri, data: T = HttpEntity.Empty)(implicit ev: T => RequestEntity): HttpRequest =
-    HttpRequest(PUT, uri = query, entity = ev(data), headers = defaultHeaders)
+  private[this] def Put[T: ToEntityMarshaller](query: Uri, data: T = HttpEntity.Empty): Future[HttpRequest] =
+    Marshal(data).to[RequestEntity].map(e => HttpRequest(PUT, uri = query, entity = e, headers = defaultHeaders))
 
   private[this] def Delete(query: Uri): HttpRequest =
     HttpRequest(DELETE, uri = query, headers = defaultHeaders)
@@ -143,7 +144,7 @@ class Couch(val host: String = "localhost",
     * @throws CouchError if an error occurs
     */
   def makePostRequest[T: Reads](query: Uri, data: JsObject): Future[T] =
-    sendRequest(Post(query, data)).flatMap(checkResponse[T])
+    Post(query, data).flatMap(sendRequest).flatMap(checkResponse[T])
 
   /**
     * Build a POST HTTP request.
@@ -153,9 +154,8 @@ class Couch(val host: String = "localhost",
     * @return A future containing the required result
     * @throws CouchError if an error occurs
     */
-  def makePostRequest[T: Reads](query: Uri): Future[T] = {
-    sendRequest(Post(query, fakeEmptyJsonPayload)).flatMap(checkResponse[T])
-  }
+  def makePostRequest[T: Reads](query: Uri): Future[T] =
+    Post(query, fakeEmptyJsonPayload).flatMap(sendRequest).flatMap(checkResponse[T])
 
   /**
     * Build a POST HTTP request.
@@ -168,7 +168,7 @@ class Couch(val host: String = "localhost",
     */
   def makePostRequest[T: Reads](query: Uri, data: FormData): Future[T] = {
     val payload = HttpEntity(ContentType(MediaTypes.`application/x-www-form-urlencoded`, HttpCharsets.`UTF-8`), data.fields.toString())
-    sendRequest(Post(query, payload)).flatMap(checkResponse[T])
+    Post(query, payload).flatMap(sendRequest).flatMap(checkResponse[T])
   }
 
   /**
@@ -181,7 +181,7 @@ class Couch(val host: String = "localhost",
     * @throws CouchError if an error occurs
     */
   def makePutRequest[T: Reads](query: Uri, data: JsValue): Future[T] =
-    sendRequest(Put(query, data)).flatMap(checkResponse[T])
+    Put(query, data).flatMap(sendRequest).flatMap(checkResponse[T])
 
   /**
     * Build a PUT HTTP request.
@@ -192,7 +192,7 @@ class Couch(val host: String = "localhost",
     * @throws CouchError if an error occurs
     */
   def makePutRequest[T: Reads](query: Uri): Future[T] =
-    sendRequest(Put(query)).flatMap(checkResponse[T])
+    Put(query).flatMap(sendRequest).flatMap(checkResponse[T])
 
   /**
     * Build a DELETE HTTP request.
@@ -293,10 +293,10 @@ class Couch(val host: String = "localhost",
 
 }
 
-object Couch {
+object Couch extends PlayJsonSupport {
 
   def statusErrorFromResponse(response: HttpResponse)(implicit fm: Materializer, ec: ExecutionContext): Future[Nothing] = {
-    jsonUnmarshaller[JsObject]().apply(response.entity).map(new StatusError(response.status, _))
+    Unmarshal(response.entity).to[JsObject].map(new StatusError(response.status, _))
       .fallbackTo(FastFuture.successful(new StatusError(response.status)))   // Do not fail in cascade for a non CouchDB JS response
       .map(throw _)
   }
@@ -306,23 +306,13 @@ object Couch {
       case status if status.isFailure() =>
         statusErrorFromResponse(response)
       case _ =>
-        jsonUnmarshaller[T]().apply(response.entity)
+        Unmarshal(response.entity).to[T]
     }
   }
 
   private[canape] def checkResponse[T: Reads](implicit fm: Materializer, ec: ExecutionContext): Flow[Try[HttpResponse], T, NotUsed] = {
     Flow[Try[HttpResponse]].mapAsync[T](1)(response => checkResponse[T](response.get))
   }
-
-  implicit def jsonMarshaller[T: Writes]: ToEntityMarshaller[T] =
-    PredefinedToEntityMarshallers.stringMarshaller(`application/json`).compose(implicitly[Writes[T]].writes(_).toString())
-
-  implicit def jsonUnmarshaller[T: Reads]()(implicit fm: Materializer, ec: ExecutionContext): FromEntityUnmarshaller[T] =
-    PredefinedFromEntityUnmarshallers.stringUnmarshaller.forContentTypes(`application/json`)
-      .map(s => implicitly[Reads[T]].reads(Json.parse(s)).recoverTotal(e => throw DataError(e)))
-
-  implicit def jsonToEntity[T: Writes](data: T): RequestEntity =
-    HttpEntity(`application/json`, implicitly[Writes[T]].writes(data).toString().getBytes("UTF-8"))
 
   sealed abstract class CouchError extends Exception
 
