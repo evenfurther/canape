@@ -1,7 +1,6 @@
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.event.Logging
 import akka.stream.ActorMaterializer
 import net.rfc1149.canape.Couch.StatusError
 import net.rfc1149.canape._
@@ -25,7 +24,6 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
   trait freshDb extends BeforeAfter {
 
     val db = couch.db(s"canape-test-$dbSuffix-${UUID.randomUUID()}")
-    val log = Logging(system, dbSuffix)
     var _waitEventually: List[Future[Any]] = Nil
 
     override def before = Await.ready(db.create(), timeout)
