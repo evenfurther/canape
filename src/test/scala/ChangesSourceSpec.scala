@@ -85,8 +85,10 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
       val config = ConfigFactory.parseString("changes-source.reconnection-delay=50ms")
       val mockedCouch: Couch = mock[Couch].canapeConfig returns config
       val mockedDb = mock[Database]
+      val sourceWithError = Source(List(Source.repeat(Json.obj("seq" -> 42, "id" -> "someid")).take(100),
+        Source.failed(new RuntimeException()))).flatMapConcat(identity)
       mockedDb.continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject()) returns
-        addDone(Source.repeat(Json.obj("seq" -> 42, "id" -> "someid")).take(100) ++ Source.failed(new RuntimeException()))
+        addDone(sourceWithError)
       mockedDb.couch returns mockedCouch
 
       val changes: Source[JsObject, ActorRef] = Source.actorPublisher(Props(new ChangesSource(mockedDb, sinceSeq = 0)))
@@ -100,8 +102,10 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
       val config = ConfigFactory.parseString("changes-source.reconnection-delay=50ms")
       val mockedCouch: Couch = mock[Couch].canapeConfig returns config
       val mockedDb = mock[Database]
+      val sourceWithError = Source(List(Source(1 to 10).map(n => Json.obj("seq" -> JsNumber(30 + n))),
+        Source.failed(new RuntimeException()))).flatMapConcat(identity)
       mockedDb.continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject()) returns
-        addDone(Source(1 to 10).map(n => Json.obj("seq" -> JsNumber(30 + n))) ++ Source.failed(new RuntimeException())) thenReturns
+        addDone(sourceWithError) thenReturns
         addDone(Source(1 to 5).map(n => Json.obj("seq" -> JsNumber(n))))
       mockedDb.couch returns mockedCouch
 
@@ -123,7 +127,7 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
       val changes: Source[JsObject, ActorRef] = Source.actorPublisher(Props(new ChangesSource(mockedDb, sinceSeq = 0)))
       val result = changes.throttle(100, 1.second, 100, ThrottleMode.Shaping).map(j => (j \ "id").as[String]).take(120).runFold(0) { case (n, _) => n + 1 }
       Await.result(result, 15.seconds) must be equalTo 120
-      there was atLeast(5)(mockedDb).continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject())
+      there was atLeast(2)(mockedDb).continuousChanges(org.mockito.Matchers.anyObject(), org.mockito.Matchers.anyObject())
     }
 
     "see the creation of new documents with non-ASCII id" in new freshDb {
