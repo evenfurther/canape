@@ -1,8 +1,10 @@
 package net.rfc1149.canape
 
 import akka.actor.Props
+import akka.http.scaladsl.client.RequestBuilding
 import akka.http.scaladsl.model.Uri.{Path, Query}
-import akka.http.scaladsl.model.{FormData, HttpResponse, Uri}
+import akka.http.scaladsl.model.headers.ETag
+import akka.http.scaladsl.model.{FormData, HttpHeader, HttpResponse, Uri}
 import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.util.ByteString
@@ -213,15 +215,29 @@ case class Database(couch: Couch, databaseName: String) {
       couch.makePutRequest[JsValue](batchMode(encode(id), batch), doc)
 
   /**
+    * Return the latest revision of a document.
+    *
+    * @param id the id of the document
+    * @return the revision
+    */
+  def latestRev(id: String): Future[String] =
+    couch.sendRequest(RequestBuilding.Head(encode(id))).map {
+      case response if response.status.isSuccess =>
+        response.header[ETag].map(_.value()).get.stripPrefix("\"").stripSuffix("\"")
+      case response =>
+        throw new StatusError(response.status)
+    }
+
+  /**
    * Delete a document from the database.
    *
    * @param id the id of the document
    * @param rev the revision to delete
-   * @return a request
+   * @return the revision representing the deletion
    * @throws CouchError if an error occurs
    */
-  def delete(id: String, rev: String): Future[JsValue] =
-    couch.makeDeleteRequest[JsValue](encode(id, Seq("rev" -> rev)))
+  def delete(id: String, rev: String): Future[String] =
+    couch.makeDeleteRequest[JsValue](encode(id, Seq("rev" -> rev))).map(js => (js \ "rev").as[String])
 
   /**
    * Delete multiple revisions of a document from the database. There will be no error if the document does not exist.
@@ -246,14 +262,23 @@ case class Database(couch: Couch, databaseName: String) {
    * Delete a document from the database.
    *
    * @param doc the document which must contains an `_id` and a `_rev` field
-   * @return a request
+   * @return the revision representing the deletion
    * @throws CouchError if an error occurs
    */
-  def delete[T](doc: JsObject): Future[JsValue] = {
+  def delete[T](doc: JsObject): Future[String] = {
     val id = (doc \ "_id").as[String]
     val rev = (doc \ "_rev").as[String]
     delete(id, rev)
   }
+
+  /**
+    * Delete the latest version of a document from the database.
+    *
+    * @param id the id of the document
+    * @return the revision representing the deletion
+    */
+  def delete(id: String): Future[String] =
+    latestRev(id).flatMap(delete(id, _))
 
   /**
    * Delete all revisions of a document from the database. There will be no error if the document does not exist.
@@ -261,7 +286,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param id the id of the document
    * @return a future with all the document revisions that have been deleted
    */
-  def delete(id: String): Future[Seq[String]] = {
+  def deleteAll(id: String): Future[Seq[String]] = {
     this(id, Seq("conflicts" -> "true")).map(doc => (doc \ "_rev").as[String] :: (doc \ "_conflicts").asOpt[List[String]].getOrElse(Nil)) flatMap {
       delete(id, _, allOrNothing = false)
     }

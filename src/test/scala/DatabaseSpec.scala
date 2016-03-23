@@ -68,7 +68,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       yield db.insert(Json.obj("firstName" -> f, "lastName" -> l, "age" -> a, "type" -> "person"))))
   }
 
-  "db.delete()" should {
+  "db.delete() without argument" should {
 
     "be able to delete an existing database" in new freshDb {
       waitForResult(db.delete())
@@ -194,7 +194,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "be able to delete a document" in new freshDb {
       val (id, rev) = waitForResult(inserted(db.insert(JsObject(Nil))))
-      waitForResult(db.delete(id, rev))
+      waitForResult(db.delete(id, rev)) must startWith("2-")
       waitForResult(db(id)) must throwA[StatusError]
     }
 
@@ -245,16 +245,25 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "be able to delete a document given only its id" in new freshDb {
-      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
-      waitForResult(db.delete(id)) must be equalTo Seq(rev)
+      val id = waitForResult(insertedId(db.insert(Json.obj("key" -> "value"))))
+      waitForResult(db.delete(id)) must startWith("2-")
       waitForResult(db.delete(id)) must throwA[StatusError]
     }
 
     "be able to delete multiple revisions of a document given only its id" in new freshDb {
       waitForResult(db.bulkDocs(List("foo", "bar", "baz").map(v => Json.obj("_id" -> "docid", "value" -> v)),
         allOrNothing = true))
-      waitForResult(db.delete("docid")) must have size 3
-      waitForResult(db.delete("docid")) must throwA[StatusError]
+      waitForResult(db.deleteAll("docid")) must have size 3
+      waitForResult(db.deleteAll("docid")) must throwA[StatusError]
+    }
+  }
+
+  "db.deleteAll" should {
+
+    "be able to delete a document given only its id" in new freshDb {
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
+      waitForResult(db.deleteAll(id)) must be equalTo Seq(rev)
+      waitForResult(db.deleteAll(id)) must throwA[StatusError]
     }
   }
 
@@ -484,6 +493,20 @@ class DatabaseSpec extends WithDbSpecification("db") {
       installDesignAndDocs(db)
       val result = waitForResult(db.list("common", "list", "persons", Seq("group" -> "true")).flatMap(responseToString)).split(',').map(_.toInt).sorted
       result must be equalTo Array(20, 23, 23, 27, 27, 40, 40)
+    }
+  }
+
+  "db.latestRev" should {
+
+    "return the latest revision of a document" in new freshDb {
+      val id = waitForResult(insertedId(db.insert(Json.obj())))
+      private val rev = waitForResult(db.latestRev(id))
+      rev must startWith("1-")
+      rev must have length 34
+    }
+
+    "fail when the document does not exist" in new freshDb {
+      waitForResult(db.latestRev("non-existing")) must throwA[StatusError]
     }
   }
 
