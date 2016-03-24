@@ -401,7 +401,7 @@ case class Database(couch: Couch, databaseName: String) {
     continuousChanges(params + ("filter" -> "_doc_ids"), extraParams ++ Json.obj("doc_ids" -> docIds))
 
   /**
-    * Return a continuous chances stream.
+    * Return a continuous changes stream.
     *
     * @param params the additional parameters to the request
     * @param extraParams the extra parameters to the request such as a long list of doc ids
@@ -420,7 +420,7 @@ case class Database(couch: Couch, databaseName: String) {
   }
 
   /**
-    * Return a continuous chances stream.
+    * Return a continuous changes stream.
     *
     * @param docIds the document ids to watch
     * @param params the additional parameters to the request
