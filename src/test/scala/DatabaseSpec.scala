@@ -15,6 +15,9 @@ class DatabaseSpec extends WithDbSpecification("db") {
   private def inserted(f: Future[JsValue]): Future[(String, String)] =
     for (id <- insertedId(f); rev <- insertedRev(f)) yield (id, rev)
 
+  private def insertPerson(db: Database, firstName: String, lastName: String, age: Int): Future[JsValue] =
+    db.insert(Json.obj("firstName" -> firstName, "lastName" -> lastName, "age" -> age, "type" -> "person"))
+
   private def installDesignAndDocs(db: Database) = {
     val upd =
       """
@@ -65,7 +68,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     waitForResult(db.insert(common, "_design/common"))
     waitForResult(Future.sequence(for ((f, l, a) <- List(("Arthur", "Dent", 20), ("Zaphod", "Beeblebrox", 40),
       ("Buffy", "Summers", 23), ("Arthur", "Fubar", 27)))
-      yield db.insert(Json.obj("firstName" -> f, "lastName" -> l, "age" -> a, "type" -> "person"))))
+      yield insertPerson(db, f, l, a)))
   }
 
   "db.delete() without argument" should {
@@ -475,6 +478,50 @@ class DatabaseSpec extends WithDbSpecification("db") {
       installDesignAndDocs(db)
       val result = waitForResult(db.view[JsValue, JsValue]("common", "persons", Seq("reduce" -> "false")))
       result.size must be equalTo 8
+    }
+  }
+
+  "db.viewWithUpdateSeq" should {
+
+    "see the same sequence number when no changes happened" in new freshDb {
+      installDesignAndDocs(db)
+      val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
+      val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
+      seq2 must be equalTo seq1
+    }
+
+    "see the same sequence number when a non-matching document has been inserted" in new freshDb {
+      installDesignAndDocs(db)
+      val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
+      waitForEnd(db.insert(Json.obj()))
+      val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
+      seq2 must be equalTo seq1
+    }
+
+    "see an increased sequence number when a matching document has been inserted" in new freshDb {
+      installDesignAndDocs(db)
+      val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
+      waitForEnd(insertPerson(db, "Dawn", "Summers", 15))
+      val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
+      seq2 must be greaterThan seq1
+    }
+
+    "see the same stale sequence number when a matching document has been inserted" in new freshDb {
+      installDesignAndDocs(db)
+      val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
+      waitForEnd(insertPerson(db, "Dawn", "Summers", 15))
+      val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons", Seq("stale" -> "ok")))
+      seq2 must be equalTo seq1
+    }
+
+    "see an increased sequence number when a matching document has been inserted in update_after mode" in new freshDb {
+      installDesignAndDocs(db)
+      val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
+      waitForEnd(insertPerson(db, "Dawn", "Summers", 15))
+      val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons", Seq("stale" -> "update_after")))
+      seq2 must be equalTo seq1
+      val (seq3, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
+      seq3 must be greaterThan seq2
     }
   }
 

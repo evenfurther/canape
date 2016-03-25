@@ -125,6 +125,20 @@ case class Database(couch: Couch, databaseName: String) {
     })
 
   /**
+    * Query a view from the database using map/reduce and include the update sequence number.
+    *
+    * @param design the design document
+    * @param name the name of the view
+    * @param properties the properties to add to the request
+    * @tparam V the value type
+    * @return a future containing the update sequence number and a sequence of results
+    */
+  def viewWithUpdateSeq[K: Reads, V: Reads](design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[(Long, Seq[(K, V)])] =
+    couch.makeGetRequest[JsObject](encode(s"_design/$design/_view/$name", properties :+ ("update_seq" -> "true"))).map(result =>
+      ((result \ "update_seq").as[Long],
+        (result \ "rows").as[Array[JsValue]] map(row => (row \ "key").as[K] -> (row \ "value").as[V])))
+
+  /**
    * Query a list from the database.
    *
    * @param design the design document
