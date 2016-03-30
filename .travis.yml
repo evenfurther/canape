@@ -3,7 +3,7 @@ jdk:
   - oraclejdk8
 sudo: false
 scala:
-  - 2.11.7
+  - 2.11.8
 services:
   - docker
 before_install:
