@@ -13,20 +13,20 @@ package object helpers {
 
   private val unconflicter = (__ \ '_conflicts).json.prune
 
-  def solve(db: Database, documents: Seq[JsObject])(solver: Seq[JsObject] => JsObject): Future[Seq[JsObject]] = {
+  def solve(db: Database, documents: Seq[JsObject])(solver: Seq[JsObject] ⇒ JsObject): Future[Seq[JsObject]] = {
     val mergedDoc = solver(documents)
     val rev = mergedDoc \ "_rev"
     val bulkDocs = documents map {
-      case d if (d \ "_rev") == rev => mergedDoc.transform(unconflicter).get
-      case d                        => d.transform(deleter).get
+      case d if (d \ "_rev") == rev ⇒ mergedDoc.transform(unconflicter).get
+      case d                        ⇒ d.transform(deleter).get
     }
     db.bulkDocs(bulkDocs, allOrNothing = true)
   }
 
   def getRevs(db: Database, id: String, revs: Seq[String] = Seq())(implicit context: ExecutionContext): Future[Seq[JsObject]] = {
-    val revsList = if (revs.isEmpty) "all" else s"[${revs.map(r => s""""$r"""").mkString(",")}]"
-    db(id, Map("open_revs" -> revsList)) map (_.as[Seq[JsObject]].collect {
-      case j if j.keys.contains("ok") => (j \ "ok").as[JsObject]
+    val revsList = if (revs.isEmpty) "all" else s"[${revs.map(r ⇒ s""""$r"""").mkString(",")}]"
+    db(id, Map("open_revs" → revsList)) map (_.as[Seq[JsObject]].collect {
+      case j if j.keys.contains("ok") ⇒ (j \ "ok").as[JsObject]
     })
   }
 
@@ -37,7 +37,7 @@ package object helpers {
   }
 
   def getConflictingRevs(db: Database, id: String)(implicit context: ExecutionContext): Future[Seq[String]] =
-    db(id, Map("conflicts" -> "true")) map { js: JsValue =>
+    db(id, Map("conflicts" → "true")) map { js: JsValue ⇒
       (js \ "_rev").as[String] +: (js \ "_conflicts").asOpt[List[String]].getOrElse(Seq())
     }
 

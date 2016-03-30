@@ -8,15 +8,15 @@ import scala.concurrent.duration._
 
 class DatabaseSpec extends WithDbSpecification("db") {
 
-  private def insertedId(f: Future[JsValue]): Future[String] = f map { js => (js \ "id").as[String] }
+  private def insertedId(f: Future[JsValue]): Future[String] = f map { js ⇒ (js \ "id").as[String] }
 
-  private def insertedRev(f: Future[JsValue]): Future[String] = f map { js => (js \ "rev").as[String] }
+  private def insertedRev(f: Future[JsValue]): Future[String] = f map { js ⇒ (js \ "rev").as[String] }
 
   private def inserted(f: Future[JsValue]): Future[(String, String)] =
-    for (id <- insertedId(f); rev <- insertedRev(f)) yield (id, rev)
+    for (id ← insertedId(f); rev ← insertedRev(f)) yield (id, rev)
 
   private def insertPerson(db: Database, firstName: String, lastName: String, age: Int): Future[JsValue] =
-    db.insert(Json.obj("firstName" -> firstName, "lastName" -> lastName, "age" -> age, "type" -> "person"))
+    db.insert(Json.obj("firstName" → firstName, "lastName" → lastName, "age" → age, "type" → "person"))
 
   private def installDesignAndDocs(db: Database) = {
     val upd =
@@ -62,13 +62,16 @@ class DatabaseSpec extends WithDbSpecification("db") {
         |   }
         | }
       """.stripMargin
-    val common = Json.obj("updates" -> Json.obj("upd" -> upd),
-      "views" -> Json.obj("persons" -> Json.obj("map" -> personsMap, "reduce" -> personsReduce)),
-      "lists" -> Json.obj("list" -> list))
+    val common = Json.obj(
+      "updates" → Json.obj("upd" → upd),
+      "views" → Json.obj("persons" → Json.obj("map" → personsMap, "reduce" → personsReduce)),
+      "lists" → Json.obj("list" → list)
+    )
     waitForResult(db.insert(common, "_design/common"))
-    waitForResult(Future.sequence(for ((f, l, a) <- List(("Arthur", "Dent", 20), ("Zaphod", "Beeblebrox", 40),
-      ("Buffy", "Summers", 23), ("Arthur", "Fubar", 27)))
-      yield insertPerson(db, f, l, a)))
+    waitForResult(Future.sequence(for (
+      (f, l, a) ← List(("Arthur", "Dent", 20), ("Zaphod", "Beeblebrox", 40),
+        ("Buffy", "Summers", 23), ("Arthur", "Fubar", 27))
+    ) yield insertPerson(db, f, l, a)))
   }
 
   "db.delete() without argument" should {
@@ -126,22 +129,22 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "be able to insert a new document with an embedded id" in new freshDb {
-      waitForResult(insertedId(db.insert(Json.obj("_id" -> "docid")))) must be equalTo "docid"
+      waitForResult(insertedId(db.insert(Json.obj("_id" → "docid")))) must be equalTo "docid"
     }
 
     "be able to insert a new document with an embedded id in batch mode" in new freshDb {
-      waitForResult(insertedId(db.insert(Json.obj("_id" -> "docid"), batch = true))) must be equalTo "docid"
+      waitForResult(insertedId(db.insert(Json.obj("_id" → "docid"), batch = true))) must be equalTo "docid"
     }
 
     "be able to update a document with an embedded id" in new freshDb {
-      waitForResult(insertedId(db.insert(Json.obj("_id" -> "docid")))) must be equalTo "docid"
-      val updatedDoc = waitForResult(db("docid")) ++ Json.obj("foo" -> "bar")
+      waitForResult(insertedId(db.insert(Json.obj("_id" → "docid")))) must be equalTo "docid"
+      val updatedDoc = waitForResult(db("docid")) ++ Json.obj("foo" → "bar")
       waitForResult(insertedId(db.insert(updatedDoc))) must be equalTo "docid"
     }
 
     "be able to update a document with an embedded id in batch mode" in new freshDb {
-      waitForResult(insertedId(db.insert(Json.obj("_id" -> "docid")))) must be equalTo "docid"
-      val updatedDoc = waitForResult(db("docid")) ++ Json.obj("foo" -> "bar")
+      waitForResult(insertedId(db.insert(Json.obj("_id" → "docid")))) must be equalTo "docid"
+      val updatedDoc = waitForResult(db("docid")) ++ Json.obj("foo" → "bar")
       waitForResult(insertedId(db.insert(updatedDoc, batch = true))) must be equalTo "docid"
     }
 
@@ -159,35 +162,35 @@ class DatabaseSpec extends WithDbSpecification("db") {
   "db.apply()" should {
 
     "be able to retrieve the content of a document" in new freshDb {
-      val id = waitForResult(insertedId(db.insert(Json.obj("key" -> "value"))))
+      val id = waitForResult(insertedId(db.insert(Json.obj("key" → "value"))))
       val doc = waitForResult(db(id))
       (doc \ "key").as[String] must be equalTo "value"
     }
 
     "be able to retrieve an older revision of a document with two params" in new freshDb {
-      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" → "value"))))
       val doc = waitForResult(db(id))
-      waitForResult(db.insert(doc ++ Json.obj("key" -> "newValue")))
+      waitForResult(db.insert(doc ++ Json.obj("key" → "newValue")))
       (waitForResult(db(id, rev)) \ "key").as[String] must be equalTo "value"
     }
 
     "be able to retrieve an older revision of a document with a params map" in new freshDb {
-      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" → "value"))))
       val doc = waitForResult(db(id))
-      waitForResult(db.insert(doc ++ Json.obj("key" -> "newValue")))
-      (waitForResult(db(id, Map("rev" -> rev))) \ "key").as[String] must be equalTo "value"
+      waitForResult(db.insert(doc ++ Json.obj("key" → "newValue")))
+      (waitForResult(db(id, Map("rev" → rev))) \ "key").as[String] must be equalTo "value"
     }
 
     "be able to retrieve an older revision of a document with a params sequence" in new freshDb {
-      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" → "value"))))
       val doc = waitForResult(db(id))
-      waitForResult(db.insert(doc ++ Json.obj("key" -> "newValue")))
-      (waitForResult(db(id, Seq("rev" -> rev))) \ "key").as[String] must be equalTo "value"
+      waitForResult(db.insert(doc ++ Json.obj("key" → "newValue")))
+      (waitForResult(db(id, Seq("rev" → rev))) \ "key").as[String] must be equalTo "value"
     }
 
     "be able to cope with documents containing non-ASCII characters" in new freshDb {
       private val s = "Épisode àçõœæéèêß"
-      val id = waitForResult(insertedId(db.insert(Json.obj("data" -> s))))
+      val id = waitForResult(insertedId(db.insert(Json.obj("data" → s))))
       (waitForResult(db(id)) \ "data").as[String] must be equalTo s
     }
 
@@ -212,9 +215,9 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "fail when trying to delete an older revision of a document" in new freshDb {
-      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" → "value"))))
       val doc = waitForResult(db(id))
-      waitForResult(db.insert(doc ++ Json.obj("key" -> "newValue")))
+      waitForResult(db.insert(doc ++ Json.obj("key" → "newValue")))
       waitForResult(db.delete(id, rev)) must throwA[StatusError]
     }
 
@@ -240,22 +243,26 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "be able to delete selected revisions of a document" in new freshDb {
-      val revs = waitForResult(db.bulkDocs(List("foo", "bar", "baz").map(v => Json.obj("_id" -> "docid", "value" -> v)),
-        allOrNothing = true)).map(doc => (doc \ "rev").as[String])
+      val revs = waitForResult(db.bulkDocs(
+        List("foo", "bar", "baz").map(v ⇒ Json.obj("_id" → "docid", "value" → v)),
+        allOrNothing = true
+      )).map(doc ⇒ (doc \ "rev").as[String])
       waitForResult(db.delete("docid", revs.drop(1))) must have size 2
       waitForResult(db.delete("docid", revs.take(1))) must have size 1
       waitForResult(db.delete("docid", revs.take(1))) must beEmpty
     }
 
     "be able to delete a document given only its id" in new freshDb {
-      val id = waitForResult(insertedId(db.insert(Json.obj("key" -> "value"))))
+      val id = waitForResult(insertedId(db.insert(Json.obj("key" → "value"))))
       waitForResult(db.delete(id)) must startWith("2-")
       waitForResult(db.delete(id)) must throwA[StatusError]
     }
 
     "be able to delete multiple revisions of a document given only its id" in new freshDb {
-      waitForResult(db.bulkDocs(List("foo", "bar", "baz").map(v => Json.obj("_id" -> "docid", "value" -> v)),
-        allOrNothing = true))
+      waitForResult(db.bulkDocs(
+        List("foo", "bar", "baz").map(v ⇒ Json.obj("_id" → "docid", "value" → v)),
+        allOrNothing = true
+      ))
       waitForResult(db.deleteAll("docid")) must have size 3
       waitForResult(db.deleteAll("docid")) must throwA[StatusError]
     }
@@ -264,7 +271,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
   "db.deleteAll" should {
 
     "be able to delete a document given only its id" in new freshDb {
-      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" -> "value"))))
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj("key" → "value"))))
       waitForResult(db.deleteAll(id)) must be equalTo Seq(rev)
       waitForResult(db.deleteAll(id)) must throwA[StatusError]
     }
@@ -273,31 +280,41 @@ class DatabaseSpec extends WithDbSpecification("db") {
   "db.bulkDocs" should {
 
     "be able to insert a single document" in new freshDb {
-      (waitForResult(db.bulkDocs(Seq(Json.obj("_id" -> "docid")))).head \ "id").as[String] must be equalTo "docid"
+      (waitForResult(db.bulkDocs(Seq(Json.obj("_id" → "docid")))).head \ "id").as[String] must be equalTo "docid"
     }
 
     "fail to insert a duplicate document" in new freshDb {
-      waitForResult(db.bulkDocs(Seq(Json.obj("_id" -> "docid"))))
-      (waitForResult(db.bulkDocs(Seq(Json.obj("_id" -> "docid", "extra" -> "other")))).head \ "error").as[String] must be equalTo "conflict"
+      waitForResult(db.bulkDocs(Seq(Json.obj("_id" → "docid"))))
+      (waitForResult(db.bulkDocs(Seq(Json.obj("_id" → "docid", "extra" → "other")))).head \ "error").as[String] must be equalTo "conflict"
     }
 
     "fail to insert a duplicate document at once" in new freshDb {
-      (waitForResult(db.bulkDocs(Seq(Json.obj("_id" -> "docid"),
-        Json.obj("_id" -> "docid", "extra" -> "other"))))(1) \ "error").as[String] must be equalTo "conflict"
+      (waitForResult(db.bulkDocs(Seq(
+        Json.obj("_id" → "docid"),
+        Json.obj("_id" → "docid", "extra" → "other")
+      )))(1) \ "error").as[String] must be equalTo "conflict"
     }
 
     "accept to insert a duplicate document in batch mode" in new freshDb {
-      (waitForResult(db.bulkDocs(Seq(Json.obj("_id" -> "docid"),
-        Json.obj("_id" -> "docid", "extra" -> "other")),
-        allOrNothing = true))(1) \ "id").as[String] must be equalTo "docid"
+      (waitForResult(db.bulkDocs(
+        Seq(
+        Json.obj("_id" → "docid"),
+        Json.obj("_id" → "docid", "extra" → "other")
+      ),
+        allOrNothing = true
+      ))(1) \ "id").as[String] must be equalTo "docid"
     }
 
     "generate conflicts when inserting duplicate documents in batch mode" in new freshDb {
-      waitForResult(db.bulkDocs(Seq(Json.obj("_id" -> "docid"),
-        Json.obj("_id" -> "docid", "extra" -> "other"),
-        Json.obj("_id" -> "docid", "extra" -> "yetAnother")),
-        allOrNothing = true))
-      (waitForResult(db("docid", Map("conflicts" -> "true"))) \ "_conflicts").as[Array[JsValue]] must have size 2
+      waitForResult(db.bulkDocs(
+        Seq(
+        Json.obj("_id" → "docid"),
+        Json.obj("_id" → "docid", "extra" → "other"),
+        Json.obj("_id" → "docid", "extra" → "yetAnother")
+      ),
+        allOrNothing = true
+      ))
+      (waitForResult(db("docid", Map("conflicts" → "true"))) \ "_conflicts").as[Array[JsValue]] must have size 2
     }
 
   }
@@ -309,54 +326,54 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "return a correct count when an element has been inserted" in new freshDb {
-      waitForResult(db.insert(Json.obj("key" -> "value"), "docid"))
+      waitForResult(db.insert(Json.obj("key" → "value"), "docid"))
       waitForResult(db.allDocs()).total_rows must be equalTo 1
     }
 
     "return a correct id enumeration when an element has been inserted" in new freshDb {
-      waitForResult(db.insert(Json.obj("key" -> "value"), "docid"))
+      waitForResult(db.insert(Json.obj("key" → "value"), "docid"))
       waitForResult(db.allDocs()).ids must be equalTo List("docid")
     }
 
     "return a correct key enumeration when an element has been inserted" in new freshDb {
-      waitForResult(db.insert(Json.obj("key" -> "value"), "docid"))
+      waitForResult(db.insert(Json.obj("key" → "value"), "docid"))
       waitForResult(db.allDocs()).keys[String] must be equalTo List("docid")
     }
 
     "return a correct values enumeration when an element has been inserted" in new freshDb {
-      waitForResult(db.insert(Json.obj("key" -> "value"), "docid"))
+      waitForResult(db.insert(Json.obj("key" → "value"), "docid"))
       val rev = (waitForResult(db.allDocs()).values[JsValue].head \ "rev").as[String]
       rev must be matching "1-[0-9a-f]{32}"
     }
 
     "be convertible to an items triple" in new freshDb {
-      waitForResult(db.insert(Json.obj("key" -> "value"), "docid"))
+      waitForResult(db.insert(Json.obj("key" → "value"), "docid"))
       val (id: String, key: String, value: JsValue) = waitForResult(db.allDocs()).items[String, JsValue].head
       (value \ "rev").as[String] must be matching "1-[0-9a-f]{32}"
     }
 
     "be convertible to an items quartuple in include_docs mode" in new freshDb {
-      waitForResult(db.insert(Json.obj("key" -> "value"), "docid"))
+      waitForResult(db.insert(Json.obj("key" → "value"), "docid"))
       val (id: String, key: String, value: JsValue, doc: Some[JsValue]) =
-        waitForResult(db.allDocs(Map("include_docs" -> "true"))).itemsWithDoc[String, JsValue, JsValue].head
+        waitForResult(db.allDocs(Map("include_docs" → "true"))).itemsWithDoc[String, JsValue, JsValue].head
       ((value \ "rev").as[String] must be matching "1-[0-9a-f]{32}") &&
-        ((value \ "rev") must be equalTo(doc.get \ "_rev")) &&
+        ((value \ "rev") must be equalTo (doc.get \ "_rev")) &&
         ((doc.get \ "key").as[String] must be equalTo "value")
     }
 
     "not return full docs in default mode" in new freshDb {
-      waitForResult(db.insert(Json.obj("key" -> "value"), "docid"))
+      waitForResult(db.insert(Json.obj("key" → "value"), "docid"))
       waitForResult(db.allDocs()).docs[JsValue] must be equalTo Nil
     }
 
     "return full docs in include_docs mode" in new freshDb {
-      waitForResult(db.insert(Json.obj("key" -> "value")))
-      (waitForResult(db.allDocs(Map("include_docs" -> "true"))).docs[JsValue].head \ "key").as[String] must be equalTo "value"
+      waitForResult(db.insert(Json.obj("key" → "value")))
+      (waitForResult(db.allDocs(Map("include_docs" → "true"))).docs[JsValue].head \ "key").as[String] must be equalTo "value"
     }
 
     "return full docs in include_docs mode and option" in new freshDb {
-      waitForResult(db.insert(Json.obj("key" -> "value"), "docid"))
-      (waitForResult(db.allDocs(Map("include_docs" -> "true"))).docs[JsValue].head \ "key").as[String] must be equalTo "value"
+      waitForResult(db.insert(Json.obj("key" → "value"), "docid"))
+      (waitForResult(db.allDocs(Map("include_docs" → "true"))).docs[JsValue].head \ "key").as[String] must be equalTo "value"
     }
 
   }
@@ -385,7 +402,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "return the change in long-polling state" in new freshDb {
-      val changes = db.changes(Map("feed" -> "longpoll"))
+      val changes = db.changes(Map("feed" → "longpoll"))
       changes.isCompleted must beFalse
       val id = waitForResult(insertedId(db.insert(Json.obj())))
       ((waitForResult(changes) \ "results").as[List[JsObject]].head \ "id").as[String] must be equalTo id
@@ -403,7 +420,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "properly encode values" in new freshDb {
       installDesignAndDocs(db)
-      val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo" -> "bar")))))
+      val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "bar")))))
       (newDoc \ "_id").as[String] must be equalTo "docid"
       (newDoc \ "_rev").toOption must beNone
       (newDoc \ "foo").as[String] must be equalTo "bar"
@@ -411,7 +428,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "properly encode values with non-ASCII characters" in new freshDb {
       installDesignAndDocs(db)
-      val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo" -> "barré")))))
+      val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "barré")))))
       (newDoc \ "_id").as[String] must be equalTo "docid"
       (newDoc \ "_rev").toOption must beNone
       (newDoc \ "foo").as[String] must be equalTo "barré"
@@ -419,7 +436,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "properly insert documents" in new freshDb {
       installDesignAndDocs(db)
-      waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo" -> "bar")))))
+      waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "bar")))))
       val newDoc = waitForResult(db("docid"))
       (newDoc \ "_id").as[String] must be equalTo "docid"
       (newDoc \ "_rev").as[String] must startWith("1-")
@@ -428,7 +445,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "properly insert documents with non-ASCII characters in id" in new freshDb {
       installDesignAndDocs(db)
-      waitForResult(db.update("common", "upd", "docidé", Map("json" -> Json.stringify(Json.obj("foo" -> "bar")))))
+      waitForResult(db.update("common", "upd", "docidé", Map("json" → Json.stringify(Json.obj("foo" → "bar")))))
       val newDoc = waitForResult(db("docidé"))
       (newDoc \ "_id").as[String] must be equalTo "docidé"
       (newDoc \ "_rev").as[String] must startWith("1-")
@@ -437,8 +454,8 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "properly update documents" in new freshDb {
       installDesignAndDocs(db)
-      waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo" -> "bar")))))
-      waitForResult(db.update("common", "upd", "docid", Map("json" -> Json.stringify(Json.obj("foo2" -> "bar2")))))
+      waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "bar")))))
+      waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo2" → "bar2")))))
       val updatedDoc = waitForResult(db("docid"))
       (updatedDoc \ "_id").as[String] must be equalTo "docid"
       (updatedDoc \ "_rev").as[String] must startWith("2-")
@@ -468,7 +485,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "return correct values when grouping" in new freshDb {
       installDesignAndDocs(db)
-      val result = waitForResult(db.view[String, Int]("common", "persons", Seq("group" -> "true"))).toMap
+      val result = waitForResult(db.view[String, Int]("common", "persons", Seq("group" → "true"))).toMap
       result.size must be equalTo 7
       result.keys must containAllOf(List("Arthur", "Beeblebrox", "Buffy", "Dent", "Fubar", "Summers", "Zaphod"))
       result.get("Arthur") must be equalTo Some(27)
@@ -476,7 +493,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "work as db.mapOnly when explicitely not reducing" in new freshDb {
       installDesignAndDocs(db)
-      val result = waitForResult(db.view[JsValue, JsValue]("common", "persons", Seq("reduce" -> "false")))
+      val result = waitForResult(db.view[JsValue, JsValue]("common", "persons", Seq("reduce" → "false")))
       result.size must be equalTo 8
     }
   }
@@ -510,7 +527,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       installDesignAndDocs(db)
       val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
       waitForEnd(insertPerson(db, "Dawn", "Summers", 15))
-      val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons", Seq("stale" -> "ok")))
+      val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons", Seq("stale" → "ok")))
       seq2 must be equalTo seq1
     }
 
@@ -518,7 +535,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       installDesignAndDocs(db)
       val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
       waitForEnd(insertPerson(db, "Dawn", "Summers", 15))
-      val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons", Seq("stale" -> "update_after")))
+      val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons", Seq("stale" → "update_after")))
       seq2 must be equalTo seq1
       val (seq3, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
       seq3 must be greaterThan seq2
@@ -528,7 +545,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
   "db.list" should {
 
     def responseToString(response: HttpResponse): Future[String] =
-      response.entity.toStrict(FiniteDuration(1, SECONDS)).map(s => new String(s.data.toArray, "UTF-8"))
+      response.entity.toStrict(FiniteDuration(1, SECONDS)).map(s ⇒ new String(s.data.toArray, "UTF-8"))
 
     "return correct values when not grouping" in new freshDb {
       installDesignAndDocs(db)
@@ -538,7 +555,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "return correct values when grouping" in new freshDb {
       installDesignAndDocs(db)
-      val result = waitForResult(db.list("common", "list", "persons", Seq("group" -> "true")).flatMap(responseToString)).split(',').map(_.toInt).sorted
+      val result = waitForResult(db.list("common", "list", "persons", Seq("group" → "true")).flatMap(responseToString)).split(',').map(_.toInt).sorted
       result must be equalTo Array(20, 23, 23, 27, 27, 40, 40)
     }
   }

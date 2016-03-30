@@ -33,8 +33,8 @@ case class Database(couch: Couch, databaseName: String) {
   override def canEqual(that: Any) = that.isInstanceOf[Database]
 
   override def equals(that: Any): Boolean = that match {
-    case other: Database if other.canEqual(this) => uri == other.uri
-    case _ => false
+    case other: Database if other.canEqual(this) ⇒ uri == other.uri
+    case _                                       ⇒ false
   }
 
   def uriFrom(other: Couch): String = if (couch == other) databaseName else uri.toString()
@@ -71,7 +71,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @throws CouchError if an error occurs
    */
   def apply(id: String, rev: String): Future[JsObject] =
-    couch.makeGetRequest[JsObject](encode(id, Seq("rev" -> rev)))
+    couch.makeGetRequest[JsObject](encode(id, Seq("rev" → rev)))
 
   /**
    * Get an existing document from the database.
@@ -108,7 +108,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @throws CouchError if an error occurs
    */
   def mapOnly(design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[Result] =
-    query(s"_design/$design/_view/$name", properties :+ ("reduce" -> "false"))
+    query(s"_design/$design/_view/$name", properties :+ ("reduce" → "false"))
 
   /**
    * Query a view from the database using map/reduce.
@@ -120,23 +120,23 @@ case class Database(couch: Couch, databaseName: String) {
    * @return a future containing a sequence of results
    */
   def view[K: Reads, V: Reads](design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[Seq[(K, V)]] =
-    couch.makeGetRequest[JsObject](encode(s"_design/$design/_view/$name", properties)).map(result => (result \ "rows").as[Array[JsValue]] map { row =>
-      (row \ "key").as[K] -> (row \ "value").as[V]
+    couch.makeGetRequest[JsObject](encode(s"_design/$design/_view/$name", properties)).map(result ⇒ (result \ "rows").as[Array[JsValue]] map { row ⇒
+      (row \ "key").as[K] → (row \ "value").as[V]
     })
 
   /**
-    * Query a view from the database using map/reduce and include the update sequence number.
-    *
-    * @param design the design document
-    * @param name the name of the view
-    * @param properties the properties to add to the request
-    * @tparam V the value type
-    * @return a future containing the update sequence number and a sequence of results
-    */
+   * Query a view from the database using map/reduce and include the update sequence number.
+   *
+   * @param design the design document
+   * @param name the name of the view
+   * @param properties the properties to add to the request
+   * @tparam V the value type
+   * @return a future containing the update sequence number and a sequence of results
+   */
   def viewWithUpdateSeq[K: Reads, V: Reads](design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[(Long, Seq[(K, V)])] =
-    couch.makeGetRequest[JsObject](encode(s"_design/$design/_view/$name", properties :+ ("update_seq" -> "true"))).map(result =>
+    couch.makeGetRequest[JsObject](encode(s"_design/$design/_view/$name", properties :+ ("update_seq" → "true"))).map(result ⇒
       ((result \ "update_seq").as[Long],
-        (result \ "rows").as[Array[JsValue]] map(row => (row \ "key").as[K] -> (row \ "value").as[V])))
+        (result \ "rows").as[Array[JsValue]] map (row ⇒ (row \ "key").as[K] → (row \ "value").as[V])))
 
   /**
    * Query a list from the database.
@@ -205,12 +205,12 @@ case class Database(couch: Couch, databaseName: String) {
    * @throws CouchError if an error occurs
    */
   def bulkDocs(docs: Seq[JsObject], allOrNothing: Boolean = false): Future[Seq[JsObject]] = {
-    val args = Json.obj("all_or_nothing" -> JsBoolean(allOrNothing), "docs" -> docs)
+    val args = Json.obj("all_or_nothing" → JsBoolean(allOrNothing), "docs" → docs)
     couch.makePostRequest[Seq[JsObject]](encode("_bulk_docs"), args)
   }
 
   private[this] def batchMode(query: Uri, batch: Boolean) = {
-    if (batch) query.withQuery(("batch" -> "ok") +: query.query()) else query
+    if (batch) query.withQuery(("batch" → "ok") +: query.query()) else query
   }
 
   /**
@@ -229,16 +229,16 @@ case class Database(couch: Couch, databaseName: String) {
       couch.makePutRequest[JsValue](batchMode(encode(id), batch), doc)
 
   /**
-    * Return the latest revision of a document.
-    *
-    * @param id the id of the document
-    * @return the revision
-    */
+   * Return the latest revision of a document.
+   *
+   * @param id the id of the document
+   * @return the revision
+   */
   def latestRev(id: String): Future[String] =
     couch.sendRequest(RequestBuilding.Head(encode(id))).map {
-      case response if response.status.isSuccess =>
+      case response if response.status.isSuccess ⇒
         response.header[ETag].map(_.value()).get.stripPrefix("\"").stripSuffix("\"")
-      case response =>
+      case response ⇒
         throw new StatusError(response.status)
     }
 
@@ -251,7 +251,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @throws CouchError if an error occurs
    */
   def delete(id: String, rev: String): Future[String] =
-    couch.makeDeleteRequest[JsValue](encode(id, Seq("rev" -> rev))).map(js => (js \ "rev").as[String])
+    couch.makeDeleteRequest[JsValue](encode(id, Seq("rev" → rev))).map(js ⇒ (js \ "rev").as[String])
 
   /**
    * Delete multiple revisions of a document from the database. There will be no error if the document does not exist.
@@ -263,13 +263,13 @@ case class Database(couch: Couch, databaseName: String) {
    */
   def delete(id: String, revs: Seq[String], allOrNothing: Boolean = false): Future[Seq[String]] =
     revs match {
-      case Nil =>
+      case Nil ⇒
         FastFuture.successful(Nil)
-      case revs@(rev :: Nil) =>
-        delete(id, rev).map(_ => revs).recover { case _ => Seq() }
-      case _ =>
-        bulkDocs(revs.map(rev => Json.obj("_id" -> id, "_rev" -> rev, "_deleted" -> true)), allOrNothing = allOrNothing)
-          .map(_.collect { case doc if !doc.keys.contains("error") => (doc \ "rev").as[String] })
+      case revs@(rev :: Nil) ⇒
+        delete(id, rev).map(_ ⇒ revs).recover { case _ ⇒ Seq() }
+      case _ ⇒
+        bulkDocs(revs.map(rev ⇒ Json.obj("_id" → id, "_rev" → rev, "_deleted" → true)), allOrNothing = allOrNothing)
+          .map(_.collect { case doc if !doc.keys.contains("error") ⇒ (doc \ "rev").as[String] })
     }
 
   /**
@@ -286,11 +286,11 @@ case class Database(couch: Couch, databaseName: String) {
   }
 
   /**
-    * Delete the latest version of a document from the database.
-    *
-    * @param id the id of the document
-    * @return the revision representing the deletion
-    */
+   * Delete the latest version of a document from the database.
+   *
+   * @param id the id of the document
+   * @return the revision representing the deletion
+   */
   def delete(id: String): Future[String] =
     latestRev(id).flatMap(delete(id, _))
 
@@ -301,7 +301,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @return a future with all the document revisions that have been deleted
    */
   def deleteAll(id: String): Future[Seq[String]] = {
-    this(id, Seq("conflicts" -> "true")).map(doc => (doc \ "_rev").as[String] :: (doc \ "_conflicts").asOpt[List[String]].getOrElse(Nil)) flatMap {
+    this(id, Seq("conflicts" → "true")).map(doc ⇒ (doc \ "_rev").as[String] :: (doc \ "_conflicts").asOpt[List[String]].getOrElse(Nil)) flatMap {
       delete(id, _, allOrNothing = false)
     }
   }
@@ -368,65 +368,65 @@ case class Database(couch: Couch, databaseName: String) {
    * @param params the additional parameters to the request
    * @param extraParams the extra parameters to the request such as a long list of doc ids
    * @return a source containing the changes as well as the termination marker when the connection closes without error,
-    *         the materialized value contains Done or an error if the HTTP request was unsuccesful
+   *         the materialized value contains Done or an error if the HTTP request was unsuccesful
    */
   def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, Future[Done]] = {
     val promise = Promise[Done]
     val requestParams = {
       val heartBeatParam = (params.get("timeout"), params.get("heartbeat")) match {
-        case (Some(t), Some(h)) if h.nonEmpty => Map("heartbeat" -> h)  // Timeout will be ignored by the DB, but the user has chosen
-        case (Some(t), _)                     => Map()                  // Use provided timeout only
-        case (None, Some(""))                 => Map()                  // Disable heartbeat
-        case (None, Some(h))                  => Map("heartbeat" -> h)  // Use provided heartbeat
-        case (None, None)                     => Map("heartbeat" ->     // Use default heartbeat from configuration
+        case (Some(t), Some(h)) if h.nonEmpty ⇒ Map("heartbeat" → h) // Timeout will be ignored by the DB, but the user has chosen
+        case (Some(t), _)                     ⇒ Map() // Use provided timeout only
+        case (None, Some(""))                 ⇒ Map() // Disable heartbeat
+        case (None, Some(h))                  ⇒ Map("heartbeat" → h) // Use provided heartbeat
+        case (None, None) ⇒ Map("heartbeat" → // Use default heartbeat from configuration
           couch.canapeConfig.as[FiniteDuration]("continuous-changes.heartbeat-interval").toMillis.toString)
       }
       params - "heartbeat" ++ heartBeatParam
     }
-    val request = couch.Post(encode("_changes", (requestParams + ("feed" -> "continuous")).toSeq), extraParams)
+    val request = couch.Post(encode("_changes", (requestParams + ("feed" → "continuous")).toSeq), extraParams)
     couch.sendPotentiallyBlockingRequest(request)
       .recoverWith {
-        case t =>
+        case t ⇒
           promise.failure(t)
           Source.failed(t)
-        }
+      }
       .flatMapConcat {
-        case response if response.status.isSuccess() =>
+        case response if response.status.isSuccess() ⇒
           promise.success(Done)
           response.entity.dataBytes.via(filterJson)
-        case response =>
+        case response ⇒
           val error = statusErrorFromResponse(response)
           promise.completeWith(error)
           Source.fromFuture(error)
       }
-      .mapMaterializedValue(_ => promise.future)
+      .mapMaterializedValue(_ ⇒ promise.future)
   }
 
   /**
-    * Return a one-time continuous changes stream.
+   * Return a one-time continuous changes stream.
    *
    * @param docIds the document ids to watch
    * @param params the additional parameters to the request
    * @param extraParams the extra parameters to the request (passed in the body)
    * @return a source containing the changes as well as the termination marker when the connection closes without error,
-    *         the materialized value contains Done or an error if the HTTP request was unsuccesful
+   *         the materialized value contains Done or an error if the HTTP request was unsuccesful
    */
   def continuousChangesByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, Future[Done]] =
-    continuousChanges(params + ("filter" -> "_doc_ids"), extraParams ++ Json.obj("doc_ids" -> docIds))
+    continuousChanges(params + ("filter" → "_doc_ids"), extraParams ++ Json.obj("doc_ids" → docIds))
 
   /**
-    * Return a continuous changes stream.
-    *
-    * @param params the additional parameters to the request
-    * @param extraParams the extra parameters to the request such as a long list of doc ids
-    * @param sinceSeq the latest uninteresting sequence number, or the current database state if not provided
-    * @return a source containing the changes, materialized as a Done object when connected for the first time
-    *         to the database with a successful HTTP response code
-    */
+   * Return a continuous changes stream.
+   *
+   * @param params the additional parameters to the request
+   * @param extraParams the extra parameters to the request such as a long list of doc ids
+   * @param sinceSeq the latest uninteresting sequence number, or the current database state if not provided
+   * @return a source containing the changes, materialized as a Done object when connected for the first time
+   *         to the database with a successful HTTP response code
+   */
   def changesSource(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(),
-                    sinceSeq: Long = -1): Source[JsObject, Future[Done]] = {
+    sinceSeq: Long = -1): Source[JsObject, Future[Done]] = {
     Source.actorPublisher(Props(new ChangesSource(this, params, extraParams, sinceSeq)))
-      .mapMaterializedValue { actorRef =>
+      .mapMaterializedValue { actorRef ⇒
         val promise = Promise[Done]
         actorRef ! ChangesSource.ConnectionPromise(promise)
         promise.future
@@ -434,18 +434,18 @@ case class Database(couch: Couch, databaseName: String) {
   }
 
   /**
-    * Return a continuous changes stream.
-    *
-    * @param docIds the document ids to watch
-    * @param params the additional parameters to the request
-    * @param extraParams the extra parameters to the request (passed in the body)
-    * @param sinceSeq the latest uninteresting sequence number, or the current database state if not provided
-    * @return a source containing the changes, materialized as a Done object when connected for the first time
-    *         to the database with a successful HTTP response code
-    */
+   * Return a continuous changes stream.
+   *
+   * @param docIds the document ids to watch
+   * @param params the additional parameters to the request
+   * @param extraParams the extra parameters to the request (passed in the body)
+   * @param sinceSeq the latest uninteresting sequence number, or the current database state if not provided
+   * @return a source containing the changes, materialized as a Done object when connected for the first time
+   *         to the database with a successful HTTP response code
+   */
   def changesSourceByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(),
-                            sinceSeq: Long = -1): Source[JsObject, Future[Done]] =
-    changesSource(params + ("filter" -> "_doc_ids"), extraParams ++ Json.obj("doc_ids" -> docIds), sinceSeq)
+    sinceSeq: Long = -1): Source[JsObject, Future[Done]] =
+    changesSource(params + ("filter" → "_doc_ids"), extraParams ++ Json.obj("doc_ids" → docIds), sinceSeq)
 
 }
 
@@ -459,7 +459,7 @@ object Database {
   val onlySeq: Flow[JsObject, JsObject, NotUsed] = Flow[JsObject].filter(_.keys.contains("seq"))
 
   private val filterJson: Flow[ByteString, JsObject, NotUsed] =
-    Flow[ByteString].mapConcat { bs =>
+    Flow[ByteString].mapConcat { bs ⇒
       new String(bs.toArray, "UTF-8").split("\r?\n").filter(_.length > 1).map(Json.parse(_).as[JsObject]).toList
     }
 

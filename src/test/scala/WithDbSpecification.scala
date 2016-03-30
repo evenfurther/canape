@@ -17,7 +17,7 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
   implicit val system = ActorSystem("canape-test")
   implicit val dispatcher = system.dispatcher
   implicit val timeout: Duration = (5, SECONDS)
-  implicit val materializer =  ActorMaterializer.create(system)
+  implicit val materializer = ActorMaterializer.create(system)
 
   val couch = new Couch
 
@@ -33,7 +33,7 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
         Await.ready(Future.sequence(_waitEventually), timeout)
         Await.ready(db.delete(), timeout)
       } catch {
-        case _: StatusError =>
+        case _: StatusError ⇒
       }
 
     def waitEventually[T](fs: Future[T]*): Unit = _waitEventually ++= fs

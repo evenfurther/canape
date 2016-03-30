@@ -15,7 +15,7 @@ import scala.concurrent.Promise
 import scala.concurrent.duration.FiniteDuration
 
 class ChangesSource(database: Database, params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(), private var sinceSeq: Long = -1)
-  extends ActorPublisher[JsObject] {
+    extends ActorPublisher[JsObject] {
 
   import ChangesSource._
 
@@ -36,9 +36,9 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
     assert(!sendInProgress, "send in progress while reconnecting")
     ongoingConnection = true
     val requestSinceSeq = if (sinceSeq == -1) "now" else sinceSeq.toString
-    queue = database.continuousChanges(params + ("since" -> requestSinceSeq), extraParams)
-        .mapMaterializedValue(done => done.onSuccess { case d => connectionEstablished.trySuccess(d) })
-        .toMat(Sink.queue())(Keep.right).run()
+    queue = database.continuousChanges(params + ("since" → requestSinceSeq), extraParams)
+      .mapMaterializedValue(done ⇒ done.onSuccess { case d ⇒ connectionEstablished.trySuccess(d) })
+      .toMat(Sink.queue())(Keep.right).run()
     sendFromQueue()
   }
 
@@ -50,54 +50,54 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
 
   def receive: Receive = {
 
-    case Cancel =>
+    case Cancel ⇒
       // We have no way of cancelling a SinkQueue request. We have to wait for the connection to timeout, or for
       // the backpressure to act on the TCP layer and make the connection fail.
       context.stop(self)
 
-    case Request(n) =>
+    case Request(n) ⇒
       if (!ongoingConnection)
         connect()
       else if (n == totalDemand)
         // We had a total demand of 0, which means that nobody is waiting for the next value
         sendFromQueue()
 
-    case Change(Some(change)) =>
+    case Change(Some(change)) ⇒
       sendInProgress = false
       assert(totalDemand > 0)
       (change \ "seq").validate[Long] match {
-        case JsSuccess(n, _) =>
+        case JsSuccess(n, _) ⇒
           sinceSeq = n
           onNext(change)
           if (totalDemand > 0)
             sendFromQueue()
-        case _: JsError =>
+        case _: JsError ⇒
           sendFromQueue()
       }
 
-    case Change(None) =>
+    case Change(None) ⇒
       sendInProgress = false
       queue = null
       assert(totalDemand > 0)
       connect()
 
-    case Failure(ChangesError(t)) =>
+    case Failure(ChangesError(t)) ⇒
       sendInProgress = false
       queue = null
       assert(totalDemand > 0)
       t match {
-        case _: StatusError =>
+        case _: StatusError ⇒
           // We do not want to continue in the presence of a HTTP error. See above.
           onError(t)
           context.stop(self)
-        case _ =>
+        case _ ⇒
           context.system.scheduler.scheduleOnce(reconnectionDelay, self, Reconnect)
       }
 
-    case Reconnect =>
+    case Reconnect ⇒
       connect()
 
-    case ConnectionPromise(promise) =>
+    case ConnectionPromise(promise) ⇒
       promise.completeWith(connectionEstablished.future)
 
   }
