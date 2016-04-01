@@ -3,7 +3,7 @@ package net.rfc1149.canape
 import play.api.libs.json._
 
 case class Result(
-  total_rows: Long,
+    total_rows: Long,
     offset: Long,
     rows: List[Row]
 ) {

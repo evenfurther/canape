@@ -298,9 +298,9 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "accept to insert a duplicate document in batch mode" in new freshDb {
       (waitForResult(db.bulkDocs(
         Seq(
-        Json.obj("_id" → "docid"),
-        Json.obj("_id" → "docid", "extra" → "other")
-      ),
+          Json.obj("_id" → "docid"),
+          Json.obj("_id" → "docid", "extra" → "other")
+        ),
         allOrNothing = true
       ))(1) \ "id").as[String] must be equalTo "docid"
     }
@@ -308,10 +308,10 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "generate conflicts when inserting duplicate documents in batch mode" in new freshDb {
       waitForResult(db.bulkDocs(
         Seq(
-        Json.obj("_id" → "docid"),
-        Json.obj("_id" → "docid", "extra" → "other"),
-        Json.obj("_id" → "docid", "extra" → "yetAnother")
-      ),
+          Json.obj("_id" → "docid"),
+          Json.obj("_id" → "docid", "extra" → "other"),
+          Json.obj("_id" → "docid", "extra" → "yetAnother")
+        ),
         allOrNothing = true
       ))
       (waitForResult(db("docid", Map("conflicts" → "true"))) \ "_conflicts").as[Array[JsValue]] must have size 2

@@ -38,7 +38,7 @@ import scala.util.Try
  */
 
 class Couch(
-  val host: String = "localhost",
+    val host: String = "localhost",
     val port: Int = 5984,
     val auth: Option[(String, String)] = None,
     val secure: Boolean = false,
