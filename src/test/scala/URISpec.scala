@@ -67,6 +67,10 @@ class URISpec extends Specification {
       dbauth.uri.toString mustEqual "http://admin:xyzzy@db.example.com:5984/test"
     }
 
+    "return the URI as toString" in {
+      dbauth.toString mustEqual "http://admin:xyzzy@db.example.com:5984/test"
+    }
+
     "return the right URI in local context" in {
       dbauth.uriFrom(cauth) mustEqual "test"
     }

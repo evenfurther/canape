@@ -74,6 +74,25 @@ class DatabaseSpec extends WithDbSpecification("db") {
     ) yield insertPerson(db, f, l, a)))
   }
 
+  "==" should {
+
+    "tell that two equal databases are equal" in new freshDb {
+      db must be equalTo db
+    }
+
+    "tell that two different databases are not equal" in new freshDb {
+      db must not be equalTo(db.couch.db("non-existing"))
+    }
+
+    "tell that a database is different from another kind of object" in new freshDb {
+      db must not be equalTo("foobar")
+    }
+
+    "get a distinctive hashCode" in new freshDb {
+      db.hashCode must not be equalTo(db.couch.db("non-existing").hashCode)
+    }
+  }
+
   "db.delete() without argument" should {
 
     "be able to delete an existing database" in new freshDb {
@@ -98,6 +117,14 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "fail when trying to create an existing database" in new freshDb {
       waitForResult(db.create()) must throwA[StatusError]
+    }
+
+  }
+
+  "db.status()" should {
+
+    "return a meaningful object" in new freshDb {
+      (waitForResult(db.status()) \ "db_name").as[String] must be equalTo db.databaseName
     }
 
   }
@@ -202,6 +229,12 @@ class DatabaseSpec extends WithDbSpecification("db") {
       val (id, rev) = waitForResult(inserted(db.insert(JsObject(Nil))))
       waitForResult(db.delete(id, rev)) must startWith("2-")
       waitForResult(db(id)) must throwA[StatusError]
+    }
+
+    "be able to delete a document using it directly" in new freshDb {
+      val (id, rev) = waitForResult(inserted(db.insert(JsObject(Nil))))
+      val doc = waitForResult(db(id))
+      waitForResult(db.delete(doc)) must startWith("2-")
     }
 
     "fail when trying to delete a non-existing document" in new freshDb {
@@ -416,7 +449,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
   }
 
-  "db.update" should {
+  "db.update()" should {
 
     "properly encode values" in new freshDb {
       installDesignAndDocs(db)
@@ -464,7 +497,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
   }
 
-  "db.mapOnly" should {
+  "db.mapOnly()" should {
 
     "return correct values" in new freshDb {
       installDesignAndDocs(db)
@@ -473,7 +506,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
   }
 
-  "db.view" should {
+  "db.view()" should {
 
     "return correct values when not grouping" in new freshDb {
       installDesignAndDocs(db)
@@ -498,7 +531,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
   }
 
-  "db.viewWithUpdateSeq" should {
+  "db.viewWithUpdateSeq()" should {
 
     "see the same sequence number when no changes happened" in new freshDb {
       installDesignAndDocs(db)
@@ -542,7 +575,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
   }
 
-  "db.list" should {
+  "db.list()" should {
 
     def responseToString(response: HttpResponse): Future[String] =
       response.entity.toStrict(FiniteDuration(1, SECONDS)).map(s ⇒ new String(s.data.toArray, "UTF-8"))
@@ -560,7 +593,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
   }
 
-  "db.latestRev" should {
+  "db.latestRev()" should {
 
     "return the latest revision of a document" in new freshDb {
       val id = waitForResult(insertedId(db.insert(Json.obj())))
@@ -571,6 +604,34 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "fail when the document does not exist" in new freshDb {
       waitForResult(db.latestRev("non-existing")) must throwA[StatusError]
+    }
+  }
+
+  "db.replicateFrom()" should {
+
+    "copy documents from the remote database" in new freshDb {
+      val outer = db
+      val (outerId, outerRev) = waitForResult(inserted(outer.insert(Json.obj())))
+      new freshDb {
+        waitForResult(db.replicateFrom(outer))
+        val doc = waitForResult(db(outerId))
+        (doc \ "_rev").as[String] must be equalTo outerRev
+        db.delete()
+      }
+    }
+  }
+
+  "db.replicateTo()" should {
+
+    "copy documents to the remote database" in new freshDb {
+      val outer = db
+      new freshDb {
+        val (innerId, innerRev) = waitForResult(inserted(db.insert(Json.obj())))
+        waitForResult(db.replicateTo(outer))
+        val doc = waitForResult(outer(innerId))
+        (doc \ "_rev").as[String] must be equalTo innerRev
+        db.delete()
+      }
     }
   }
 

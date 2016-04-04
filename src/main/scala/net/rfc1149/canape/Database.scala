@@ -219,7 +219,7 @@ case class Database(couch: Couch, databaseName: String) {
    * @param doc the document to insert
    * @param id the id of the document if it is known and absent from the document itself
    * @param batch allow the insertion in batch (unchecked) mode
-   * @return a request
+   * @return the answer from the database
    * @throws CouchError if an error occurs
    */
   def insert(doc: JsObject, id: String = null, batch: Boolean = false): Future[JsValue] =
