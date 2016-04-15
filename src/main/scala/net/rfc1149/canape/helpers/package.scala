@@ -1,5 +1,6 @@
 package net.rfc1149.canape
 
+import akka.http.scaladsl.util.FastFuture
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
@@ -16,14 +17,19 @@ package object helpers {
   val idRevPicker = ((JsPath \ '_id).json.pickBranch and (JsPath \ '_rev).json.pickBranch).reduce
 
   def solve(db: Database, documents: Seq[JsObject])(solver: Seq[JsObject] ⇒ JsObject): Future[Seq[JsObject]] = {
-    val mergedDoc = solver(documents)
-    val rev = mergedDoc \ "_rev"
-    val bulkDocs = documents map {
-      case d if (d \ "_rev") == rev ⇒ mergedDoc.transform(unconflicter).get
-      case d                        ⇒ d.transform(deleter).get
-    }
-    db.bulkDocs(bulkDocs, allOrNothing = true)
+    try {
+      val mergedDoc = solver(documents)
+      val rev = mergedDoc \ "_rev"
+      val bulkDocs = documents map {
+        case d if (d \ "_rev") == rev ⇒ mergedDoc.transform(unconflicter).get
+        case d                        ⇒ d.transform(deleter).get
+      }
+      db.bulkDocs(bulkDocs, allOrNothing = true)
+    } catch { case t: Throwable ⇒ FastFuture.failed(t) }
   }
+
+  def makeSolver[T](solver: Seq[T] ⇒ T)(implicit ev1: Reads[T], ev2: Writes[T]): (Seq[JsObject] ⇒ JsObject) =
+    (docs: Seq[JsObject]) ⇒ solver(docs.map(_.as[T])).withIdRev(docs.head)
 
   def getRevs(db: Database, id: String, revs: Seq[String] = Seq())(implicit context: ExecutionContext): Future[Seq[JsObject]] = {
     val revsList = if (revs.isEmpty) "all" else s"[${revs.map(r ⇒ s""""$r"""").mkString(",")}]"
