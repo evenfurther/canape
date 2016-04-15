@@ -85,7 +85,7 @@ class Couch(
    * @param request the request to send
    */
   def sendRequest(request: HttpRequest): Future[HttpResponse] =
-    Source.single(request → null).via(hostConnectionPool).runWith(Sink.head).map(_._1.get)
+    Source.single(request → NotUsed).via(hostConnectionPool).runWith(Sink.head).map(_._1.get)
 
   /**
    * Send an arbitrary HTTP request on the potentially blocking bool.

@@ -25,27 +25,28 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
     database.couch.canapeConfig.as[FiniteDuration]("changes-source.reconnection-delay")
 
   private[this] var ongoingConnection = false
-  private[this] var queue: SinkQueue[JsObject] = null
+  private[this] var queue: Option[SinkQueue[JsObject]] = None
   private[this] var sendInProgress = false
 
   private[this] val connectionEstablished = Promise[Done]
 
   private[this] def connect() = {
     assert(totalDemand > 0, "unneeded connections to the changes stream")
-    assert(queue == null, "queue still exists when reconnecting")
+    assert(queue.isEmpty, "queue still exists when reconnecting")
     assert(!sendInProgress, "send in progress while reconnecting")
     ongoingConnection = true
     val requestSinceSeq = if (sinceSeq == -1) "now" else sinceSeq.toString
-    queue = database.continuousChanges(params + ("since" → requestSinceSeq), extraParams)
+    queue = Some(database.continuousChanges(params + ("since" → requestSinceSeq), extraParams)
       .mapMaterializedValue(done ⇒ done.onSuccess { case d ⇒ connectionEstablished.trySuccess(d) })
-      .toMat(Sink.queue())(Keep.right).run()
+      .toMat(Sink.queue())(Keep.right).run())
     sendFromQueue()
   }
 
   private[this] def sendFromQueue() = {
     assert(!sendInProgress, "unable to resolve two futures at the same time")
+    assert(queue.isDefined, "queue does not exist")
     sendInProgress = true
-    queue.pull().transform(Change, ChangesError).pipeTo(self)
+    queue.foreach(_.pull().transform(Change, ChangesError).pipeTo(self))
   }
 
   def receive: Receive = {
@@ -77,13 +78,13 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
 
     case Change(None) ⇒
       sendInProgress = false
-      queue = null
+      queue = None
       assert(totalDemand > 0)
       connect()
 
     case Failure(ChangesError(t)) ⇒
       sendInProgress = false
-      queue = null
+      queue = None
       assert(totalDemand > 0)
       t match {
         case _: StatusError ⇒
