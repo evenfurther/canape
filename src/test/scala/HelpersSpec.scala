@@ -43,6 +43,31 @@ class HelpersSpec extends WithDbSpecification("helpers") {
 
   }
 
+  "withIdRev()" should {
+
+    "work with the strings version" in {
+      val result = Json.obj("foo" → "bar").withIdRev("docid", "docrev")
+      result must be equalTo Json.obj("foo" → "bar", "_id" → "docid", "_rev" → "docrev")
+    }
+
+    "work with the strings version and remove older id and rev" in {
+      val result = Json.obj("foo" → "bar", "_id" → "foo", "_rev" → "3-bar").withIdRev("docid", "docrev")
+      result must be equalTo Json.obj("foo" → "bar", "_id" → "docid", "_rev" → "docrev")
+    }
+
+    "work with the reference document version" in {
+      val refdoc = Json.obj("_id" → "docid", "_rev" → "docrev")
+      val result = Json.obj("foo" → "bar").withIdRev(refdoc)
+      result must be equalTo Json.obj("foo" → "bar", "_id" → "docid", "_rev" → "docrev")
+    }
+
+    "work with the reference document version and remove older id and rev" in {
+      val refdoc = Json.obj("_id" → "docid", "_rev" → "docrev")
+      val result = Json.obj("foo" → "bar", "_id" → "foo", "_rev" → "3-bar").withIdRev(refdoc)
+      result must be equalTo Json.obj("foo" → "bar", "_id" → "docid", "_rev" → "docrev")
+    }
+  }
+
   "solve()" should {
 
     "be able to solve a conflict by selecting one document" in new freshDb {

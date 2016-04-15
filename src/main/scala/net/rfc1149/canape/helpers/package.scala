@@ -13,6 +13,8 @@ package object helpers {
 
   private val unconflicter = (__ \ '_conflicts).json.prune
 
+  val idRevPicker = ((JsPath \ '_id).json.pickBranch and (JsPath \ '_rev).json.pickBranch).reduce
+
   def solve(db: Database, documents: Seq[JsObject])(solver: Seq[JsObject] ⇒ JsObject): Future[Seq[JsObject]] = {
     val mergedDoc = solver(documents)
     val rev = mergedDoc \ "_rev"
@@ -40,5 +42,10 @@ package object helpers {
     db(id, Map("conflicts" → "true")) map { js: JsValue ⇒
       (js \ "_rev").as[String] +: (js \ "_conflicts").asOpt[List[String]].getOrElse(Seq())
     }
+
+  implicit class EnrichedWritable[T: Writes](obj: T) {
+    def withIdRev(id: String, rev: String): JsObject = Json.toJson(obj).asInstanceOf[JsObject] ++ Json.obj("_id" → id, "_rev" → rev)
+    def withIdRev(doc: JsObject): JsObject = Json.toJson(obj).asInstanceOf[JsObject] ++ doc.transform(idRevPicker).get
+  }
 
 }
