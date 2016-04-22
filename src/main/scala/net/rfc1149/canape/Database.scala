@@ -155,12 +155,24 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @param design the design document
    * @param name the name of the update function
-   * @param data the data to pass to the update function
-   * @return a request
+   * @param data the data to pass to the update function as form data
+   * @return the result
    * @throws CouchError if an error occurs
    */
   def update(design: String, name: String, id: String, data: Map[String, String]): Future[JsValue] =
     couch.makePostRequest[JsValue](encode(s"_design/$design/_update/$name/$id"), FormData(data))
+
+  /**
+   * Call an update function.
+   *
+   * @param design the design document
+   * @param name the name of the update function
+   * @param data the data to pass to the update function in the body
+   * @return the result
+   * @throws CouchError if an error occurs
+   */
+  def update(design: String, name: String, id: String, data: JsValue): Future[JsValue] =
+    couch.makePutRequest[JsValue](encode(s"_design/$design/_update/$name/$id"), data)
 
   /**
    * Retrieve the list of public documents from the database.

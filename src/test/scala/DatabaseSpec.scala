@@ -24,8 +24,29 @@ class DatabaseSpec extends WithDbSpecification("db") {
       """
         | function(doc, req) {
         |   var newdoc = JSON.parse(req.form.json);
-        |   newdoc._id = req.id || req.uuid;
-        |   if (doc && doc._rev)
+        |   newdoc._id = req.id;
+        |   if (doc)
+        |     newdoc._rev = doc._rev;
+        |   return [newdoc, {
+        |     headers : {
+        |      "Content-Type" : "application/json"
+        |      },
+        |     body: JSON.stringify(newdoc)
+        |   }];
+        | };
+      """.stripMargin
+    val updError =
+      """
+        | function(doc, req) {
+        |   return [null, { code: 400, body: "Check 400 answer" }];
+        | }
+      """.stripMargin
+    val replace =
+      """
+        | function(doc, req) {
+        |   var newdoc = JSON.parse(req.body);
+        |   newdoc._id = req.id;
+        |   if (doc)
         |     newdoc._rev = doc._rev;
         |   return [newdoc, {
         |     headers : {
@@ -64,7 +85,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
         | }
       """.stripMargin
     val common = Json.obj(
-      "updates" → Json.obj("upd" → upd),
+      "updates" → Json.obj("upd" → upd, "updError" → updError, "replace" → replace),
       "views" → Json.obj("persons" → Json.obj("map" → personsMap, "reduce" → personsReduce)),
       "lists" → Json.obj("list" → list)
     )
@@ -461,7 +482,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
   "db.update()" should {
 
-    "properly encode values" in new freshDb {
+    "encode values" in new freshDb {
       installDesignAndDocs(db)
       val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "bar")))))
       (newDoc \ "_id").as[String] must be equalTo "docid"
@@ -469,7 +490,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       (newDoc \ "foo").as[String] must be equalTo "bar"
     }
 
-    "properly encode values with non-ASCII characters" in new freshDb {
+    "encode values with non-ASCII characters" in new freshDb {
       installDesignAndDocs(db)
       val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "barré")))))
       (newDoc \ "_id").as[String] must be equalTo "docid"
@@ -477,7 +498,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       (newDoc \ "foo").as[String] must be equalTo "barré"
     }
 
-    "properly insert documents" in new freshDb {
+    "insert documents" in new freshDb {
       installDesignAndDocs(db)
       waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "bar")))))
       val newDoc = waitForResult(db("docid"))
@@ -486,7 +507,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       (newDoc \ "foo").as[String] must be equalTo "bar"
     }
 
-    "properly insert documents with non-ASCII characters in id" in new freshDb {
+    "insert documents with non-ASCII characters in id" in new freshDb {
       installDesignAndDocs(db)
       waitForResult(db.update("common", "upd", "docidé", Map("json" → Json.stringify(Json.obj("foo" → "bar")))))
       val newDoc = waitForResult(db("docidé"))
@@ -495,7 +516,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       (newDoc \ "foo").as[String] must be equalTo "bar"
     }
 
-    "properly update documents" in new freshDb {
+    "update documents" in new freshDb {
       installDesignAndDocs(db)
       waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "bar")))))
       waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo2" → "bar2")))))
@@ -504,6 +525,32 @@ class DatabaseSpec extends WithDbSpecification("db") {
       (updatedDoc \ "_rev").as[String] must startWith("2-")
       (updatedDoc \ "foo").toOption must beNone
       (updatedDoc \ "foo2").as[String] must be equalTo "bar2"
+    }
+
+    "propagate errors from the update function" in new freshDb {
+      installDesignAndDocs(db)
+      Try(waitForResult(db.update("common", "updError", "docid", Map[String, String]()))) match {
+        case Failure(StatusError(400, _, _)) ⇒ success
+        case Failure(t)                      ⇒ failure(s"unexpected exception thrown: $t")
+        case Success(s)                      ⇒ failure(s"unexpected value returned: $s")
+      }
+    }
+
+    "accept JSON documents with PUT" in new freshDb {
+      installDesignAndDocs(db)
+      waitForResult(db.update("common", "replace", "docid", Json.obj("foo" → "bar")))
+      val updatedDoc = waitForResult(db("docid"))
+      (updatedDoc \ "foo").as[String] must be equalTo "bar"
+    }
+
+    "replace JSON documents with PUT" in new freshDb {
+      installDesignAndDocs(db)
+      waitForResult(db.update("common", "replace", "docid", Json.obj("foo" → "bar")))
+      val updatedDoc = waitForResult(db("docid"))
+      (updatedDoc \ "foo").as[String] must be equalTo "bar"
+      waitForResult(db.update("common", "replace", "docid", Json.obj("foo" → "baz")))
+      val updatedDoc2 = waitForResult(db("docid"))
+      (updatedDoc2 \ "foo").as[String] must be equalTo "baz"
     }
   }
 
