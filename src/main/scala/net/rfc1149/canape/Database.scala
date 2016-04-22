@@ -145,10 +145,11 @@ case class Database(couch: Couch, databaseName: String) {
    * @param list the name of the list
    * @param view the name of the view whose result will be passed to the list
    * @param properties the properties to add to the request
+   * @param keepBody do not consume the entity body (default is to consume it to prevent stalling the connection)
    * @return a future containing a HTTP response
    */
-  def list(design: String, list: String, view: String, properties: Seq[(String, String)] = Seq()): Future[HttpResponse] =
-    couch.makeRawGetRequest(encode(s"_design/$design/_list/$list/$view", properties))
+  def list(design: String, list: String, view: String, properties: Seq[(String, String)] = Seq(), keepBody: Boolean = false): Future[HttpResponse] =
+    couch.makeRawGetRequest(encode(s"_design/$design/_list/$list/$view", properties)).map(Couch.maybeConsumeBody(_, keepBody))
 
   /**
    * Call an update function.

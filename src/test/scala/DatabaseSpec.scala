@@ -638,13 +638,13 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "return correct values when not grouping" in new freshDb {
       installDesignAndDocs(db)
-      val result = waitForResult(db.list("common", "list", "persons").flatMap(responseToString))
+      val result = waitForResult(db.list("common", "list", "persons", keepBody = true).flatMap(responseToString))
       result must be equalTo "40"
     }
 
     "return correct values when grouping" in new freshDb {
       installDesignAndDocs(db)
-      val result = waitForResult(db.list("common", "list", "persons", Seq("group" → "true")).flatMap(responseToString)).split(',').map(_.toInt).sorted
+      val result = waitForResult(db.list("common", "list", "persons", Seq("group" → "true"), keepBody = true).flatMap(responseToString)).split(',').map(_.toInt).sorted
       result must be equalTo Array(20, 23, 23, 27, 27, 40, 40)
     }
   }
