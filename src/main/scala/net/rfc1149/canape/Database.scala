@@ -156,11 +156,12 @@ case class Database(couch: Couch, databaseName: String) {
    * @param design the design document
    * @param name the name of the update function
    * @param data the data to pass to the update function as form data
+   * @param keepBody do not consume the entity body (default is to consume it to prevent stalling the connection)
    * @return a future containing a HTTP response
    * @throws CouchError if an error occurs
    */
-  def update(design: String, name: String, id: String, data: Map[String, String]): Future[HttpResponse] =
-    couch.makeRawPostRequest(encode(s"_design/$design/_update/$name/$id"), FormData(data))
+  def updateForm(design: String, name: String, id: String, data: Map[String, String], keepBody: Boolean = false): Future[HttpResponse] =
+    couch.makeRawPostRequest(encode(s"_design/$design/_update/$name/$id"), FormData(data)).map(Couch.maybeConsumeBody(_, keepBody))
 
   /**
    * Call an update function.
@@ -168,11 +169,12 @@ case class Database(couch: Couch, databaseName: String) {
    * @param design the design document
    * @param name the name of the update function
    * @param data the data to pass to the update function in the body as Json
+   * @param keepBody do not consume the entity body (default is to consume it to prevent stalling the connection)
    * @return a future containing a HTTP response
    * @throws CouchError if an error occurs
    */
-  def update[T: Writes](design: String, name: String, id: String, data: T): Future[HttpResponse] =
-    couch.makeRawPutRequest[T](encode(s"_design/$design/_update/$name/$id"), data)
+  def updateBody[T: Writes](design: String, name: String, id: String, data: T, keepBody: Boolean = false): Future[HttpResponse] =
+    couch.makeRawPutRequest[T](encode(s"_design/$design/_update/$name/$id"), data).map(Couch.maybeConsumeBody(_, keepBody))
 
   /**
    * Retrieve the list of public documents from the database.

@@ -163,7 +163,6 @@ class Couch(
    *
    * @param query the query string, including the already-encoded optional parameters
    * @param data the data to post
-   * @tparam T the type of the result
    * @return a future containing the required result
    * @throws CouchError if an error occurs
    */
@@ -189,7 +188,7 @@ class Couch(
    *
    * @param query the query string, including the already-encoded optional parameters
    * @param data the data to post
-   * @tparam T the type of the result
+   * @tparam T the type of the data
    * @return a future containing the HTTP response
    * @throws CouchError if an error occurs
    */
@@ -327,6 +326,35 @@ object Couch extends PlayJsonSupport {
       .map(throw _)
   }
 
+  def maybeConsumeBody(response: HttpResponse, keepBody: Boolean)(implicit fm: Materializer): HttpResponse = {
+    if (!keepBody)
+      response.entity.dataBytes.runWith(Sink.ignore)
+    response
+  }
+
+  /**
+   * Check the status of the HTTP response and throw an exception if it is a failure.
+   *
+   * @param response the response to check
+   * @return the response itself if successfull
+   * @throws StatusError
+   */
+  def checkStatus(response: HttpResponse): HttpResponse = {
+    if (response.status.isFailure())
+      throw new StatusError(response.status)
+    response
+  }
+
+  /**
+   * Unmarshall a HTTP Json response after checking its status code.
+   *
+   * @param response the HTTP response
+   * @param fm a flow materializer
+   * @param ec an execution context
+   * @tparam T the type of the response
+   * @return the decoded response
+   * @throws StatusError
+   */
   def checkResponse[T: Reads](response: HttpResponse)(implicit fm: Materializer, ec: ExecutionContext): Future[T] = {
     response.status match {
       case status if status.isFailure() ⇒
@@ -346,10 +374,10 @@ object Couch extends PlayJsonSupport {
 
   case class StatusError(code: Int, error: String, reason: String) extends CouchError {
 
-    def this(status: akka.http.scaladsl.model.StatusCode, body: JsObject) =
+    def this(status: StatusCode, body: JsObject) =
       this(status.intValue(), (body \ "error").as[String], (body \ "reason").as[String])
 
-    def this(status: akka.http.scaladsl.model.StatusCode) =
+    def this(status: StatusCode) =
       this(status.intValue(), status.defaultMessage(), status.reason())
 
     override def toString = s"StatusError($code, $error, $reason)"
