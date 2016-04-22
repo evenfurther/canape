@@ -484,7 +484,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "encode values" in new freshDb {
       installDesignAndDocs(db)
-      val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "bar")))))
+      val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "bar")))).flatMap(Couch.checkResponse[JsObject]))
       (newDoc \ "_id").as[String] must be equalTo "docid"
       (newDoc \ "_rev").toOption must beNone
       (newDoc \ "foo").as[String] must be equalTo "bar"
@@ -492,7 +492,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "encode values with non-ASCII characters" in new freshDb {
       installDesignAndDocs(db)
-      val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "barré")))))
+      val newDoc = waitForResult(db.update("common", "upd", "docid", Map("json" → Json.stringify(Json.obj("foo" → "barré")))).flatMap(Couch.checkResponse[JsObject]))
       (newDoc \ "_id").as[String] must be equalTo "docid"
       (newDoc \ "_rev").toOption must beNone
       (newDoc \ "foo").as[String] must be equalTo "barré"
@@ -529,11 +529,8 @@ class DatabaseSpec extends WithDbSpecification("db") {
 
     "propagate errors from the update function" in new freshDb {
       installDesignAndDocs(db)
-      Try(waitForResult(db.update("common", "updError", "docid", Map[String, String]()))) match {
-        case Failure(StatusError(400, _, _)) ⇒ success
-        case Failure(t)                      ⇒ failure(s"unexpected exception thrown: $t")
-        case Success(s)                      ⇒ failure(s"unexpected value returned: $s")
-      }
+      val response = waitForResult(db.update("common", "updError", "docid", Map[String, String]()))
+      response.status.intValue() must be equalTo 400
     }
 
     "accept JSON documents with PUT" in new freshDb {

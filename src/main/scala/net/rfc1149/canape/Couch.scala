@@ -167,10 +167,35 @@ class Couch(
    * @return a future containing the required result
    * @throws CouchError if an error occurs
    */
-  def makePostRequest[T: Reads](query: Uri, data: FormData): Future[T] = {
+  def makeRawPostRequest(query: Uri, data: FormData): Future[HttpResponse] = {
     val payload = HttpEntity(ContentType(MediaTypes.`application/x-www-form-urlencoded`, HttpCharsets.`UTF-8`), data.fields.toString())
-    Post(query, payload).flatMap(sendRequest).flatMap(checkResponse[T])
+    Post(query, payload).flatMap(sendRequest)
   }
+
+  /**
+   * Build a POST HTTP request.
+   *
+   * @param query the query string, including the already-encoded optional parameters
+   * @param data the data to post
+   * @tparam T the type of the result
+   * @return a future containing the required result
+   * @throws CouchError if an error occurs
+   */
+  def makePostRequest[T: Reads](query: Uri, data: FormData): Future[T] =
+    makeRawPostRequest(query, data).flatMap(checkResponse[T])
+
+  /**
+   * Build a PUT HTTP request.
+   *
+   * @param query the query string, including the already-encoded optional parameters
+   * @param data the data to post
+   * @tparam T the type of the result
+   * @return a future containing the HTTP response
+   * @throws CouchError if an error occurs
+   */
+
+  def makeRawPutRequest[T: Writes](query: Uri, data: T): Future[HttpResponse] =
+    Put(query, Json.toJson(data)).flatMap(sendRequest)
 
   /**
    * Build a PUT HTTP request.
@@ -181,8 +206,8 @@ class Couch(
    * @return a future containing the required result
    * @throws CouchError if an error occurs
    */
-  def makePutRequest[T: Reads](query: Uri, data: JsValue): Future[T] =
-    Put(query, data).flatMap(sendRequest).flatMap(checkResponse[T])
+  def makePutRequest[T: Writes, R: Reads](query: Uri, data: T): Future[R] =
+    makeRawPutRequest(query, data).flatMap(checkResponse[R])
 
   /**
    * Build a PUT HTTP request.

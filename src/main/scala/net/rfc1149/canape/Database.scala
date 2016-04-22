@@ -156,23 +156,23 @@ case class Database(couch: Couch, databaseName: String) {
    * @param design the design document
    * @param name the name of the update function
    * @param data the data to pass to the update function as form data
-   * @return the result
+   * @return a future containing a HTTP response
    * @throws CouchError if an error occurs
    */
-  def update(design: String, name: String, id: String, data: Map[String, String]): Future[JsValue] =
-    couch.makePostRequest[JsValue](encode(s"_design/$design/_update/$name/$id"), FormData(data))
+  def update(design: String, name: String, id: String, data: Map[String, String]): Future[HttpResponse] =
+    couch.makeRawPostRequest(encode(s"_design/$design/_update/$name/$id"), FormData(data))
 
   /**
    * Call an update function.
    *
    * @param design the design document
    * @param name the name of the update function
-   * @param data the data to pass to the update function in the body
-   * @return the result
+   * @param data the data to pass to the update function in the body as Json
+   * @return a future containing a HTTP response
    * @throws CouchError if an error occurs
    */
-  def update(design: String, name: String, id: String, data: JsValue): Future[JsValue] =
-    couch.makePutRequest[JsValue](encode(s"_design/$design/_update/$name/$id"), data)
+  def update[T: Writes](design: String, name: String, id: String, data: T): Future[HttpResponse] =
+    couch.makeRawPutRequest[T](encode(s"_design/$design/_update/$name/$id"), data)
 
   /**
    * Retrieve the list of public documents from the database.
@@ -238,7 +238,7 @@ case class Database(couch: Couch, databaseName: String) {
     if (id == null)
       couch.makePostRequest[JsValue](batchMode(encode(""), batch), doc)
     else
-      couch.makePutRequest[JsValue](batchMode(encode(id), batch), doc)
+      couch.makePutRequest[JsObject, JsValue](batchMode(encode(id), batch), doc)
 
   /**
    * Return the latest revision of a document.
@@ -338,7 +338,7 @@ case class Database(couch: Couch, databaseName: String) {
       .runWith(Sink.head).flatMap(checkResponse[JsValue])
 
   def revs_limit(limit: Int): Future[JsValue] =
-    couch.makePutRequest[JsValue](encode("_revs_limit"), JsNumber(limit))
+    couch.makePutRequest[Int, JsValue](encode("_revs_limit"), limit)
 
   def revs_limit(): Future[Long] =
     couch.makeGetRequest[Long](encode("_revs_limit"))
