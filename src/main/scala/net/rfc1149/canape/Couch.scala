@@ -230,8 +230,13 @@ class Couch(
   def makeDeleteRequest[T: Reads](query: Uri): Future[T] =
     sendRequest(Delete(query)).flatMap(checkResponse[T])
 
-  private[this] def buildURI(fixedAuth: Option[(String, String)]): Uri =
-    Uri().withScheme(if (secure) "https" else "http").withHost(host).withPort(port).withUserInfo(fixedAuth.map(u ⇒ s"${u._1}:${u._2}").getOrElse(""))
+  private[this] def buildURI(fixedAuth: Option[(String, String)]): Uri = {
+    val uri = Uri().withScheme(if (secure) "https" else "http").withHost(host).withUserInfo(fixedAuth.map(u ⇒ s"${u._1}:${u._2}").getOrElse(""))
+    if ((!secure && port == 80) || (secure && port == 443))
+      uri
+    else
+      uri.withPort(port)
+  }
 
   /** URI that refers to the database */
   val uri = buildURI(auth)

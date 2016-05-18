@@ -59,7 +59,7 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
 
     "return the existing documents before the error if the database is deleted" in new freshDb {
       waitForResult(db.insert(JsObject(Nil), "docid0"))
-      val changes: Source[JsObject, Future[Done]] = db.changesSource(sinceSeq = 0).recoverWith { case _ ⇒ Source.empty }
+      val changes: Source[JsObject, Future[Done]] = db.changesSource(sinceSeq = 0).recoverWithRetries(-1, { case _ ⇒ Source.empty })
       val result = changes.map(j ⇒ (j \ "id").as[String]).runFold[List[String]](Nil)(_ :+ _)
       waitForResult(db.insert(JsObject(Nil), "docid1"))
       waitForResult(db.insert(JsObject(Nil), "docid2"))

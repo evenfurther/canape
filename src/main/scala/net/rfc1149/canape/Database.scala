@@ -400,11 +400,11 @@ case class Database(couch: Couch, databaseName: String) {
     }
     val request = couch.Post(encode("_changes", (requestParams + ("feed" → "continuous")).toSeq), extraParams)
     couch.sendPotentiallyBlockingRequest(request)
-      .recoverWith {
+      .recoverWithRetries(-1, {
         case t ⇒
           promise.failure(t)
           Source.failed(t)
-      }
+      })
       .flatMapConcat {
         case response if response.status.isSuccess() ⇒
           promise.success(Done)
