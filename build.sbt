@@ -24,15 +24,15 @@ resolvers ++= Seq("Typesafe repository" at "http://repo.typesafe.com/typesafe/re
                   Resolver.jcenterRepo)
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.5",
-  "com.typesafe.akka" %% "akka-stream" % "2.4.5",
-  "com.typesafe.akka" %% "akka-stream-testkit" % "2.4.5" % "test",
-  "com.typesafe.akka" %% "akka-http-core" % "2.4.5",
-  "com.typesafe.akka" %% "akka-http-experimental" % "2.4.5",
-  "de.heikoseeberger" %% "akka-http-play-json" % "1.5.2",
-  "com.iheart" %% "ficus" % "1.2.2",
-  "org.specs2" %% "specs2-core" % "3.7" % "test",
-  "org.specs2" %% "specs2-mock" % "3.7" % "test"
+  "com.typesafe.akka" %% "akka-actor" % "2.4.8",
+  "com.typesafe.akka" %% "akka-stream" % "2.4.8",
+  "com.typesafe.akka" %% "akka-stream-testkit" % "2.4.8" % "test",
+  "com.typesafe.akka" %% "akka-http-core" % "2.4.8",
+  "com.typesafe.akka" %% "akka-http-experimental" % "2.4.8",
+  "de.heikoseeberger" %% "akka-http-play-json" % "1.7.0",
+  "com.iheart" %% "ficus" % "1.2.6",
+  "org.specs2" %% "specs2-core" % "3.8.4" % "test",
+  "org.specs2" %% "specs2-mock" % "3.8.4" % "test"
 )
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
