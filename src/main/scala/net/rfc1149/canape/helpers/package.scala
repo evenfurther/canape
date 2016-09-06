@@ -16,7 +16,7 @@ package object helpers {
 
   val idRevPicker = ((JsPath \ '_id).json.pickBranch and (JsPath \ '_rev).json.pickBranch).reduce
 
-  def solve(db: Database, documents: Seq[JsObject])(solver: Seq[JsObject] ⇒ JsObject): Future[Seq[JsObject]] = {
+  def solve(db: Database, documents: Seq[JsObject])(solver: Seq[JsObject] ⇒ JsObject)(implicit context: ExecutionContext): Future[Seq[JsObject]] = {
     try {
       val mergedDoc = solver(documents)
       val rev = mergedDoc \ "_rev"
@@ -24,7 +24,8 @@ package object helpers {
         case d if (d \ "_rev") == rev ⇒ mergedDoc.transform(unconflicter).get
         case d                        ⇒ d.transform(deleter).get
       }
-      db.bulkDocs(bulkDocs, allOrNothing = true)
+      // Use best effort if CouchDB 2.x, and allOrNOthing if CouchDB 1.x
+      db.couch.isCouchDB1.flatMap { isCouchDB1 ⇒ db.bulkDocs(bulkDocs, allOrNothing = isCouchDB1) }
     } catch { case t: Throwable ⇒ FastFuture.failed(t) }
   }
 
