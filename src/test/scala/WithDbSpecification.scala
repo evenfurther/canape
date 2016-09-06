@@ -42,4 +42,8 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
   def waitForResult[T](f: Future[T]): T = Await.result(f, timeout)
   def waitForEnd[T](fs: Future[T]*): Unit = Await.ready(Future.sequence(fs), timeout)
 
+  lazy val isCouchDB1 = waitForResult(couch.isCouchDB1)
+
+  def pendingIfNotCouchDB1(msg: String) = if (!isCouchDB1) pending(msg)
+
 }

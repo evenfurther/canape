@@ -215,13 +215,15 @@ case class Database(couch: Couch, databaseName: String) {
    * Insert documents in bulk mode.
    *
    * @param docs the documents to insert
-   * @param allOrNothing force an insertion of all documents
+   * @param allOrNothing force an insertion of all documents (CouchDB 1.x only)
    * @return a request
    * @throws CouchError if an error occurs
    */
   def bulkDocs(docs: Seq[JsObject], allOrNothing: Boolean = false): Future[Seq[JsObject]] = {
-    val args = Json.obj("all_or_nothing" → JsBoolean(allOrNothing), "docs" → docs)
-    couch.makePostRequest[Seq[JsObject]](encode("_bulk_docs"), args)
+    checkAllOrNothing(allOrNothing) {
+      val args = Json.obj("all_or_nothing" → JsBoolean(allOrNothing), "docs" → docs)
+      couch.makePostRequest[Seq[JsObject]](encode("_bulk_docs"), args)
+    }
   }
 
   private[this] def batchMode(query: Uri, batch: Boolean) = {
@@ -273,18 +275,20 @@ case class Database(couch: Couch, databaseName: String) {
    *
    * @param id the id of the document
    * @param revs the revisions to delete (may be empty)
-   * @param allOrNothing `true` if all deletions must succeed or fail atomically
+   * @param allOrNothing `true` if all deletions must succeed or fail atomically (CouchDB 1.x only)
    * @return a list of revisions that have been successfully deleted
    */
   def delete(id: String, revs: Seq[String], allOrNothing: Boolean = false): Future[Seq[String]] =
-    revs match {
-      case Nil ⇒
-        FastFuture.successful(Nil)
-      case revs@(rev :: Nil) ⇒
-        delete(id, rev).map(_ ⇒ revs).recover { case _ ⇒ Seq() }
-      case _ ⇒
-        bulkDocs(revs.map(rev ⇒ Json.obj("_id" → id, "_rev" → rev, "_deleted" → true)), allOrNothing = allOrNothing)
-          .map(_.collect { case doc if !doc.keys.contains("error") ⇒ (doc \ "rev").as[String] })
+    checkAllOrNothing(allOrNothing) {
+      revs match {
+        case Nil ⇒
+          FastFuture.successful(Nil)
+        case revs@(rev :: Nil) ⇒
+          delete(id, rev).map(_ ⇒ revs).recover { case _ ⇒ Seq() }
+        case _ ⇒
+          bulkDocs(revs.map(rev ⇒ Json.obj("_id" → id, "_rev" → rev, "_deleted" → true)), allOrNothing = allOrNothing)
+            .map(_.collect { case doc if !doc.keys.contains("error") ⇒ (doc \ "rev").as[String] })
+      }
     }
 
   /**
@@ -461,6 +465,21 @@ case class Database(couch: Couch, databaseName: String) {
   def changesSourceByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(),
     sinceSeq: Long = -1): Source[JsObject, Future[Done]] =
     changesSource(params + ("filter" → "_doc_ids"), extraParams ++ Json.obj("doc_ids" → docIds), sinceSeq)
+
+  /**
+   * Reject the current request with `IllegalArgumentException` if `allOrNothing` is `true` and the CouchDB
+   * version is not 1.x.
+   *
+   * @param allOrNothing the parameter to check
+   * @param action the action to perform if allowed
+   * @tparam T the type of the result
+   * @return the result, or `IllegalArgumentException` if not allowed
+   */
+  private def checkAllOrNothing[T](allOrNothing: Boolean)(action: ⇒ Future[T]): Future[T] =
+    couch.isCouchDB1.flatMap { isCouchDB1 ⇒
+      require(isCouchDB1 || !allOrNothing, "allOrNothing cannot only be used with CouchDB 1.x")
+      action
+    }
 
 }
 

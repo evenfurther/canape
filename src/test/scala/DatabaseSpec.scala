@@ -19,6 +19,8 @@ class DatabaseSpec extends WithDbSpecification("db") {
   private def insertPerson(db: Database, firstName: String, lastName: String, age: Int): Future[JsValue] =
     db.insert(Json.obj("firstName" → firstName, "lastName" → lastName, "age" → age, "type" → "person"))
 
+  private def pendingUnlessAllOrNothing() = pendingIfNotCouchDB1("all_or_nothing parameter is not yet supported in CouchDB 2.0")
+
   private def installDesignAndDocs(db: Database) = {
     val upd =
       """
@@ -307,6 +309,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "be able to delete selected revisions of a document" in new freshDb {
+      pendingUnlessAllOrNothing()
       val revs = waitForResult(db.bulkDocs(
         List("foo", "bar", "baz").map(v ⇒ Json.obj("_id" → "docid", "value" → v)),
         allOrNothing = true
@@ -323,6 +326,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "be able to delete multiple revisions of a document given only its id" in new freshDb {
+      pendingUnlessAllOrNothing()
       waitForResult(db.bulkDocs(
         List("foo", "bar", "baz").map(v ⇒ Json.obj("_id" → "docid", "value" → v)),
         allOrNothing = true
@@ -360,6 +364,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
     }
 
     "accept to insert a duplicate document in batch mode" in new freshDb {
+      pendingUnlessAllOrNothing()
       (waitForResult(db.bulkDocs(
         Seq(
           Json.obj("_id" → "docid"),
@@ -369,7 +374,20 @@ class DatabaseSpec extends WithDbSpecification("db") {
       ))(1) \ "id").as[String] must be equalTo "docid"
     }
 
+    "reject allOrNothing queries in CouchDB 2.0" in new freshDb {
+      if (isCouchDB1)
+        skipped("not applicable to CouchDB 1.x")
+      (waitForResult(db.bulkDocs(
+        Seq(
+          Json.obj("_id" → "docid"),
+          Json.obj("_id" → "docid", "extra" → "other")
+        ),
+        allOrNothing = true
+      ))(1) \ "id").as[String] must throwA[IllegalArgumentException]
+    }
+
     "generate conflicts when inserting duplicate documents in batch mode" in new freshDb {
+      pendingUnlessAllOrNothing()
       waitForResult(db.bulkDocs(
         Seq(
           Json.obj("_id" → "docid"),

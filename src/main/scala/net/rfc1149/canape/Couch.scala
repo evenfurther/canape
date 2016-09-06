@@ -321,6 +321,8 @@ class Couch(
   def releaseExternalResources(): Future[Unit] =
     Http().shutdownAllConnectionPools()
 
+  lazy val isCouchDB1: Future[Boolean] = status().map(_.version.startsWith("1."))
+
 }
 
 object Couch extends PlayJsonSupport {
