@@ -532,7 +532,7 @@ object Database {
     }
   }
 
-  implicit val upadteSequenceReads: Reads[UpdateSequence] = Reads { js ⇒
+  implicit val updateSequenceReads: Reads[UpdateSequence] = Reads { js ⇒
     js match {
       case JsNumber(n) ⇒ JsSuccess(UpdateSequenceLong(n.toLongExact))
       case JsString(s) ⇒ JsSuccess(UpdateSequenceString(s))
