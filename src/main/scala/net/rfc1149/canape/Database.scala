@@ -13,7 +13,7 @@ import net.ceedubs.ficus.Ficus._
 import play.api.libs.json._
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 case class Database(couch: Couch, databaseName: String) {
 
@@ -131,11 +131,11 @@ case class Database(couch: Couch, databaseName: String) {
    * @param name the name of the view
    * @param properties the properties to add to the request
    * @tparam V the value type
-   * @return a future containing the update sequence number and a sequence of results
+   * @return a future containing the update sequence and a sequence of results
    */
-  def viewWithUpdateSeq[K: Reads, V: Reads](design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[(Long, Seq[(K, V)])] =
+  def viewWithUpdateSeq[K: Reads, V: Reads](design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[(UpdateSequence, Seq[(K, V)])] =
     couch.makeGetRequest[JsObject](encode(s"_design/$design/_view/$name", properties :+ ("update_seq" → "true"))).map(result ⇒
-      ((result \ "update_seq").as[Long],
+      (UpdateSequence(result \ "update_seq"),
         (result \ "rows").as[Array[JsValue]] map (row ⇒ (row \ "key").as[K] → (row \ "value").as[V])))
 
   /**
@@ -496,5 +496,25 @@ object Database {
     Flow[ByteString].mapConcat { bs ⇒
       new String(bs.toArray, "UTF-8").split("\r?\n").filter(_.length > 1).map(Json.parse(_).as[JsObject]).toList
     }
+
+  case class UpdateSequence(asString: String, asLong: Long) {
+    def external(couch: Couch)(implicit ec: ExecutionContext): Future[JsValue] = couch.isCouchDB1.map {
+      case true  ⇒ JsNumber(asLong)
+      case false ⇒ JsString(asString)
+    }
+  }
+
+  object UpdateSequence {
+    def apply(js: JsValue): UpdateSequence = js match {
+      case JsNumber(n) ⇒ UpdateSequence(n.toString, n.toLongExact)
+      case JsString(s) ⇒ UpdateSequence(s, s.split("-", 2).head.toLong)
+      case _           ⇒ throw new IllegalArgumentException("update sequence must be number or string")
+    }
+
+    def apply(js: JsLookupResult): UpdateSequence = js match {
+      case JsDefined(j)     ⇒ UpdateSequence(j)
+      case err: JsUndefined ⇒ throw new IllegalArgumentException(err.error)
+    }
+  }
 
 }
