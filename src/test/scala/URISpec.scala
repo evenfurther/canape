@@ -50,7 +50,7 @@ class URISpec extends Specification {
       val status = Json.parse("""{"couchdb":"Welcome","version":"1.3.0a-0c6f529-git","vendor":{"version":"1.3.0a-0c6f529-git","name":"The Apache Software Foundation"}}""").as[Couch.Status]
       (status.couchdb mustEqual "Welcome") &&
         (status.version mustEqual "1.3.0a-0c6f529-git") &&
-        (status.vendor.get.version mustEqual "1.3.0a-0c6f529-git") &&
+        (status.vendor.get.version.get mustEqual "1.3.0a-0c6f529-git") &&
         (status.vendor.get.name mustEqual "The Apache Software Foundation")
     }
   }

@@ -400,7 +400,7 @@ object Couch extends PlayJsonSupport {
 
   case class VendorInfo(
     name: String,
-    version: String
+    version: Option[String]
   )
 
   implicit val vendorInfoRead: Reads[VendorInfo] = Json.reads[VendorInfo]
