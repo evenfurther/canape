@@ -80,8 +80,8 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
 
     "be able to filter changes with a stored filter" in new freshDb {
       val filter = """function(doc, req) { return doc.name == "foo"; }"""
-      waitForEnd(db.insert(Json.obj("filters" → Json.obj("namedfoo" → filter)), "_design/common"))
-      val changes = db.continuousChanges(Map("filter" → "common/namedfoo"))
+      waitForEnd(db.insert(Json.obj("filters" → Json.obj("f" → filter)), "_design/d"))
+      val changes = db.continuousChanges(Map("filter" → "d/f"))
       val result = changes.map(j ⇒ (j \ "id").as[String]).take(2).runFold[List[String]](Nil)(_ :+ _)
       waitEventually(db.bulkDocs(Seq(Json.obj("name" → "foo", "_id" → "docid1"), Json.obj("name" → "bar", "_id" → "docid2"),
         Json.obj("name" → "foo", "_id" → "docid3"), Json.obj("name" → "bar", "_id" → "docid4"))))
@@ -99,6 +99,8 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
 
     "report connection success through the materialized value" in new freshDb {
       val result = db.continuousChanges().toMat(Sink.ignore)(Keep.left).run()
+      // In CouchDB 2.x, the HTTP response of the _changes field is sent only after the first change is seen
+      db.insert(Json.obj())
       waitForResult(result) must be equalTo Done
     }
 
@@ -133,6 +135,9 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     }
 
     "terminate properly if the database is deleted during the request" in new freshDb {
+      // CouchDB 2.0.0-RC4 sends garbage on the connection if the database is deleted during the request.
+      // See issue COUCHDB-3132.
+      pendingIfNotCouchDB1("garbage will be sent on the connection")
       val result = db.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
       waitForResult(db.insert(JsObject(Nil), "docid1"))
       waitForResult(db.insert(JsObject(Nil), "docid2"))
@@ -142,6 +147,7 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
       changes must haveSize(4)
       (changes.last \ "last_seq").as[Long] must beEqualTo(3)
     }
+
   }
 
 }

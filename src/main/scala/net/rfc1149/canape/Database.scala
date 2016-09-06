@@ -4,7 +4,7 @@ import akka.actor.Props
 import akka.http.scaladsl.client.RequestBuilding
 import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model.headers.ETag
-import akka.http.scaladsl.model.{FormData, HttpHeader, HttpResponse, Uri}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.{Flow, Framing, Sink, Source}
 import akka.util.ByteString
