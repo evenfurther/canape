@@ -74,11 +74,6 @@ class Couch(
       Http().outgoingConnection(host, port, settings = clientConnectionSettings)
   }
 
-  // Because of bug COUCHDB-2583, some methods require an empty payload with content-type
-  // `application/json`, which is invalid. We will generate it anyway to be compatible
-  // with CouchDB 1.6.1.
-  private[this] val fakeEmptyJsonPayload = HttpEntity(`application/json`, "")
-
   /**
    * Send an arbitrary HTTP request on the regular (non-blocking) pool.
    *
@@ -392,6 +387,11 @@ object Couch extends PlayJsonSupport {
     override def getMessage = s"$code $reason: $error"
 
   }
+
+  // Because of bug COUCHDB-2583, some methods require an empty payload with content-type
+  // `application/json`, which is invalid. We will generate it anyway to be compatible
+  // with CouchDB 1.6.1.
+  private[canape] val fakeEmptyJsonPayload = HttpEntity(`application/json`, "")
 
   /**The Couch instance current status. */
   case class Status(

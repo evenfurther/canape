@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model.headers.ETag
 import akka.http.scaladsl.model.{FormData, HttpHeader, HttpResponse, Uri}
 import akka.http.scaladsl.util.FastFuture
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.scaladsl.{Flow, Framing, Sink, Source}
 import akka.util.ByteString
 import akka.{Done, NotUsed}
 import net.ceedubs.ficus.Ficus._
@@ -409,7 +409,12 @@ case class Database(couch: Couch, databaseName: String) {
       }
       params - "heartbeat" ++ heartBeatParam
     }
-    val request = couch.Post(encode("_changes", (requestParams + ("feed" → "continuous")).toSeq), extraParams)
+    // CouchDB 2.0.0-RC4 does not allow a proper empty JSON payload and require an empty (though invalid) payload
+    // to be sent.
+    val request = if (extraParams.keys.isEmpty)
+      couch.Post(encode("_changes", (requestParams + ("feed" → "continuous")).toSeq), Couch.fakeEmptyJsonPayload)
+    else
+      couch.Post(encode("_changes", (requestParams + ("feed" → "continuous")).toSeq), extraParams)
     couch.sendPotentiallyBlockingRequest(request)
       .recoverWithRetries(-1, {
         case t ⇒
@@ -500,9 +505,11 @@ object Database {
   val onlySeq: Flow[JsObject, JsObject, NotUsed] = Flow[JsObject].filter(_.keys.contains("seq"))
 
   private val filterJson: Flow[ByteString, JsObject, NotUsed] =
-    Flow[ByteString].mapConcat { bs ⇒
-      new String(bs.toArray, "UTF-8").split("\r?\n").filter(_.length > 1).map(Json.parse(_).as[JsObject]).toList
-    }
+    Flow[ByteString]
+      .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 1000000))
+      .map(_.utf8String)
+      .filter(_.length > 1)
+      .map(Json.parse(_).as[JsObject])
 
   case class UpdateSequence(asString: String, asLong: Long) {
     def external(couch: Couch)(implicit ec: ExecutionContext): Future[JsValue] = couch.isCouchDB1.map {
