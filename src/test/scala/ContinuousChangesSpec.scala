@@ -105,7 +105,7 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     "report a missing database through the materialized value" in new freshDb {
       val newDb = db.couch.db("nonexistent-database")
       val result = newDb.continuousChanges().toMat(Sink.ignore)(Keep.left).run()
-      waitForResult(result) must throwA[StatusError]("404 no_db_file: not_found")
+      waitForResult(result) must throwA[StatusError]("404 .*: not_found")
     }
 
     "report a connection error through the materialized value" in new freshDb {
@@ -117,7 +117,7 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     "fail properly if the database is absent" in new freshDb {
       val newDb = db.couch.db("nonexistent-database")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
-      waitForResult(result) must throwA[StatusError]("404 no_db_file: not_found")
+      waitForResult(result) must throwA[StatusError]("404 .*: not_found")
     }
 
     "fail properly if the HTTP server is not running" in {
