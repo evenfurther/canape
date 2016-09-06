@@ -44,6 +44,6 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
 
   lazy val isCouchDB1 = waitForResult(couch.isCouchDB1)
 
-  def pendingIfNotCouchDB1(msg: String) = if (!isCouchDB1) pending(msg)
+  def pendingIfNotCouchDB1(msg: String) = if (!isCouchDB1) pending(s"[pending: $msg]")
 
 }

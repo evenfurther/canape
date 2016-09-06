@@ -135,7 +135,7 @@ case class Database(couch: Couch, databaseName: String) {
    */
   def viewWithUpdateSeq[K: Reads, V: Reads](design: String, name: String, properties: Seq[(String, String)] = Seq()): Future[(UpdateSequence, Seq[(K, V)])] =
     couch.makeGetRequest[JsObject](encode(s"_design/$design/_view/$name", properties :+ ("update_seq" → "true"))).map(result ⇒
-      (UpdateSequence(result \ "update_seq"),
+      ((result \ "update_seq").as[UpdateSequence],
         (result \ "rows").as[Array[JsValue]] map (row ⇒ (row \ "key").as[K] → (row \ "value").as[V])))
 
   /**
@@ -511,27 +511,36 @@ object Database {
       .filter(_.length > 1)
       .map(Json.parse(_).as[JsObject])
 
-  case class UpdateSequence(asString: String, asLong: Long)
+  sealed trait UpdateSequence {
+    def asString: String
+    def asLong: Long
+  }
+
+  final case class UpdateSequenceString(asString: String) extends UpdateSequence {
+    lazy val asLong = asString.split("-", 2).head.toLong
+  }
+
+  final case class UpdateSequenceLong(asLong: Long) extends UpdateSequence {
+    val asString = asLong.toString
+  }
 
   object UpdateSequence {
     def apply(js: JsValue): UpdateSequence = js match {
-      case JsNumber(n) ⇒ UpdateSequence(n.toString, n.toLongExact)
-      case JsString(s) ⇒ UpdateSequence(s, s.split("-", 2).head.toLong)
+      case JsNumber(n) ⇒ UpdateSequenceLong(n.toLongExact)
+      case JsString(s) ⇒ UpdateSequenceString(s)
       case _           ⇒ throw new IllegalArgumentException("update sequence must be number or string")
-    }
-
-    def apply(js: JsLookupResult): UpdateSequence = js match {
-      case JsDefined(j)     ⇒ UpdateSequence(j)
-      case err: JsUndefined ⇒ throw new IllegalArgumentException(err.error)
     }
   }
 
   implicit val upadteSequenceReads: Reads[UpdateSequence] = Reads { js ⇒
-    try JsSuccess(UpdateSequence(js))
-    catch { case e: IllegalArgumentException ⇒ JsError(e.getMessage) }
+    js match {
+      case JsNumber(n) ⇒ JsSuccess(UpdateSequenceLong(n.toLongExact))
+      case JsString(s) ⇒ JsSuccess(UpdateSequenceString(s))
+      case _           ⇒ JsError("update sequence must be number or string")
+    }
   }
 
-  val FromNow = UpdateSequence("", -1)
-  val FromStart = UpdateSequence("0", 0)
+  val FromNow = UpdateSequenceString("now")
+  val FromStart = UpdateSequenceLong(0)
 
 }
