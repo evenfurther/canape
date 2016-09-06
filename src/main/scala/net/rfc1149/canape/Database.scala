@@ -455,7 +455,7 @@ case class Database(couch: Couch, databaseName: String) {
    *         to the database with a successful HTTP response code
    */
   def changesSource(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(),
-    sinceSeq: Long = -1): Source[JsObject, Future[Done]] = {
+    sinceSeq: UpdateSequence = FromNow): Source[JsObject, Future[Done]] = {
     Source.actorPublisher(Props(new ChangesSource(this, params, extraParams, sinceSeq)))
       .mapMaterializedValue { actorRef ⇒
         val promise = Promise[Done]
@@ -475,7 +475,7 @@ case class Database(couch: Couch, databaseName: String) {
    *         to the database with a successful HTTP response code
    */
   def changesSourceByDocIds(docIds: Seq[String], params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(),
-    sinceSeq: Long = -1): Source[JsObject, Future[Done]] =
+    sinceSeq: UpdateSequence = FromNow): Source[JsObject, Future[Done]] =
     changesSource(params + ("filter" → "_doc_ids"), extraParams ++ Json.obj("doc_ids" → docIds), sinceSeq)
 
   /**
@@ -511,12 +511,7 @@ object Database {
       .filter(_.length > 1)
       .map(Json.parse(_).as[JsObject])
 
-  case class UpdateSequence(asString: String, asLong: Long) {
-    def external(couch: Couch)(implicit ec: ExecutionContext): Future[JsValue] = couch.isCouchDB1.map {
-      case true  ⇒ JsNumber(asLong)
-      case false ⇒ JsString(asString)
-    }
-  }
+  case class UpdateSequence(asString: String, asLong: Long)
 
   object UpdateSequence {
     def apply(js: JsValue): UpdateSequence = js match {
@@ -530,5 +525,13 @@ object Database {
       case err: JsUndefined ⇒ throw new IllegalArgumentException(err.error)
     }
   }
+
+  implicit val upadteSequenceReads: Reads[UpdateSequence] = Reads { js ⇒
+    try JsSuccess(UpdateSequence(js))
+    catch { case e: IllegalArgumentException ⇒ JsError(e.getMessage) }
+  }
+
+  val FromNow = UpdateSequence("", -1)
+  val FromStart = UpdateSequence("0", 0)
 
 }

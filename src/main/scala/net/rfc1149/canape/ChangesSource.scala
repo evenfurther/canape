@@ -9,12 +9,13 @@ import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 import akka.stream.scaladsl.{Keep, Sink, SinkQueue}
 import net.ceedubs.ficus.Ficus._
 import net.rfc1149.canape.Couch.StatusError
+import net.rfc1149.canape.Database.{FromNow, UpdateSequence}
 import play.api.libs.json.{JsError, JsObject, JsSuccess, Json}
 
 import scala.concurrent.Promise
 import scala.concurrent.duration.FiniteDuration
 
-class ChangesSource(database: Database, params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(), private var sinceSeq: Long = -1)
+class ChangesSource(database: Database, params: Map[String, String] = Map(), extraParams: JsObject = Json.obj(), private var sinceSeq: UpdateSequence = FromNow)
     extends ActorPublisher[JsObject] {
 
   import ChangesSource._
@@ -35,7 +36,7 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
     assert(queue.isEmpty, "queue still exists when reconnecting")
     assert(!sendInProgress, "send in progress while reconnecting")
     ongoingConnection = true
-    val requestSinceSeq = if (sinceSeq == -1) "now" else sinceSeq.toString
+    val requestSinceSeq = if (sinceSeq == FromNow) "now" else sinceSeq.asString
     queue = Some(database.continuousChanges(params + ("since" → requestSinceSeq), extraParams)
       .mapMaterializedValue(done ⇒ done.onSuccess { case d ⇒ connectionEstablished.trySuccess(d) })
       .toMat(Sink.queue())(Keep.right).run())
@@ -66,9 +67,9 @@ class ChangesSource(database: Database, params: Map[String, String] = Map(), ext
     case Change(Some(change)) ⇒
       sendInProgress = false
       assert(totalDemand > 0)
-      (change \ "seq").validate[Long] match {
-        case JsSuccess(n, _) ⇒
-          sinceSeq = n
+      (change \ "seq").validate[UpdateSequence] match {
+        case JsSuccess(s, _) ⇒
+          sinceSeq = s
           onNext(change)
           if (totalDemand > 0)
             sendFromQueue()
