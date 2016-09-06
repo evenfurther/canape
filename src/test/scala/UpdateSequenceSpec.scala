@@ -7,25 +7,25 @@ class UpdateSequenceSpec extends Specification {
   "UpdateSequence" should {
 
     "get the correct string value for FromNow" in {
-      FromNow.asString must be equalTo "now"
+      FromNow.toString must be equalTo "now"
     }
 
     "get the correct string value for FromStart" in {
-      FromStart.asString must be equalTo "0"
+      FromStart.toString must be equalTo "0"
     }
 
     "be parsable from a string" in {
       val js = Json.parse("""{"seq": "42-abcde"}""")
       val us = (js \ "seq").as[UpdateSequence]
-      us.asString must be equalTo "42-abcde"
-      us.asLong must be equalTo 42
+      us.toString must be equalTo "42-abcde"
+      us.toLong must be equalTo 42
     }
 
     "be parsable from a number" in {
       val js = Json.parse("""{"seq": 42}""")
       val us = (js \ "seq").as[UpdateSequence]
-      us.asString must be equalTo "42"
-      us.asLong must be equalTo 42
+      us.toString must be equalTo "42"
+      us.toLong must be equalTo 42
     }
   }
 

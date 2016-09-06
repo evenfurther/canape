@@ -611,7 +611,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       installDesignAndDocs(db)
       val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
       val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
-      seq2.asLong must be equalTo seq1.asLong
+      seq2.toLong must be equalTo seq1.toLong
     }
 
     "see the same sequence number when a non-matching document has been inserted" in new freshDb {
@@ -619,7 +619,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
       waitForEnd(db.insert(Json.obj()))
       val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
-      seq2.asLong must be equalTo seq1.asLong
+      seq2.toLong must be equalTo seq1.toLong
     }
 
     "see an increased sequence number when a matching document has been inserted" in new freshDb {
@@ -627,7 +627,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
       waitForEnd(insertPerson(db, "Dawn", "Summers", 15))
       val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
-      seq2.asLong must be greaterThan seq1.asLong
+      seq2.toLong must be greaterThan seq1.toLong
     }
 
     "see the same stale sequence number when a matching document has been inserted" in new freshDb {
@@ -635,7 +635,7 @@ class DatabaseSpec extends WithDbSpecification("db") {
       val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
       waitForEnd(insertPerson(db, "Dawn", "Summers", 15))
       val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons", Seq("stale" → "ok")))
-      seq2.asLong must be equalTo seq1.asLong
+      seq2.toLong must be equalTo seq1.toLong
     }
 
     "see an increased sequence number when a matching document has been inserted in update_after mode" in new freshDb {
@@ -643,9 +643,9 @@ class DatabaseSpec extends WithDbSpecification("db") {
       val (seq1, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
       waitForEnd(insertPerson(db, "Dawn", "Summers", 15))
       val (seq2, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons", Seq("stale" → "update_after")))
-      seq2.asLong must be equalTo seq1.asLong
+      seq2.toLong must be equalTo seq1.toLong
       val (seq3, _) = waitForResult(db.viewWithUpdateSeq[JsValue, Int]("common", "persons"))
-      seq3.asLong must be greaterThan seq2.asLong
+      seq3.toLong must be greaterThan seq2.toLong
     }
   }
 

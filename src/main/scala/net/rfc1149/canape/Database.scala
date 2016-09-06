@@ -512,16 +512,15 @@ object Database {
       .map(Json.parse(_).as[JsObject])
 
   sealed trait UpdateSequence {
-    def asString: String
-    def asLong: Long
+    def toLong: Long
   }
 
-  final case class UpdateSequenceString(asString: String) extends UpdateSequence {
-    lazy val asLong = asString.split("-", 2).head.toLong
+  final case class UpdateSequenceString(override val toString: String) extends UpdateSequence {
+    def toLong = toString.split("-", 2).head.toLong
   }
 
-  final case class UpdateSequenceLong(asLong: Long) extends UpdateSequence {
-    val asString = asLong.toString
+  final case class UpdateSequenceLong(toLong: Long) extends UpdateSequence {
+    override val toString = toLong.toString
   }
 
   object UpdateSequence {
