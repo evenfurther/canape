@@ -1,5 +1,6 @@
 import akka.http.scaladsl.model.HttpResponse
 import net.rfc1149.canape.Couch.StatusError
+import net.rfc1149.canape.Database.UpdateSequence
 import net.rfc1149.canape._
 import play.api.libs.json._
 
@@ -456,6 +457,14 @@ class DatabaseSpec extends WithDbSpecification("db") {
     "return full docs in include_docs mode and option" in new freshDb {
       waitForResult(db.insert(Json.obj("key" → "value"), "docid"))
       (waitForResult(db.allDocs(Map("include_docs" → "true"))).docs[JsValue].head \ "key").as[String] must be equalTo "value"
+    }
+
+    "return an update sequence when asked to do so" in new freshDb {
+      waitForResult(db.allDocs(Map("update_seq" → "true"))).update_seq must beSome[UpdateSequence]
+    }
+
+    "return no update sequence by default" in new freshDb {
+      waitForResult(db.allDocs()).update_seq must beNone
     }
 
   }

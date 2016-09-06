@@ -1,11 +1,13 @@
 package net.rfc1149.canape
 
+import net.rfc1149.canape.Database.UpdateSequence
 import play.api.libs.json._
 
 case class Result(
     total_rows: Long,
     offset: Long,
-    rows: List[Row]
+    rows: List[Row],
+    update_seq: Option[UpdateSequence]
 ) {
 
   lazy val ids = rows map (_.id)
