@@ -11,14 +11,8 @@ class HelpersSpec extends WithDbSpecification("helpers") {
   }
 
   def makeConflicts(db: Database) =
-    waitForResult(db.bulkDocs(
-      Seq(
-        Json.obj("_id" → "docid", "extra" → List("one")),
-        Json.obj("_id" → "docid", "extra" → List("other")),
-        Json.obj("_id" → "docid", "extra" → List("yet-another"))
-      ),
-      true
-    ))
+    for ((element, idx) ← Seq("one", "other", "yet-another").zipWithIndex)
+      waitForResult(db.insert(Json.obj("extra" → List(element), "_rev" → s"1-$idx"), id = "docid", newEdits = false))
 
   "getRevs()" should {
 

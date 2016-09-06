@@ -236,14 +236,21 @@ case class Database(couch: Couch, databaseName: String) {
    * @param doc the document to insert
    * @param id the id of the document if it is known and absent from the document itself
    * @param batch allow the insertion in batch (unchecked) mode
+   * @param newEdits set to false if you want to be able to create conflicting documents (id needs to be provided and a
+   *                 "_rev" well-formed value must be present)
    * @return the answer from the database
    * @throws CouchError if an error occurs
    */
-  def insert(doc: JsObject, id: String = null, batch: Boolean = false): Future[JsValue] =
-    if (id == null)
-      couch.makePostRequest[JsValue](batchMode(encode(""), batch), doc)
-    else
-      couch.makePutRequest[JsObject, JsValue](batchMode(encode(id), batch), doc)
+  def insert(doc: JsObject, id: String = null, batch: Boolean = false, newEdits: Boolean = true): Future[JsValue] = {
+    val batchParams: Seq[(String, String)] = if (batch) Seq(("batch", "ok")) else Seq()
+    if (id == null) {
+      require(newEdits, "newEdits=false is only supported with an explicit id")
+      couch.makePostRequest[JsValue](encode("", batchParams), doc)
+    } else {
+      val newEditsParam: Seq[(String, String)] = if (newEdits) Seq() else Seq(("new_edits", "false"))
+      couch.makePutRequest[JsObject, JsValue](encode(id, batchParams ++ newEditsParam), doc)
+    }
+  }
 
   /**
    * Return the latest revision of a document.
