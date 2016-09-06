@@ -333,6 +333,33 @@ case class Database(couch: Couch, databaseName: String) {
   }
 
   /**
+   * Use Mango to retrieve documents from the database.
+   *
+   * @param query the full query with selector and options
+   * @return the documents
+   */
+  def find(query: JsObject): Future[Seq[JsObject]] =
+    couch.makePostRequest[JsObject](encode("_find"), query).map(js ⇒ (js \ "docs").as[Seq[JsObject]])
+
+  /**
+   * Create a Mango index.
+   *
+   * @param query the full query with index creation and options
+   * @return the result from the database
+   */
+  def index(query: JsObject): Future[JsObject] =
+    couch.makePostRequest[JsObject](encode("_index"), query)
+
+  /**
+   * Explain a Mango query.
+   *
+   * @param query the full query with selector and options
+   * @return the explanation
+   */
+  def explain(query: JsObject): Future[JsObject] =
+    couch.makePostRequest[JsObject](encode("_explain"), query)
+
+  /**
    * Delete the database.
    *
    * @return a request
