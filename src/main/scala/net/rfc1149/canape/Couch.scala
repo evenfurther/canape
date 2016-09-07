@@ -88,11 +88,10 @@ class Couch(
    * @param request the request to send
    */
   def sendPotentiallyBlockingRequest(request: Future[HttpRequest]): Source[HttpResponse, NotUsed] = {
-    Source.fromFuture(request).map[HttpRequest] { r ⇒
-      r.method match {
-        case HttpMethods.POST ⇒ r
-        case _                ⇒ throw new IllegalArgumentException("potentially blocking request must use POST method")
-      }
+    Source.fromFuture(request).map { r ⇒
+      if (r.method != HttpMethods.POST)
+        throw new IllegalArgumentException("potentially blocking request must use POST method")
+      r
     }.via(blockingHostConnectionFlow)
   }
 
@@ -165,18 +164,6 @@ class Couch(
     val payload = HttpEntity(ContentType(MediaTypes.`application/x-www-form-urlencoded`, HttpCharsets.`UTF-8`), data.fields.toString())
     Post(query, payload).flatMap(sendRequest)
   }
-
-  /**
-   * Build a POST HTTP request.
-   *
-   * @param query the query string, including the already-encoded optional parameters
-   * @param data the data to post
-   * @tparam T the type of the result
-   * @return a future containing the required result
-   * @throws CouchError if an error occurs
-   */
-  def makePostRequest[T: Reads](query: Uri, data: FormData): Future[T] =
-    makeRawPostRequest(query, data).flatMap(checkResponse[T])
 
   /**
    * Build a PUT HTTP request.
@@ -339,7 +326,7 @@ object Couch extends PlayJsonSupport {
    *
    * @param response the response to check
    * @return the response itself if successfull
-   * @throws StatusError
+   * @throws StatusError if the response is a failure
    */
   def checkStatus(response: HttpResponse): HttpResponse = {
     if (response.status.isFailure())
@@ -348,14 +335,14 @@ object Couch extends PlayJsonSupport {
   }
 
   /**
-   * Unmarshall a HTTP Json response after checking its status code.
+   * Unmarshal a HTTP Json response after checking its status code.
    *
    * @param response the HTTP response
    * @param fm a flow materializer
    * @param ec an execution context
    * @tparam T the type of the response
    * @return the decoded response
-   * @throws StatusError
+   * @throws StatusError if the response is a failure
    */
   def checkResponse[T: Reads](response: HttpResponse)(implicit fm: Materializer, ec: ExecutionContext): Future[T] = {
     response.status match {
@@ -364,10 +351,6 @@ object Couch extends PlayJsonSupport {
       case _ ⇒
         Unmarshal(response.entity).to[T]
     }
-  }
-
-  private[canape] def checkResponse[T: Reads](implicit fm: Materializer, ec: ExecutionContext): Flow[Try[HttpResponse], T, NotUsed] = {
-    Flow[Try[HttpResponse]].mapAsync[T](1)(response ⇒ checkResponse[T](response.get))
   }
 
   sealed abstract class CouchError extends Exception

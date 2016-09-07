@@ -226,10 +226,6 @@ case class Database(couch: Couch, databaseName: String) {
     }
   }
 
-  private[this] def batchMode(query: Uri, batch: Boolean) = {
-    if (batch) query.withQuery(("batch" → "ok") +: query.query()) else query
-  }
-
   /**
    * Insert a document into the database.
    *
