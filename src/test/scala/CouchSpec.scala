@@ -1,4 +1,6 @@
+import akka.http.scaladsl.model.HttpResponse
 import net.rfc1149.canape.Couch
+import net.rfc1149.canape.Couch.StatusError
 
 class CouchSpec extends WithDbSpecification("couch") {
 
@@ -49,6 +51,17 @@ class CouchSpec extends WithDbSpecification("couch") {
 
     "return distinct UUIDs when called in bulk mode" in {
       waitForResult(couch.getUUIDs(50)).distinct must have size 50
+    }
+  }
+
+  "Couch.checkStatus()" should {
+
+    "let the response go through if it is valid" in {
+      Couch.checkStatus(waitForResult(couch.makeRawGetRequest("/"))) must beAnInstanceOf[HttpResponse]
+    }
+
+    "intercept the response with StatusError if it is not valid" in {
+      Couch.checkStatus(waitForResult(couch.makeRawGetRequest("/non-existent"))) must throwA[StatusError]
     }
   }
 
