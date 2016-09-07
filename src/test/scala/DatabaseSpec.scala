@@ -298,6 +298,43 @@ class DatabaseSpec extends WithDbSpecification("db") {
       waitForResult(db(id)) must throwA[StatusError]
     }
 
+    "not throw an error when bulk delete a unique non-existent revision" in new freshDb {
+      val (id, rev) = waitForResult(inserted(db.insert(Json.obj())))
+      waitForResult(db.delete(id, Seq("1-1"))) must beEmpty
+      (waitForResult(db(id)) \ "_rev").as[String] must be equalTo rev
+    }
+
+    "be able to bulk delete several revisions of a document" in new freshDb {
+      val id = "docid"
+      waitForEnd(
+        db.insert(Json.obj("_rev" → "0-0"), id = id, newEdits = false),
+        db.insert(Json.obj("_rev" → "1-1"), id = id, newEdits = false)
+      )
+      waitForResult(db.delete(id, Seq("0-0", "1-1"))) must be equalTo Seq("0-0", "1-1")
+      waitForResult(db(id)) must throwA[StatusError]
+    }
+
+    "only return succesfully bulk deleted revisions of a document" in new freshDb {
+      val id = "docid"
+      waitForEnd(
+        db.insert(Json.obj("_rev" → "0-0"), id = id, newEdits = false),
+        db.insert(Json.obj("_rev" → "1-1"), id = id, newEdits = false)
+      )
+      waitForResult(db.delete(id, Seq("0-0", "2-2", "1-1"))) must be equalTo Seq("0-0", "1-1")
+      waitForResult(db(id)) must throwA[StatusError]
+    }
+
+    "not delete untargeted revisions when bulk deleting" in new freshDb {
+      val id = "docid"
+      waitForEnd(
+        db.insert(Json.obj("_rev" → "0-0"), id = id, newEdits = false),
+        db.insert(Json.obj("_rev" → "1-1"), id = id, newEdits = false),
+        db.insert(Json.obj("_rev" → "2-2"), id = id, newEdits = false)
+      )
+      waitForResult(db.delete(id, Seq("0-0", "2-2"))) must be equalTo Seq("0-0", "2-2")
+      (waitForResult(db(id)) \ "_rev").as[String] must be equalTo "1-1"
+    }
+
     "be able to not fail at bulk deleting a unique non-existing revision of a document" in new freshDb {
       val (id, rev) = waitForResult(inserted(db.insert(Json.obj())))
       waitForResult(db.delete(id, Seq(rev.dropRight(8) + "00000000"))) must beEmpty

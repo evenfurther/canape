@@ -290,7 +290,7 @@ case class Database(couch: Couch, databaseName: String) {
           delete(id, rev).map(_ ⇒ revs).recover { case _ ⇒ Seq() }
         case _ ⇒
           bulkDocs(revs.map(rev ⇒ Json.obj("_id" → id, "_rev" → rev, "_deleted" → true)), allOrNothing = allOrNothing)
-            .map(_.collect { case doc if !doc.keys.contains("error") ⇒ (doc \ "rev").as[String] })
+            .map(revs.zip(_) collect { case (rev, js) if !js.keys.contains("error") ⇒ rev })
       }
     }
 
@@ -320,7 +320,7 @@ case class Database(couch: Couch, databaseName: String) {
    * Delete all revisions of a document from the database. There will be no error if the document does not exist.
    *
    * @param id the id of the document
-   * @return a future with all the document revisions that have been deleted
+   * @return a sequence of all deleted revisions
    */
   def deleteAll(id: String): Future[Seq[String]] = {
     this(id, Seq("conflicts" → "true")).map(doc ⇒ (doc \ "_rev").as[String] :: (doc \ "_conflicts").asOpt[List[String]].getOrElse(Nil)) flatMap {
