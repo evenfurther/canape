@@ -441,7 +441,8 @@ case class Database(couch: Couch, databaseName: String) {
     couch.sendPotentiallyBlockingRequest(request)
       .recoverWithRetries(-1, {
         case t ⇒
-          promise.failure(t)
+          // The promise might have been already completed if the error happens after the connection
+          promise.tryFailure(t)
           Source.failed(t)
       })
       .flatMapConcat {
