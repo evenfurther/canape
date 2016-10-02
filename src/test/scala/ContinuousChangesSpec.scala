@@ -125,13 +125,13 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
     "fail properly if the HTTP server is not running" in {
       val newDb = new Couch("localhost", 5985).db("not-running-anyway")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
-      waitForResult(result) must throwA[RuntimeException]
+      waitForResult(result) must throwA[Exception]
     }
 
     "fail properly if the HTTPS server is not running" in {
       val newDb = new Couch("localhost", 5985, secure = true).db("not-running-anyway")
       val result = newDb.continuousChanges().runFold[List[JsObject]](Nil)(_ :+ _)
-      waitForResult(result) must throwA[RuntimeException]
+      waitForResult(result) must throwA[Exception]
     }
 
     "terminate properly if the database is deleted during the request" in new freshDb {
