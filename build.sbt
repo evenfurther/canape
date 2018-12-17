@@ -7,7 +7,7 @@ lazy val canape = project
       name := "canape",
       organization := "net.rfc1149",
       version := "0.0.9-SNAPSHOT",
-      scalaVersion := "2.12.3",
+      scalaVersion := "2.12.8",
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       resolvers ++= Seq("Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
             Resolver.jcenterRepo),
