@@ -1,4 +1,3 @@
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import scalariform.formatter.preferences._
 
 lazy val canape = project
@@ -22,12 +21,10 @@ lazy val canape = project
         "org.specs2" %% "specs2-mock" % "3.9.4" % "test"
       ),
       fork in Test := true,
-      scalariformSettings(autoformat = true),
-      ScalariformKeys.preferences := ScalariformKeys.preferences.value
+      scalariformPreferences := scalariformPreferences.value
         .setPreference(AlignArguments, true)
         .setPreference(AlignSingleLineCaseStatements, true)
         .setPreference(DoubleIndentConstructorArguments, true)
         .setPreference(RewriteArrowSymbols, true)
         .setPreference(SpacesWithinPatternBinders, false)
         .setPreference(SpacesAroundMultiImports, false))
-
