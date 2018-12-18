@@ -18,8 +18,8 @@ lazy val canape = project
         "com.typesafe.akka" %% "akka-http" % "10.1.5",
         "de.heikoseeberger" %% "akka-http-play-json" % "1.22.0",
         "com.iheart" %% "ficus" % "1.4.2",
-        "org.specs2" %% "specs2-core" % "3.9.4" % "test",
-        "org.specs2" %% "specs2-mock" % "3.9.4" % "test"
+        "org.specs2" %% "specs2-core" % "4.3.3" % "test",
+        "org.specs2" %% "specs2-mock" % "4.3.3" % "test"
       ),
       fork in Test := true,
       scalariformSettings(autoformat = true),
