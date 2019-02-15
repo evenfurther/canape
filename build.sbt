@@ -12,9 +12,9 @@ lazy val canape = project
       resolvers ++= Seq("Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
             Resolver.jcenterRepo),
       libraryDependencies ++= Seq(
-        "com.typesafe.akka" %% "akka-actor" % "2.5.19",
-        "com.typesafe.akka" %% "akka-stream" % "2.5.19",
-        "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.19" % "test",
+        "com.typesafe.akka" %% "akka-actor" % "2.5.21",
+        "com.typesafe.akka" %% "akka-stream" % "2.5.21",
+        "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.21" % "test",
         "com.typesafe.akka" %% "akka-http" % "10.1.5",
         "de.heikoseeberger" %% "akka-http-play-json" % "1.22.0",
         "com.iheart" %% "ficus" % "1.4.2",
