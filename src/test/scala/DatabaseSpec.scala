@@ -743,6 +743,18 @@ class DatabaseSpec extends WithDbSpecification("db") {
         db.delete()
       }
     }
+
+    "be able to create the target database if requested" in new freshDb {
+      override val createDb = false
+      val outer = db
+      new freshDb {
+        val (innerId, innerRev) = waitForResult(inserted(db.insert(Json.obj())))
+        waitForResult(db.replicateTo(outer, Json.obj(("create_target", true))))
+        val doc = waitForResult(outer(innerId))
+        (doc \ "_rev").as[String] must be equalTo innerRev
+        db.delete()
+      }
+    }
   }
 
 }
