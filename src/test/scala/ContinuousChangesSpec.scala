@@ -42,27 +42,27 @@ class ContinuousChangesSpec extends WithDbSpecification("db") {
 
     "allow the specification of a timeout" in new freshDb {
       val result = db.continuousChanges(Map("timeout" -> "10")).runWith(Sink.ignore)
-      Await.result(result, 500.milliseconds) must be equalTo Done
+      Await.result(result, 2.seconds) must be equalTo Done
     }
 
     "allow the specification of a timeout with explicit erasure of the heartbeat" in new freshDb {
       val result = db.continuousChanges(Map("timeout" -> "10", "heartbeat" -> "")).runWith(Sink.ignore)
-      Await.result(result, 500.milliseconds) must be equalTo Done
+      Await.result(result, 2.seconds) must be equalTo Done
     }
 
     "allow the erasure of the heartbeat without a timeout" in new freshDb {
-      def result = db.continuousChanges(Map("heartbeat" -> "")).idleTimeout(200.milliseconds).runWith(Sink.ignore)
-      Await.result(result, 500.milliseconds) must throwA[TimeoutException]
+      def result = db.continuousChanges(Map("heartbeat" -> "")).idleTimeout(400.milliseconds).runWith(Sink.ignore)
+      Await.result(result, 2.seconds) must throwA[TimeoutException]
     }
 
     "allow the specification of a heartbeat without a timeout" in new freshDb {
-      def result = db.continuousChanges(Map("heartbeat" -> "30000")).idleTimeout(200.milliseconds).runWith(Sink.ignore)
-      Await.result(result, 500.milliseconds) must throwA[TimeoutException]
+      def result = db.continuousChanges(Map("heartbeat" -> "30000")).idleTimeout(400.milliseconds).runWith(Sink.ignore)
+      Await.result(result, 1.seconds) must throwA[TimeoutException]
     }
 
     "allow the specification of a heartbeat" in new freshDb {
       val result = db.continuousChanges(Map("timeout" -> "10", "heartbeat" -> "30000")).runWith(Sink.ignore)
-      Await.result(result, 500.milliseconds) must throwA[TimeoutException]
+      Await.result(result, 1.seconds) must throwA[TimeoutException]
     }
 
     "properly disconnect after a timeout" in new freshDb {
