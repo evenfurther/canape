@@ -36,7 +36,7 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
         Await.ready(Future.sequence(_waitEventually), timeout)
         Await.ready(db.delete(), timeout)
       } catch {
-        case _: StatusError ⇒
+        case _: StatusError =>
       }
 
     def waitEventually[T](fs: Future[T]*): Unit = _waitEventually ++= fs

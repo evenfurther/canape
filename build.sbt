@@ -27,7 +27,6 @@ lazy val canape = project
         .setPreference(AlignArguments, true)
         .setPreference(AlignSingleLineCaseStatements, true)
         .setPreference(DoubleIndentConstructorArguments, true)
-        .setPreference(RewriteArrowSymbols, true)
         .setPreference(SpacesWithinPatternBinders, false)
         .setPreference(SpacesAroundMultiImports, false))
 
