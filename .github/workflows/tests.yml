@@ -1,0 +1,34 @@
+name: Validation process
+on: [push]
+  #push:
+  #branches:
+  #- staging
+  #- trying
+jobs:
+  test:
+    name: Test suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        couchdb_version: ['2.2.0', '2.3.0', '2.3.1']
+      fail-fast: false
+    services:
+      couchdb:
+        image: couchdb:${{ matrix.couchdb_version }}
+        ports:
+          - 5984:5984
+    env:
+      CANAPE_DB_HOST: couchdb
+      CANAPE_DB_PORT: 5984
+    steps:
+      - name: Get Ivy2 cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.ivy2
+          key: ivy2-files
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: SBT tests and artifacts
+        uses: lokkju/github-action-sbt@master
+        with:
+          commands: test

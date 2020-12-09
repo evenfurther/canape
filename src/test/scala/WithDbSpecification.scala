@@ -18,7 +18,7 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
   implicit val dispatcher = system.dispatcher
   implicit val timeout: Duration = (10, SECONDS)
 
-  val couch = new Couch
+  val couch = new Couch(host = sys.env.getOrElse("CANAPE_DB_HOST", "localhost"), port = sys.env.get("CANAPE_DB_PORT").map(_.toInt).getOrElse(5984))
 
   trait freshDb extends BeforeAfter {
 
