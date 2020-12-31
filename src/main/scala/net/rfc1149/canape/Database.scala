@@ -421,7 +421,7 @@ case class Database(couch: Couch, databaseName: String) {
    *         the materialized value contains Done or an error if the HTTP request was unsuccesful
    */
   def continuousChanges(params: Map[String, String] = Map(), extraParams: JsObject = Json.obj()): Source[JsObject, Future[Done]] = {
-    val promise = Promise[Done]
+    val promise = Promise[Done]()
     val requestParams = {
       val heartBeatParam = (params.get("timeout"), params.get("heartbeat")) match {
         case (Some(_), Some(h)) if h.nonEmpty => Map("heartbeat" -> h) // Timeout will be ignored by the DB, but the user has chosen
