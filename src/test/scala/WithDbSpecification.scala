@@ -14,7 +14,7 @@ import scala.concurrent.{Await, Future}
 
 abstract class WithDbSpecification(dbSuffix: String) extends Specification {
 
-  sequential   // CouchDB tends to block on some operations
+  sequential // CouchDB tends to block on some operations
 
   implicit val system = ActorSystem("canape-test")
   implicit val dispatcher = system.dispatcher
