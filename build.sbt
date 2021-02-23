@@ -19,7 +19,7 @@ lazy val canape = project
         "org.specs2" %% "specs2-core" % "4.10.6" % "test",
         "org.specs2" %% "specs2-mock" % "4.10.6" % "test"
       ),
-      fork in Test := true,
+      Test/fork := true,
       scalariformAutoformat := true,
       ScalariformKeys.preferences := ScalariformKeys.preferences.value
         .setPreference(AlignArguments, true)
