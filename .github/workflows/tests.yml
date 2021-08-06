@@ -12,14 +12,6 @@ jobs:
       matrix:
         couchdb_version: ['2.3.1']
       fail-fast: false
-    services:
-      couchdb:
-        image: couchdb:${{ matrix.couchdb_version }}
-        ports:
-          - 5984:5984
-    env:
-      CANAPE_DB_HOST: couchdb
-      CANAPE_DB_PORT: 5984
     steps:
       - name: Get Ivy2 cache
         uses: actions/cache@v2
@@ -28,7 +20,10 @@ jobs:
           key: ivy2-files
       - name: Checkout
         uses: actions/checkout@v2
-      - name: SBT tests and artifacts
-        uses: lokkju/github-action-sbt@master
+      - uses: olafurpg/setup-scala@v11
+      - name: Setup CouchDB
+        uses: "cobot/couchdb-action@master"
         with:
-          commands: test
+          couchdb version: ${{ matrix.couchdb_version }}
+      - name: SBT tests and artifacts
+        run: sbt test
