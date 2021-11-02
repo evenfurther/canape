@@ -13,7 +13,7 @@ lazy val canape = project
         "com.typesafe.akka" %% "akka-actor" % "2.6.16",
         "com.typesafe.akka" %% "akka-stream" % "2.6.16",
         "com.typesafe.akka" %% "akka-stream-testkit" % "2.6.16" % "test",
-        "com.typesafe.akka" %% "akka-http" % "10.2.6",
+        "com.typesafe.akka" %% "akka-http" % "10.2.7",
         "de.heikoseeberger" %% "akka-http-play-json" % "1.38.2",
         "com.iheart" %% "ficus" % "1.5.0",
         "org.specs2" %% "specs2-core" % "4.12.4" % "test",
