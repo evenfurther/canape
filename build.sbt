@@ -7,17 +7,17 @@ lazy val canape = project
       name := "canape",
       organization := "net.rfc1149",
       version := "0.0.9-SNAPSHOT",
-      scalaVersion := "2.13.6",
+      scalaVersion := "2.13.7",
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       libraryDependencies ++= Seq(
         "com.typesafe.akka" %% "akka-actor" % "2.6.16",
         "com.typesafe.akka" %% "akka-stream" % "2.6.16",
         "com.typesafe.akka" %% "akka-stream-testkit" % "2.6.16" % "test",
-        "com.typesafe.akka" %% "akka-http" % "10.2.6",
+        "com.typesafe.akka" %% "akka-http" % "10.2.7",
         "de.heikoseeberger" %% "akka-http-play-json" % "1.38.2",
-        "com.iheart" %% "ficus" % "1.5.0",
-        "org.specs2" %% "specs2-core" % "4.12.12" % "test",
-        "org.specs2" %% "specs2-mock" % "4.12.12" % "test"
+        "com.iheart" %% "ficus" % "1.5.1",
+        "org.specs2" %% "specs2-core" % "4.12.4" % "test",
+        "org.specs2" %% "specs2-mock" % "4.12.4" % "test"
       ),
       Test/fork := true,
       scalariformAutoformat := true,
