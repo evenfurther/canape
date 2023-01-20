@@ -1,0 +1,1638 @@
+2020.12.09 23:07:49 INFO  Started: Metals version 0.9.7 in workspace '/home/sam/Dev/canape' for client vscode.
+2020.12.09 23:07:50 INFO  time: initialize in 1.3s
+2020.12.09 23:07:51 WARN  Build server is not auto-connectable.
+2020.12.09 23:07:54 INFO  running '/usr/lib/jvm/java-11-openjdk/bin/java -Djline.terminal=jline.UnsupportedTerminal -Dsbt.log.noformat=true -Dfile.encoding=UTF-8 -jar /tmp/metals1809804034270956277/sbt-launch.jar -Dbloop.export-jar-classifiers=sources bloopInstall'
+2020.12.09 23:07:54 WARN  no build target for: /home/sam/Dev/canape/project/metals.sbt
+2020.12.09 23:07:54 WARN  no build target for: /home/sam/Dev/canape/project/project/metals.sbt
+2020.12.09 23:07:54 INFO  skipping build import with status 'Started'
+2020.12.09 23:07:56 INFO  [info] welcome to sbt 1.4.4 (N/A Java 11.0.8)
+2020.12.09 23:07:58 INFO  [info] loading settings for project global-plugins from idea.sbt ...
+2020.12.09 23:07:58 INFO  [info] loading global plugins from /home/sam/.sbt/1.0/plugins
+2020.12.09 23:08:02 INFO  [info] loading settings for project canape-build-build-build from metals.sbt ...
+2020.12.09 23:08:02 INFO  [info] loading project definition from /home/sam/Dev/canape/project/project/project
+2020.12.09 23:08:02 INFO  [info] loading settings for project canape-build-build from metals.sbt ...
+2020.12.09 23:08:02 INFO  [info] loading project definition from /home/sam/Dev/canape/project/project
+2020.12.09 23:08:03 INFO  [success] Generated .bloop/canape-build-build.json
+2020.12.09 23:08:03 INFO  [success] Total time: 0 s, completed Dec 9, 2020, 11:08:03 PM
+2020.12.09 23:08:03 INFO  [info] loading settings for project canape-build from metals.sbt,plugins.sbt ...
+2020.12.09 23:08:03 INFO  [info] loading project definition from /home/sam/Dev/canape/project
+2020.12.09 23:08:04 INFO  [success] Generated .bloop/canape-build.json
+2020.12.09 23:08:04 INFO  [success] Total time: 0 s, completed Dec 9, 2020, 11:08:04 PM
+2020.12.09 23:08:04 INFO  [info] loading settings for project canape from build.sbt ...
+2020.12.09 23:08:05 INFO  [info] set current project to canape (in build file:/home/sam/Dev/canape/)
+2020.12.09 23:08:07 INFO  [warn] There may be incompatibilities among your library dependencies; run 'evicted' to see detailed eviction warnings.
+2020.12.09 23:08:08 INFO  [warn] There may be incompatibilities among your library dependencies; run 'evicted' to see detailed eviction warnings.
+2020.12.09 23:08:08 INFO  [success] Generated .bloop/canape.json
+2020.12.09 23:08:08 INFO  [success] Generated .bloop/canape-test.json
+2020.12.09 23:08:08 INFO  [success] Total time: 3 s, completed Dec 9, 2020, 11:08:08 PM
+2020.12.09 23:08:08 INFO  sbt bloopInstall exit: 0
+2020.12.09 23:08:08 INFO  time: ran 'sbt bloopInstall' in 14s
+2020.12.09 23:08:08 INFO  Attempting to connect to the build server...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher6900233003189718051/bsp.socket'...
+Waiting for the bsp connection to come up...
+Waiting for the bsp connection to come up...
+Waiting for the bsp connection to come up...
+No server running at 127.0.0.1:8212, let's fire one...
+Resolving ch.epfl.scala:bloop-frontend_2.12:1.4.5-6-4768184c...
+Starting bloop server at 127.0.0.1:8212...
+Attempting a connection to the server...
+Attempting a connection to the server...
+Attempting a connection to the server...
+[0m[32m[D][0m Loading 2 projects from '/home/sam/Dev/canape/.bloop'...
+[0m[32m[D][0m Loading project from '/home/sam/Dev/canape/.bloop/canape-test.json'
+[0m[32m[D][0m Loading project from '/home/sam/Dev/canape/.bloop/canape.json'
+[0m[32m[D][0m Cache miss for scala instance org.scala-lang:scala-compiler:2.13.1.
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/jline/jline/2.14.6/jline-2.14.6.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/1.12/jansi-1.12.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.1/scala-compiler-2.13.1.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.1/scala-reflect-2.13.1.jar
+[0m[32m[D][0m Missing analysis file for project 'canape'
+[0m[32m[D][0m Missing analysis file for project 'canape-test'
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher6900233003189718051/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher6900233003189718051/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+2020.12.09 23:08:11 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+2020.12.09 23:08:12 INFO  Attempting to connect to the build server...
+Starting the bsp launcher for bloop...
+2020.12.09 23:08:12 INFO  Attempting to connect to the build server...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher8228376190971743165/bsp.socket'...
+Waiting for the bsp connection to come up...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher6927346883794503827/bsp.socket'...
+Waiting for the bsp connection to come up...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher8228376190971743165/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher8228376190971743165/bsp.socket...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher6927346883794503827/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher6927346883794503827/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+2020.12.09 23:08:12 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+2020.12.09 23:08:12 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+2020.12.09 23:08:12 INFO  time: connected to build server in 3.53s
+2020.12.09 23:08:12 INFO  Connected to Build server v1.4.5-6-4768184c
+2020.12.09 23:08:15 WARN  Could not find java sources in None. Java symbols will not be available.
+2020.12.09 23:08:16 INFO  time: indexed workspace in 4.28s
+2020.12.09 23:09:26 INFO  running '/usr/lib/jvm/java-11-openjdk/bin/java -Djline.terminal=jline.UnsupportedTerminal -Dsbt.log.noformat=true -Dfile.encoding=UTF-8 -jar /tmp/metals10482439853230353474/sbt-launch.jar -Dbloop.export-jar-classifiers=sources bloopInstall'
+2020.12.09 23:09:27 INFO  [info] welcome to sbt 1.4.4 (N/A Java 11.0.8)
+2020.12.09 23:09:27 INFO  [info] loading settings for project global-plugins from idea.sbt ...
+2020.12.09 23:09:29 INFO  [info] loading global plugins from /home/sam/.sbt/1.0/plugins
+2020.12.09 23:09:29 INFO  [info] loading settings for project canape-build-build-build from metals.sbt ...
+2020.12.09 23:09:30 INFO  [info] loading project definition from /home/sam/Dev/canape/project/project/project
+2020.12.09 23:09:30 INFO  [info] loading settings for project canape-build-build from metals.sbt ...
+2020.12.09 23:09:30 INFO  [info] loading project definition from /home/sam/Dev/canape/project/project
+2020.12.09 23:09:30 INFO  [success] Generated .bloop/canape-build-build.json
+2020.12.09 23:09:31 INFO  [success] Total time: 1 s, completed Dec 9, 2020, 11:09:31 PM
+2020.12.09 23:09:31 INFO  [info] loading settings for project canape-build from metals.sbt,plugins.sbt ...
+2020.12.09 23:09:31 INFO  [info] loading project definition from /home/sam/Dev/canape/project
+2020.12.09 23:09:31 INFO  [success] Generated .bloop/canape-build.json
+2020.12.09 23:09:31 INFO  [success] Total time: 0 s, completed Dec 9, 2020, 11:09:32 PM
+2020.12.09 23:09:34 INFO  [info] loading settings for project canape from build.sbt ...
+2020.12.09 23:09:34 INFO  [info] set current project to canape (in build file:/home/sam/Dev/canape/)
+2020.12.09 23:09:36 INFO  [warn] There may be incompatibilities among your library dependencies; run 'evicted' to see detailed eviction warnings.
+2020.12.09 23:09:36 INFO  [warn] There may be incompatibilities among your library dependencies; run 'evicted' to see detailed eviction warnings.
+2020.12.09 23:09:36 INFO  [success] Generated .bloop/canape-test.json
+2020.12.09 23:09:36 INFO  [success] Generated .bloop/canape.json
+2020.12.09 23:09:36 INFO  [success] Total time: 2 s, completed Dec 9, 2020, 11:09:36 PM
+2020.12.09 23:09:37 INFO  sbt bloopInstall exit: 0
+2020.12.09 23:09:37 INFO  time: ran 'sbt bloopInstall' in 10s
+2020.12.09 23:09:37 INFO  Disconnecting from Bloop session...
+2020.12.09 23:09:37 INFO  Shut down connection with build server.
+2020.12.09 23:09:37 INFO  Shut down connection with build server.
+No more data in the client stdin, exiting...
+No more data in the client stdin, exiting...
+2020.12.09 23:09:37 INFO  Shut down connection with build server.
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+2020.12.09 23:09:37 INFO  Attempting to connect to the build server...
+No more data in the server stdin, exiting...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher16431126336337262200/bsp.socket'...
+Waiting for the bsp connection to come up...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Loading 2 projects from '/home/sam/Dev/canape/.bloop'...
+[0m[32m[D][0m Loading project from '/home/sam/Dev/canape/.bloop/canape-test.json'
+[0m[32m[D][0m Loading project from '/home/sam/Dev/canape/.bloop/canape.json'
+[0m[32m[D][0m Cache miss for scala instance org.scala-lang:scala-compiler:2.13.4.
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/jline/jline/3.16.0/jline-3.16.0.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.4/scala-compiler-2.13.4.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.4/scala-library-2.13.4.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.4/scala-reflect-2.13.4.jar
+[0m[32m[D][0m Resolving org.scalameta:semanticdb-scalac_2.13.4:4.4.0
+[0m[32m[D][0m Configured SemanticDB in projects 'canape-test', 'canape'
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher16431126336337262200/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher16431126336337262200/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+2020.12.09 23:09:37 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+2020.12.09 23:09:37 INFO  Attempting to connect to the build server...
+Starting the bsp launcher for bloop...
+2020.12.09 23:09:37 INFO  Attempting to connect to the build server...Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher11519045811206745139/bsp.socket'...
+
+Waiting for the bsp connection to come up...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher5093785246898161460/bsp.socket'...
+Waiting for the bsp connection to come up...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher5093785246898161460/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher5093785246898161460/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+2020.12.09 23:09:37 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher11519045811206745139/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher11519045811206745139/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+2020.12.09 23:09:37 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+2020.12.09 23:09:38 INFO  time: connected to build server in 0.64s
+2020.12.09 23:09:38 INFO  Connected to Build server v1.4.5-6-4768184c
+2020.12.09 23:09:39 WARN  Could not find java sources in None. Java symbols will not be available.
+2020.12.09 23:09:39 INFO  time: indexed workspace in 2.4s
+2020.12.09 23:11:31 INFO  compiling canape (7 scala sources)
+2020.12.09 23:11:43 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:11:43 INFO  time: compiled canape in 12s
+2020.12.09 23:11:50 INFO  time: compiled canape-test in 6.73s
+Dec 09, 2020 11:13:37 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 120
+2020.12.09 23:13:40 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:13:41 INFO  time: compiled canape-test in 1.11s
+2020.12.09 23:13:41 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:13:46 INFO  time: compiled canape-test in 5.04s
+2020.12.09 23:14:59 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:14:59 INFO  time: compiled canape-test in 0.19s
+2020.12.09 23:15:23 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:15:23 INFO  time: compiled canape-test in 0.97s
+2020.12.09 23:15:23 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:15:30 INFO  time: compiled canape-test in 6.09s
+2020.12.09 23:15:45 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:15:45 INFO  time: compiled canape-test in 0.19s
+2020.12.09 23:15:53 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:15:53 INFO  time: compiled canape-test in 0.86s
+2020.12.09 23:15:53 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:15:58 INFO  time: compiled canape-test in 3.61s
+2020.12.09 23:16:14 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:16:14 INFO  time: compiled canape-test in 0.7s
+2020.12.09 23:16:14 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:16:16 INFO  time: compiled canape-test in 1.41s
+2020.12.09 23:16:54 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:16:54 INFO  time: compiled canape-test in 0.72s
+2020.12.09 23:16:54 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:16:59 INFO  time: compiled canape-test in 4.61s
+2020.12.09 23:17:07 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:17:07 INFO  time: compiled canape-test in 0.68s
+2020.12.09 23:17:07 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:17:11 INFO  time: compiled canape-test in 2.99s
+2020.12.09 23:17:15 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:17:15 INFO  time: compiled canape-test in 0.63s
+2020.12.09 23:17:15 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:17:19 INFO  time: compiled canape-test in 2.78s
+2020.12.09 23:17:42 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:17:42 INFO  time: compiled canape-test in 0.15s
+2020.12.09 23:19:15 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:19:15 INFO  time: compiled canape-test in 0.64s
+2020.12.09 23:19:15 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:19:19 INFO  time: compiled canape-test in 3.32s
+2020.12.09 23:20:12 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:20:12 INFO  time: compiled canape-test in 0.79s
+2020.12.09 23:20:16 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:20:16 INFO  time: compiled canape-test in 0.62s
+2020.12.09 23:20:16 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:20:18 INFO  time: compiled canape-test in 0.84s
+Dec 09, 2020 11:20:51 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+2020.12.09 23:20:52 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:20:52 INFO  time: compiled canape-test in 0.27s
+2020.12.09 23:21:13 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:21:13 INFO  time: compiled canape-test in 0.24s
+Dec 09, 2020 11:21:19 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:21:19 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+2020.12.09 23:21:20 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:21:20 INFO  time: compiled canape-test in 0.26s
+Dec 09, 2020 11:21:34 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:21:34 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:21:34 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:21:35 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+2020.12.09 23:21:38 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:21:38 INFO  time: compiled canape-test in 0.25s
+2020.12.09 23:22:34 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:22:34 INFO  time: compiled canape-test in 0.22s
+2020.12.09 23:22:41 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:22:41 INFO  time: compiled canape-test in 0.24s
+2020.12.09 23:23:27 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:23:27 INFO  time: compiled canape-test in 0.25s
+Dec 09, 2020 11:23:44 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 777
+2020.12.09 23:23:45 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:23:45 INFO  time: compiled canape-test in 0.25s
+2020.12.09 23:24:10 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:24:10 INFO  time: compiled canape-test in 0.25s
+2020.12.09 23:24:36 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:24:36 INFO  time: compiled canape-test in 0.89s
+2020.12.09 23:24:51 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:24:52 INFO  time: compiled canape-test in 1.05s
+2020.12.09 23:24:52 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:24:52 INFO  time: compiled canape-test in 0.87s
+2020.12.09 23:25:28 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:25:28 INFO  time: compiled canape-test in 0.85s
+2020.12.09 23:25:58 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:25:58 INFO  time: compiled canape-test in 0.89s
+2020.12.09 23:26:00 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:26:00 INFO  time: compiled canape-test in 0.23s
+2020.12.09 23:26:05 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:26:05 INFO  time: compiled canape-test in 0.9s
+2020.12.09 23:26:23 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:26:24 INFO  time: compiled canape-test in 1.01s
+2020.12.09 23:26:33 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:26:34 INFO  time: compiled canape-test in 1.26s
+2020.12.09 23:26:34 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:26:34 INFO  time: compiled canape-test in 0.91s
+2020.12.09 23:26:35 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:26:35 INFO  time: compiled canape-test in 0.68s
+2020.12.09 23:26:35 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:26:36 INFO  time: compiled canape-test in 0.7s
+2020.12.09 23:26:38 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:26:40 INFO  time: compiled canape-test in 1.3s
+2020.12.09 23:26:40 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:26:41 INFO  time: compiled canape-test in 1.08s
+2020.12.09 23:26:51 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:26:52 INFO  time: compiled canape-test in 1.12s
+2020.12.09 23:26:52 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:26:52 INFO  time: compiled canape-test in 0.79s
+2020.12.09 23:28:55 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:28:55 INFO  time: compiled canape-test in 0.61s
+2020.12.09 23:28:55 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:28:57 INFO  time: compiled canape-test in 0.71s
+2020.12.09 23:29:07 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:29:07 INFO  time: compiled canape-test in 0.66s
+2020.12.09 23:29:07 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:29:08 INFO  time: compiled canape-test in 0.76s
+Dec 09, 2020 11:29:22 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:29:22 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:29:22 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+2020.12.09 23:29:23 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:29:23 INFO  time: compiled canape-test in 0.25s
+Dec 09, 2020 11:29:27 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:29:27 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:29:27 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+2020.12.09 23:29:28 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:29:29 INFO  time: compiled canape-test in 1.4s
+2020.12.09 23:29:29 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:29:29 INFO  time: compiled canape-test in 0.76s
+2020.12.09 23:29:38 INFO  compiling canape-test (2 scala sources)
+2020.12.09 23:29:39 INFO  time: compiled canape-test in 1.36s
+2020.12.09 23:29:39 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:29:39 INFO  time: compiled canape-test in 0.72s
+Dec 09, 2020 11:30:01 PM scala.meta.internal.pc.CompilerAccess retryWithCleanCompiler
+INFO: compiler crashed due to an error in the Scala compiler, retrying with new compiler instance.
+Dec 09, 2020 11:30:01 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+scala.MatchError: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+	at scala.tools.nsc.typechecker.Unapplies.constrParamss(Unapplies.scala:88)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth(Unapplies.scala:139)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth$(Unapplies.scala:136)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.factoryMeth(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper(MethodSynthesis.scala:238)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper$(MethodSynthesis.scala:237)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterImplicitWrapper(Namers.scala:57)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym(Global.scala:95)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym$(Global.scala:81)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$$anon$2.enterExistingSym(Global.scala:51)
+	at scala.tools.nsc.typechecker.Namers$Namer.standardEnterSym(Namers.scala:313)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym(AnalyzerPlugins.scala:478)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym$(AnalyzerPlugins.scala:477)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.pluginsEnterSym(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterSym(Namers.scala:287)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSym(Typers.scala:1978)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSyms(Typers.scala:1973)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2033)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedPackageDef$1(Typers.scala:5598)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5905)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Analyzer$typerFactory$TyperPhase.apply(Analyzer.scala:117)
+	at scala.tools.nsc.Global$GlobalPhase.applyPhase(Global.scala:454)
+	at scala.tools.nsc.interactive.Global$TyperRun.applyPhase(Global.scala:1346)
+	at scala.tools.nsc.interactive.Global$TyperRun.typeCheck(Global.scala:1339)
+	at scala.tools.nsc.interactive.Global.typeCheck(Global.scala:670)
+	at scala.tools.nsc.interactive.Global.typedTreeAt(Global.scala:819)
+	at scala.tools.nsc.interactive.Global.completionsAt(Global.scala:1231)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:399)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+
+Dec 09, 2020 11:30:01 PM scala.meta.internal.pc.CompilerAccess retryWithCleanCompiler
+INFO: compiler crashed due to an error in the Scala compiler, retrying with new compiler instance.
+Dec 09, 2020 11:30:01 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+scala.MatchError: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+	at scala.tools.nsc.typechecker.Unapplies.constrParamss(Unapplies.scala:88)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth(Unapplies.scala:139)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth$(Unapplies.scala:136)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.factoryMeth(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper(MethodSynthesis.scala:238)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper$(MethodSynthesis.scala:237)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterImplicitWrapper(Namers.scala:57)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym(Global.scala:95)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym$(Global.scala:81)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$$anon$2.enterExistingSym(Global.scala:51)
+	at scala.tools.nsc.typechecker.Namers$Namer.standardEnterSym(Namers.scala:313)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym(AnalyzerPlugins.scala:478)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym$(AnalyzerPlugins.scala:477)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.pluginsEnterSym(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterSym(Namers.scala:287)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSym(Typers.scala:1978)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSyms(Typers.scala:1973)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2033)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedPackageDef$1(Typers.scala:5598)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5905)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Analyzer$typerFactory$TyperPhase.apply(Analyzer.scala:117)
+	at scala.tools.nsc.Global$GlobalPhase.applyPhase(Global.scala:454)
+	at scala.tools.nsc.interactive.Global$TyperRun.applyPhase(Global.scala:1346)
+	at scala.tools.nsc.interactive.Global$TyperRun.typeCheck(Global.scala:1339)
+	at scala.tools.nsc.interactive.Global.typeCheck(Global.scala:670)
+	at scala.tools.nsc.interactive.Global.typedTreeAt(Global.scala:819)
+	at scala.tools.nsc.interactive.Global.completionsAt(Global.scala:1231)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:399)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+
+Dec 09, 2020 11:30:01 PM scala.meta.internal.pc.CompilerAccess retryWithCleanCompiler
+INFO: compiler crashed due to an error in the Scala compiler, retrying with new compiler instance.
+Dec 09, 2020 11:30:01 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+scala.MatchError: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+	at scala.tools.nsc.typechecker.Unapplies.constrParamss(Unapplies.scala:88)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth(Unapplies.scala:139)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth$(Unapplies.scala:136)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.factoryMeth(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper(MethodSynthesis.scala:238)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper$(MethodSynthesis.scala:237)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterImplicitWrapper(Namers.scala:57)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym(Global.scala:95)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym$(Global.scala:81)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$$anon$2.enterExistingSym(Global.scala:51)
+	at scala.tools.nsc.typechecker.Namers$Namer.standardEnterSym(Namers.scala:313)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym(AnalyzerPlugins.scala:478)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym$(AnalyzerPlugins.scala:477)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.pluginsEnterSym(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterSym(Namers.scala:287)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSym(Typers.scala:1978)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSyms(Typers.scala:1973)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2033)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedPackageDef$1(Typers.scala:5598)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5905)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Analyzer$typerFactory$TyperPhase.apply(Analyzer.scala:117)
+	at scala.tools.nsc.Global$GlobalPhase.applyPhase(Global.scala:454)
+	at scala.tools.nsc.interactive.Global$TyperRun.applyPhase(Global.scala:1346)
+	at scala.tools.nsc.interactive.Global$TyperRun.typeCheck(Global.scala:1339)
+	at scala.tools.nsc.interactive.Global.typeCheck(Global.scala:670)
+	at scala.tools.nsc.interactive.Global.typedTreeAt(Global.scala:819)
+	at scala.tools.nsc.interactive.Global.completionsAt(Global.scala:1231)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:399)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+
+Dec 09, 2020 11:30:01 PM scala.meta.internal.pc.CompilerAccess retryWithCleanCompiler
+INFO: compiler crashed due to an error in the Scala compiler, retrying with new compiler instance.
+Dec 09, 2020 11:30:02 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+scala.MatchError: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+	at scala.tools.nsc.typechecker.Unapplies.constrParamss(Unapplies.scala:88)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth(Unapplies.scala:139)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth$(Unapplies.scala:136)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.factoryMeth(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper(MethodSynthesis.scala:238)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper$(MethodSynthesis.scala:237)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterImplicitWrapper(Namers.scala:57)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym(Global.scala:95)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym$(Global.scala:81)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$$anon$2.enterExistingSym(Global.scala:51)
+	at scala.tools.nsc.typechecker.Namers$Namer.standardEnterSym(Namers.scala:313)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym(AnalyzerPlugins.scala:478)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym$(AnalyzerPlugins.scala:477)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.pluginsEnterSym(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterSym(Namers.scala:287)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSym(Typers.scala:1978)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSyms(Typers.scala:1973)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2033)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedPackageDef$1(Typers.scala:5598)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5905)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Analyzer$typerFactory$TyperPhase.apply(Analyzer.scala:117)
+	at scala.tools.nsc.Global$GlobalPhase.applyPhase(Global.scala:454)
+	at scala.tools.nsc.interactive.Global$TyperRun.applyPhase(Global.scala:1346)
+	at scala.tools.nsc.interactive.Global$TyperRun.typeCheck(Global.scala:1339)
+	at scala.tools.nsc.interactive.Global.typeCheck(Global.scala:670)
+	at scala.tools.nsc.interactive.Global.typedTreeAt(Global.scala:819)
+	at scala.tools.nsc.interactive.Global.completionsAt(Global.scala:1231)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:399)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+
+Dec 09, 2020 11:30:04 PM scala.meta.internal.pc.CompilerAccess retryWithCleanCompiler
+INFO: compiler crashed due to an error in the Scala compiler, retrying with new compiler instance.
+Dec 09, 2020 11:30:04 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+scala.MatchError: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+	at scala.tools.nsc.typechecker.Unapplies.constrParamss(Unapplies.scala:88)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth(Unapplies.scala:139)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth$(Unapplies.scala:136)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.factoryMeth(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper(MethodSynthesis.scala:238)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper$(MethodSynthesis.scala:237)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterImplicitWrapper(Namers.scala:57)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym(Global.scala:95)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym$(Global.scala:81)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$$anon$2.enterExistingSym(Global.scala:51)
+	at scala.tools.nsc.typechecker.Namers$Namer.standardEnterSym(Namers.scala:313)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym(AnalyzerPlugins.scala:478)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym$(AnalyzerPlugins.scala:477)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.pluginsEnterSym(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterSym(Namers.scala:287)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSym(Typers.scala:1978)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSyms(Typers.scala:1973)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2033)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedPackageDef$1(Typers.scala:5598)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5905)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Analyzer$typerFactory$TyperPhase.apply(Analyzer.scala:117)
+	at scala.tools.nsc.Global$GlobalPhase.applyPhase(Global.scala:454)
+	at scala.tools.nsc.interactive.Global$TyperRun.applyPhase(Global.scala:1346)
+	at scala.tools.nsc.interactive.Global$TyperRun.typeCheck(Global.scala:1339)
+	at scala.tools.nsc.interactive.Global.typeCheck(Global.scala:670)
+	at scala.tools.nsc.interactive.Global.typedTreeAt(Global.scala:819)
+	at scala.tools.nsc.interactive.Global.completionsAt(Global.scala:1231)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:399)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+
+2020.12.09 23:30:29 INFO  compiling canape-test (3 scala sources)
+2020.12.09 23:30:29 INFO  time: compiled canape-test in 0.53s
+2020.12.09 23:30:35 INFO  compiling canape-test (3 scala sources)
+2020.12.09 23:30:35 INFO  time: compiled canape-test in 0.57s
+2020.12.09 23:30:51 INFO  compiling canape-test (3 scala sources)
+2020.12.09 23:30:51 INFO  time: compiled canape-test in 0.52s
+2020.12.09 23:31:36 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:31:36 INFO  time: compiled canape-test in 0.61s
+2020.12.09 23:31:36 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:31:39 INFO  time: compiled canape-test in 2.65s
+Dec 09, 2020 11:31:52 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 1840
+2020.12.09 23:32:30 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:32:30 INFO  time: compiled canape-test in 0.6s
+2020.12.09 23:32:30 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:32:34 INFO  time: compiled canape-test in 2.89s
+2020.12.09 23:32:45 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:32:45 INFO  time: compiled canape-test in 0.73s
+2020.12.09 23:32:45 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:32:49 INFO  time: compiled canape-test in 3.05s
+2020.12.09 23:33:07 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:33:07 INFO  time: compiled canape-test in 0.64s
+2020.12.09 23:33:07 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:33:11 INFO  time: compiled canape-test in 3.47s
+2020.12.09 23:33:29 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:33:29 INFO  time: compiled canape-test in 0.77s
+2020.12.09 23:33:29 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:33:34 INFO  time: compiled canape-test in 3.74s
+2020.12.09 23:35:25 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:35:26 INFO  time: compiled canape-test in 1.05s
+2020.12.09 23:36:20 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:36:21 INFO  time: compiled canape-test in 1s
+2020.12.09 23:38:50 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:38:50 INFO  time: compiled canape-test in 0.67s
+2020.12.09 23:38:50 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:38:53 INFO  time: compiled canape-test in 3.07s
+2020.12.09 23:39:05 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:39:05 INFO  time: compiled canape-test in 0.63s
+2020.12.09 23:39:05 INFO  compiling canape-test (9 scala sources)
+2020.12.09 23:39:08 INFO  time: compiled canape-test in 3.08s
+2020.12.09 23:41:02 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:41:02 INFO  time: compiled canape-test in 0.58s
+2020.12.09 23:41:08 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:41:08 INFO  time: compiled canape-test in 0.57s
+Dec 09, 2020 11:42:06 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:42:06 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:42:06 PM scala.meta.internal.pc.completions.Completions completionPosition
+SEVERE: null
+java.lang.NullPointerException
+	at scala.meta.internal.pc.completions.OverrideCompletions$OverrideCompletion.<init>(OverrideCompletions.scala:46)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe(Completions.scala:500)
+	at scala.meta.internal.pc.completions.Completions.completionPositionUnsafe$(Completions.scala:409)
+	at scala.meta.internal.pc.MetalsGlobal.completionPositionUnsafe(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.completions.Completions.completionPosition(Completions.scala:401)
+	at scala.meta.internal.pc.completions.Completions.completionPosition$(Completions.scala:386)
+	at scala.meta.internal.pc.MetalsGlobal.completionPosition(MetalsGlobal.scala:29)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:446)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+	at scala.meta.internal.pc.ScalaPresentationCompiler.$anonfun$complete$1(ScalaPresentationCompiler.scala:184)
+	at scala.meta.internal.pc.CompilerAccess.withSharedCompiler(CompilerAccess.scala:137)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$withInterruptableCompiler$1(CompilerAccess.scala:87)
+	at scala.meta.internal.pc.CompilerAccess.$anonfun$onCompilerJobQueue$1(CompilerAccess.scala:197)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:103)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+
+Dec 09, 2020 11:42:08 PM scala.meta.internal.pc.CompilerAccess retryWithCleanCompiler
+INFO: compiler crashed due to an error in the Scala compiler, retrying with new compiler instance.
+Dec 09, 2020 11:42:08 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+scala.MatchError: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+	at scala.tools.nsc.typechecker.Unapplies.constrParamss(Unapplies.scala:88)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth(Unapplies.scala:139)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth$(Unapplies.scala:136)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.factoryMeth(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper(MethodSynthesis.scala:238)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper$(MethodSynthesis.scala:237)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterImplicitWrapper(Namers.scala:57)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym(Global.scala:95)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym$(Global.scala:81)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$$anon$2.enterExistingSym(Global.scala:51)
+	at scala.tools.nsc.typechecker.Namers$Namer.standardEnterSym(Namers.scala:313)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym(AnalyzerPlugins.scala:478)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym$(AnalyzerPlugins.scala:477)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.pluginsEnterSym(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterSym(Namers.scala:287)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSym(Typers.scala:1978)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSyms(Typers.scala:1973)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2033)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedBlock(Typers.scala:2557)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedOutsidePatternMode$1(Typers.scala:5911)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5946)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedBlock(Typers.scala:2557)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedOutsidePatternMode$1(Typers.scala:5911)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5946)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg(Typers.scala:3421)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg0$1(Typers.scala:3529)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$7(Typers.scala:3548)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$6(Typers.scala:3527)
+	at scala.tools.nsc.typechecker.Contexts$Context.savingUndeterminedTypeParams(Contexts.scala:537)
+	at scala.tools.nsc.typechecker.Typers$Typer.handleOverloaded$1(Typers.scala:3524)
+	at scala.tools.nsc.typechecker.Typers$Typer.doTypedApply(Typers.scala:3576)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typed1$28(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.silent(Typers.scala:708)
+	at scala.tools.nsc.typechecker.Typers$Typer.tryTypedApply$1(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.normalTypedApply$1(Typers.scala:5057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedApply$1(Typers.scala:5068)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5936)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedBlock(Typers.scala:2557)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedOutsidePatternMode$1(Typers.scala:5911)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5946)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg(Typers.scala:3421)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg0$1(Typers.scala:3529)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$7(Typers.scala:3548)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$6(Typers.scala:3527)
+	at scala.tools.nsc.typechecker.Contexts$Context.savingUndeterminedTypeParams(Contexts.scala:537)
+	at scala.tools.nsc.typechecker.Typers$Typer.handleOverloaded$1(Typers.scala:3524)
+	at scala.tools.nsc.typechecker.Typers$Typer.doTypedApply(Typers.scala:3576)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typed1$28(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.silent(Typers.scala:694)
+	at scala.tools.nsc.typechecker.Typers$Typer.tryTypedApply$1(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.normalTypedApply$1(Typers.scala:5057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedApply$1(Typers.scala:5068)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5936)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedPackageDef$1(Typers.scala:5598)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5905)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Analyzer$typerFactory$TyperPhase.apply(Analyzer.scala:117)
+	at scala.tools.nsc.Global$GlobalPhase.applyPhase(Global.scala:454)
+	at scala.tools.nsc.interactive.Global$TyperRun.applyPhase(Global.scala:1346)
+	at scala.tools.nsc.interactive.Global$TyperRun.typeCheck(Global.scala:1339)
+	at scala.tools.nsc.interactive.Global.typeCheck(Global.scala:670)
+	at scala.tools.nsc.interactive.Global.typedTreeAt(Global.scala:819)
+	at scala.tools.nsc.interactive.Global.completionsAt(Global.scala:1231)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:399)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+
+Dec 09, 2020 11:42:08 PM scala.meta.internal.pc.CompilerAccess retryWithCleanCompiler
+INFO: compiler crashed due to an error in the Scala compiler, retrying with new compiler instance.
+Dec 09, 2020 11:42:08 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+scala.MatchError: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+	at scala.tools.nsc.typechecker.Unapplies.constrParamss(Unapplies.scala:88)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth(Unapplies.scala:139)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth$(Unapplies.scala:136)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.factoryMeth(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper(MethodSynthesis.scala:238)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper$(MethodSynthesis.scala:237)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterImplicitWrapper(Namers.scala:57)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym(Global.scala:95)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym$(Global.scala:81)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$$anon$2.enterExistingSym(Global.scala:51)
+	at scala.tools.nsc.typechecker.Namers$Namer.standardEnterSym(Namers.scala:313)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym(AnalyzerPlugins.scala:478)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym$(AnalyzerPlugins.scala:477)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.pluginsEnterSym(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterSym(Namers.scala:287)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSym(Typers.scala:1978)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSyms(Typers.scala:1973)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2033)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedBlock(Typers.scala:2557)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedOutsidePatternMode$1(Typers.scala:5911)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5946)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedBlock(Typers.scala:2557)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedOutsidePatternMode$1(Typers.scala:5911)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5946)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg(Typers.scala:3421)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg0$1(Typers.scala:3529)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$7(Typers.scala:3548)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$6(Typers.scala:3527)
+	at scala.tools.nsc.typechecker.Contexts$Context.savingUndeterminedTypeParams(Contexts.scala:537)
+	at scala.tools.nsc.typechecker.Typers$Typer.handleOverloaded$1(Typers.scala:3524)
+	at scala.tools.nsc.typechecker.Typers$Typer.doTypedApply(Typers.scala:3576)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typed1$28(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.silent(Typers.scala:708)
+	at scala.tools.nsc.typechecker.Typers$Typer.tryTypedApply$1(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.normalTypedApply$1(Typers.scala:5057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedApply$1(Typers.scala:5068)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5936)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedBlock(Typers.scala:2557)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedOutsidePatternMode$1(Typers.scala:5911)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5946)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg(Typers.scala:3421)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg0$1(Typers.scala:3529)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$7(Typers.scala:3548)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$6(Typers.scala:3527)
+	at scala.tools.nsc.typechecker.Contexts$Context.savingUndeterminedTypeParams(Contexts.scala:537)
+	at scala.tools.nsc.typechecker.Typers$Typer.handleOverloaded$1(Typers.scala:3524)
+	at scala.tools.nsc.typechecker.Typers$Typer.doTypedApply(Typers.scala:3576)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typed1$28(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.silent(Typers.scala:694)
+	at scala.tools.nsc.typechecker.Typers$Typer.tryTypedApply$1(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.normalTypedApply$1(Typers.scala:5057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedApply$1(Typers.scala:5068)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5936)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedPackageDef$1(Typers.scala:5598)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5905)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Analyzer$typerFactory$TyperPhase.apply(Analyzer.scala:117)
+	at scala.tools.nsc.Global$GlobalPhase.applyPhase(Global.scala:454)
+	at scala.tools.nsc.interactive.Global$TyperRun.applyPhase(Global.scala:1346)
+	at scala.tools.nsc.interactive.Global$TyperRun.typeCheck(Global.scala:1339)
+	at scala.tools.nsc.interactive.Global.typeCheck(Global.scala:670)
+	at scala.tools.nsc.interactive.Global.typedTreeAt(Global.scala:819)
+	at scala.tools.nsc.interactive.Global.completionsAt(Global.scala:1231)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:399)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+
+Dec 09, 2020 11:42:08 PM scala.meta.internal.pc.CompilerAccess retryWithCleanCompiler
+INFO: compiler crashed due to an error in the Scala compiler, retrying with new compiler instance.
+Dec 09, 2020 11:42:09 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+scala.MatchError: implicit class <error> extends  (of class scala.reflect.internal.Trees$ClassDef)
+	at scala.tools.nsc.typechecker.Unapplies.constrParamss(Unapplies.scala:88)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth(Unapplies.scala:139)
+	at scala.tools.nsc.typechecker.Unapplies.factoryMeth$(Unapplies.scala:136)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.factoryMeth(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper(MethodSynthesis.scala:238)
+	at scala.tools.nsc.typechecker.MethodSynthesis$MethodSynth.enterImplicitWrapper$(MethodSynthesis.scala:237)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterImplicitWrapper(Namers.scala:57)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym(Global.scala:95)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$InteractiveNamer.enterExistingSym$(Global.scala:81)
+	at scala.tools.nsc.interactive.InteractiveAnalyzer$$anon$2.enterExistingSym(Global.scala:51)
+	at scala.tools.nsc.typechecker.Namers$Namer.standardEnterSym(Namers.scala:313)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym(AnalyzerPlugins.scala:478)
+	at scala.tools.nsc.typechecker.AnalyzerPlugins.pluginsEnterSym$(AnalyzerPlugins.scala:477)
+	at scala.meta.internal.pc.MetalsGlobal$MetalsInteractiveAnalyzer.pluginsEnterSym(MetalsGlobal.scala:58)
+	at scala.tools.nsc.typechecker.Namers$Namer.enterSym(Namers.scala:287)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSym(Typers.scala:1978)
+	at scala.tools.nsc.typechecker.Typers$Typer.enterSyms(Typers.scala:1973)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2033)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedBlock(Typers.scala:2557)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedOutsidePatternMode$1(Typers.scala:5911)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5946)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedBlock(Typers.scala:2557)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedOutsidePatternMode$1(Typers.scala:5911)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5946)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg(Typers.scala:3421)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg0$1(Typers.scala:3529)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$7(Typers.scala:3548)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$6(Typers.scala:3527)
+	at scala.tools.nsc.typechecker.Contexts$Context.savingUndeterminedTypeParams(Contexts.scala:537)
+	at scala.tools.nsc.typechecker.Typers$Typer.handleOverloaded$1(Typers.scala:3524)
+	at scala.tools.nsc.typechecker.Typers$Typer.doTypedApply(Typers.scala:3576)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typed1$28(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.silent(Typers.scala:708)
+	at scala.tools.nsc.typechecker.Typers$Typer.tryTypedApply$1(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.normalTypedApply$1(Typers.scala:5057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedApply$1(Typers.scala:5068)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5936)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedBlock(Typers.scala:2557)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedOutsidePatternMode$1(Typers.scala:5911)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5946)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg(Typers.scala:3421)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedArg0$1(Typers.scala:3529)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$7(Typers.scala:3548)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$doTypedApply$6(Typers.scala:3527)
+	at scala.tools.nsc.typechecker.Contexts$Context.savingUndeterminedTypeParams(Contexts.scala:537)
+	at scala.tools.nsc.typechecker.Typers$Typer.handleOverloaded$1(Typers.scala:3524)
+	at scala.tools.nsc.typechecker.Typers$Typer.doTypedApply(Typers.scala:3576)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typed1$28(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.silent(Typers.scala:694)
+	at scala.tools.nsc.typechecker.Typers$Typer.tryTypedApply$1(Typers.scala:4973)
+	at scala.tools.nsc.typechecker.Typers$Typer.normalTypedApply$1(Typers.scala:5057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedApply$1(Typers.scala:5068)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5936)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedTemplate(Typers.scala:2057)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedClassDef(Typers.scala:1888)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5902)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStat$1(Typers.scala:6071)
+	at scala.tools.nsc.typechecker.Typers$Typer.$anonfun$typedStats$8(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedStats(Typers.scala:3403)
+	at scala.tools.nsc.typechecker.Typers$Typer.typedPackageDef$1(Typers.scala:5598)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed1(Typers.scala:5905)
+	at scala.tools.nsc.typechecker.Typers$Typer.typed(Typers.scala:5993)
+	at scala.tools.nsc.typechecker.Analyzer$typerFactory$TyperPhase.apply(Analyzer.scala:117)
+	at scala.tools.nsc.Global$GlobalPhase.applyPhase(Global.scala:454)
+	at scala.tools.nsc.interactive.Global$TyperRun.applyPhase(Global.scala:1346)
+	at scala.tools.nsc.interactive.Global$TyperRun.typeCheck(Global.scala:1339)
+	at scala.tools.nsc.interactive.Global.typeCheck(Global.scala:670)
+	at scala.tools.nsc.interactive.Global.typedTreeAt(Global.scala:819)
+	at scala.tools.nsc.interactive.Global.completionsAt(Global.scala:1231)
+	at scala.meta.internal.pc.CompletionProvider.safeCompletionsAt(CompletionProvider.scala:399)
+	at scala.meta.internal.pc.CompletionProvider.completions(CompletionProvider.scala:57)
+
+Dec 09, 2020 11:42:14 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 2490
+2020.12.09 23:42:19 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:42:21 INFO  time: compiled canape-test in 1.78s
+2020.12.09 23:42:38 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:42:40 INFO  time: compiled canape-test in 1.81s
+2020.12.09 23:43:09 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:43:10 INFO  time: compiled canape-test in 1.85s
+Dec 09, 2020 11:43:32 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 2662
+2020.12.09 23:43:40 INFO  compiling canape-test (1 scala source)
+2020.12.09 23:43:42 INFO  time: compiled canape-test in 1.96s
+2020.12.10 08:41:40 INFO  shutting down Metals
+2020.12.10 08:41:40 INFO  Shut down connection with build server.
+2020.12.10 08:41:40 INFO  Shut down connection with build server.
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+2020.12.10 08:41:40 INFO  Shut down connection with build server.
+No more data in the client stdin, exiting...
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+2020.12.10 10:06:33 INFO  Started: Metals version 0.9.7 in workspace '/home/sam/Dev/canape' for client vscode.
+2020.12.10 10:06:34 INFO  time: initialize in 1.23s
+2020.12.10 10:06:35 INFO  Attempting to connect to the build server...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher13095972403982767937/bsp.socket'...
+Waiting for the bsp connection to come up...
+2020.12.10 10:06:35 WARN  no build target for: /home/sam/Dev/canape/src/test/scala/WithDbSpecification.scala
+2020.12.10 10:06:34 INFO  skipping build import with status 'Installed'
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher13095972403982767937/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher13095972403982767937/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+2020.12.10 10:06:35 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+2020.12.10 10:06:35 INFO  Attempting to connect to the build server...
+2020.12.10 10:06:35 INFO  Attempting to connect to the build server...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher11631520477983459419/bsp.socket'...
+Waiting for the bsp connection to come up...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher10073305735656258156/bsp.socket'...
+Waiting for the bsp connection to come up...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher11631520477983459419/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher11631520477983459419/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+2020.12.10 10:06:35 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher10073305735656258156/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher10073305735656258156/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+2020.12.10 10:06:35 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+2020.12.10 10:06:35 INFO  time: connected to build server in 0.36s
+2020.12.10 10:06:35 INFO  Connected to Build server v1.4.5-6-4768184c
+2020.12.10 10:06:38 INFO  no build target: using presentation compiler with only scala-library
+Dec 10, 2020 10:06:38 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4
+Dec 10, 2020 10:06:38 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 2
+Dec 10, 2020 10:06:39 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 5
+2020.12.10 10:06:40 WARN  Could not find java sources in None. Java symbols will not be available.
+2020.12.10 10:06:40 INFO  time: indexed workspace in 4.46s
+Dec 10, 2020 10:07:16 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 75
+Dec 10, 2020 10:07:16 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 76
+2020.12.10 10:07:16 INFO  compiling canape-test (1 scala source)
+2020.12.10 10:07:16 INFO  time: compiled canape-test in 0.61s
+2020.12.10 10:07:16 INFO  compiling canape-test (9 scala sources)
+2020.12.10 10:07:20 INFO  time: compiled canape-test in 2.53s
+2020.12.10 10:07:44 INFO  compiling canape-test (1 scala source)
+2020.12.10 10:07:44 INFO  time: compiled canape-test in 0.65s
+2020.12.10 10:07:44 INFO  compiling canape-test (9 scala sources)
+2020.12.10 10:07:48 INFO  time: compiled canape-test in 3.2s
+2020.12.10 10:07:58 INFO  compiling canape-test (1 scala source)
+2020.12.10 10:08:00 INFO  time: compiled canape-test in 2s
+2020.12.10 10:26:46 INFO  running '/usr/lib/jvm/java-11-openjdk/bin/java -Djline.terminal=jline.UnsupportedTerminal -Dsbt.log.noformat=true -Dfile.encoding=UTF-8 -jar /tmp/metals1572740636623147374/sbt-launch.jar -Dbloop.export-jar-classifiers=sources bloopInstall'
+2020.12.10 10:26:47 INFO  [info] welcome to sbt 1.4.4 (N/A Java 11.0.8)
+2020.12.10 10:26:47 INFO  [info] loading settings for project global-plugins from idea.sbt ...
+2020.12.10 10:26:48 INFO  [info] loading global plugins from /home/sam/.sbt/1.0/plugins
+2020.12.10 10:26:49 INFO  [info] loading settings for project canape-build-build-build from metals.sbt ...
+2020.12.10 10:26:49 INFO  [info] loading project definition from /home/sam/Dev/canape/project/project/project
+2020.12.10 10:26:49 INFO  [info] loading settings for project canape-build-build from metals.sbt ...
+2020.12.10 10:26:49 INFO  [info] loading project definition from /home/sam/Dev/canape/project/project
+2020.12.10 10:26:49 INFO  [success] Generated .bloop/canape-build-build.json
+2020.12.10 10:26:49 INFO  [success] Total time: 0 s, completed Dec 10, 2020, 10:26:50 AM
+2020.12.10 10:26:49 INFO  [info] loading settings for project canape-build from metals.sbt,plugins.sbt ...
+2020.12.10 10:26:50 INFO  [info] loading project definition from /home/sam/Dev/canape/project
+2020.12.10 10:26:50 INFO  [success] Generated .bloop/canape-build.json
+2020.12.10 10:26:50 INFO  [success] Total time: 0 s, completed Dec 10, 2020, 10:26:51 AM
+2020.12.10 10:26:53 INFO  [info] loading settings for project canape from build.sbt ...
+2020.12.10 10:26:53 INFO  [info] set current project to canape (in build file:/home/sam/Dev/canape/)
+2020.12.10 10:26:53 INFO  [warn] There may be incompatibilities among your library dependencies; run 'evicted' to see detailed eviction warnings.
+2020.12.10 10:26:54 INFO  [warn] There may be incompatibilities among your library dependencies; run 'evicted' to see detailed eviction warnings.
+2020.12.10 10:26:54 INFO  [success] Generated .bloop/canape.json
+2020.12.10 10:26:54 INFO  [success] Generated .bloop/canape-test.json
+2020.12.10 10:26:54 INFO  [success] Total time: 1 s, completed Dec 10, 2020, 10:26:54 AM
+2020.12.10 10:26:54 INFO  sbt bloopInstall exit: 0
+2020.12.10 10:26:54 INFO  time: ran 'sbt bloopInstall' in 8.33s
+2020.12.10 10:26:54 INFO  Disconnecting from Bloop session...
+2020.12.10 10:26:54 INFO  Shut down connection with build server.
+2020.12.10 10:26:54 INFO  Shut down connection with build server.
+2020.12.10 10:26:54 INFO  Shut down connection with build server.
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the client stdin, exiting...
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+2020.12.10 10:26:54 INFO  Attempting to connect to the build server...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher7711668444361890744/bsp.socket'...
+Waiting for the bsp connection to come up...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Loading 2 projects from '/home/sam/Dev/canape/.bloop'...
+[0m[32m[D][0m Loading project from '/home/sam/Dev/canape/.bloop/canape.json'
+[0m[32m[D][0m Loading project from '/home/sam/Dev/canape/.bloop/canape-test.json'
+[0m[32m[D][0m Configured SemanticDB in projects 'canape', 'canape-test'
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher7711668444361890744/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher7711668444361890744/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+2020.12.10 10:26:54 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+2020.12.10 10:26:54 INFO  Attempting to connect to the build server...
+Starting the bsp launcher for bloop...
+2020.12.10 10:26:54 INFO  Attempting to connect to the build server...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher11560436758970068621/bsp.socket'...
+Waiting for the bsp connection to come up...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher17371819950719702948/bsp.socket'...
+Waiting for the bsp connection to come up...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher11560436758970068621/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher11560436758970068621/bsp.socket...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher17371819950719702948/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher17371819950719702948/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+2020.12.10 10:26:54 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+2020.12.10 10:26:54 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json
+2020.12.10 10:26:54 INFO  time: connected to build server in 0.13s
+2020.12.10 10:26:54 INFO  Connected to Build server v1.4.5-6-4768184c
+2020.12.10 10:26:56 WARN  Could not find java sources in None. Java symbols will not be available.
+2020.12.10 10:26:56 INFO  time: indexed workspace in 1.85s
+2020.12.10 10:29:23 INFO  compiling canape (7 scala sources)
+2020.12.10 10:29:34 INFO  time: compiled canape in 11s
+2020.12.10 10:29:34 INFO  compiling canape-test (9 scala sources)
+2020.12.10 10:29:41 INFO  time: compiled canape-test in 6.57s
+2020.12.10 10:34:43 INFO  shutting down Metals
+2020.12.10 10:34:43 INFO  Shut down connection with build server.
+2020.12.10 10:34:43 INFO  Shut down connection with build server.
+2020.12.10 10:34:43 INFO  Shut down connection with build server.
+No more data in the client stdin, exiting...
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+[0m2021.02.23 19:23:03 INFO  Started: Metals version 0.9.10 in workspace '/home/sam/Dev/canape' for client vscode 1.52.1.[0m
+[0m2021.02.23 19:23:04 INFO  time: initialize in 1.39s[0m
+[0m2021.02.23 19:23:05 WARN  resetting database: /home/sam/Dev/canape/.metals/metals.h2.db[0m
+[0m2021.02.23 19:23:05 INFO  Attempting to connect to the build server...[0m
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher14119100578683753645/bsp.socket'...
+Waiting for the bsp connection to come up...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Loading 2 projects from '/home/sam/Dev/canape/.bloop'...
+[0m[32m[D][0m Loading project from '/home/sam/Dev/canape/.bloop/canape-test.json'
+[0m[32m[D][0m Loading project from '/home/sam/Dev/canape/.bloop/canape.json'
+[0m[32m[D][0m Cache miss for scala instance org.scala-lang:scala-compiler:2.13.1.
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/jline/jline/2.14.6/jline-2.14.6.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/1.12/jansi-1.12.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.1/scala-compiler-2.13.1.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar
+[0m[32m[D][0m   => /home/sam/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.1/scala-reflect-2.13.1.jar
+[0m[32m[D][0m Configured SemanticDB in projects 'canape-test', 'canape'
+[0m[32m[D][0m Missing analysis file for project 'canape-test'
+[0m[32m[D][0m Missing analysis file for project 'canape'
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher14119100578683753645/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher14119100578683753645/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+[0m2021.02.23 19:23:05 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json[0m
+[0m2021.02.23 19:23:07 INFO  Attempting to connect to the build server...[0m
+Starting the bsp launcher for bloop...
+[0m2021.02.23 19:23:07 INFO  Attempting to connect to the build server...[0m
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher10660537406589955904/bsp.socket'...
+Waiting for the bsp connection to come up...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher9656649981349868958/bsp.socket'...
+Waiting for the bsp connection to come up...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher10660537406589955904/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher10660537406589955904/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+[0m2021.02.23 19:23:07 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json[0m
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher9656649981349868958/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher9656649981349868958/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+[0m2021.02.23 19:23:07 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json[0m
+[0m2021.02.23 19:23:07 INFO  time: connected to build server in 2.16s[0m
+[0m2021.02.23 19:23:07 INFO  Connected to Build server v1.4.6-21-464e4ec4[0m
+[0m2021.02.23 19:23:08 INFO  no build target: using presentation compiler with only scala-library[0m
+[0m2021.02.23 19:23:12 INFO  compiling canape (7 scala sources)[0m
+Feb 23, 2021 7:23:15 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 4
+Feb 23, 2021 7:23:15 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 2
+[0m2021.02.23 19:23:15 INFO  running '/home/sam/.jabba/jdk/adopt@1.11.0-9/bin/java -Djline.terminal=jline.UnsupportedTerminal -Dsbt.log.noformat=true -Dfile.encoding=UTF-8 -jar /tmp/metals12019685059880736805/sbt-launch.jar -Dbloop.export-jar-classifiers=sources bloopInstall'[0m
+[0m2021.02.23 19:23:15 INFO  skipping build import with status 'Started'[0m
+[0m2021.02.23 19:23:15 WARN  Unable to produce semanticdb for /home/sam/Dev/canape/project/project/metals.sbt[0m
+[0m2021.02.23 19:23:20 INFO  [info] welcome to sbt 1.4.7 (AdoptOpenJDK Java 11.0.9)[0m
+[0m2021.02.23 19:23:22 INFO  [info] loading settings for project global-plugins from idea.sbt ...[0m
+[0m2021.02.23 19:23:22 INFO  time: indexed workspace in 14s[0m
+[0m2021.02.23 19:23:22 INFO  Deduplicating compilation of canape from bsp client 'Metals 0.9.10' (since 17.121s)[0m
+[0m2021.02.23 19:23:22 INFO  compiling canape (7 scala sources)[0m
+[0m2021.02.23 19:23:24 INFO  [info] loading global plugins from /home/sam/.sbt/1.0/plugins[0m
+[0m2021.02.23 19:23:31 INFO  [info] loading settings for project canape-build-build-build from metals.sbt ...[0m
+[0m2021.02.23 19:23:31 INFO  [info] loading project definition from /home/sam/Dev/canape/project/project/project[0m
+[0m2021.02.23 19:23:35 INFO  [info] loading settings for project canape-build-build from metals.sbt ...[0m
+[0m2021.02.23 19:23:35 INFO  [info] loading project definition from /home/sam/Dev/canape/project/project[0m
+[0m2021.02.23 19:23:39 INFO  [success] Generated .bloop/canape-build-build.json[0m
+[0m2021.02.23 19:23:39 INFO  [success] Total time: 3 s, completed 23 Feb 2021, 19:23:39[0m
+[0m2021.02.23 19:23:41 INFO  [info] loading settings for project canape-build from metals.sbt,plugins.sbt ...[0m
+[0m2021.02.23 19:23:41 INFO  [info] loading project definition from /home/sam/Dev/canape/project[0m
+[0m2021.02.23 19:23:42 INFO  Deduplicating compilation of canape-test from bsp client 'Metals 0.9.10' (since 36.799s)[0m
+[0m2021.02.23 19:23:42 INFO  compiling canape-test (9 scala sources)[0m
+[0m2021.02.23 19:23:42 INFO  compiling canape-test (9 scala sources)[0m
+[0m2021.02.23 19:23:42 INFO  time: compiled canape in 20s[0m
+[0m2021.02.23 19:23:44 INFO  [success] Generated .bloop/canape-build.json[0m
+[0m2021.02.23 19:23:44 INFO  [success] Total time: 3 s, completed 23 Feb 2021, 19:23:44[0m
+[0m2021.02.23 19:23:46 INFO  [info] loading settings for project canape from build.sbt ...[0m
+[0m2021.02.23 19:23:46 INFO  [info] set current project to canape (in build file:/home/sam/Dev/canape/)[0m
+[0m2021.02.23 19:23:50 INFO  [success] Generated .bloop/canape-test.json[0m
+[0m2021.02.23 19:23:50 INFO  [success] Generated .bloop/canape.json[0m
+[0m2021.02.23 19:23:50 INFO  [success] Total time: 3 s, completed 23 Feb 2021, 19:23:50[0m
+[0m2021.02.23 19:23:50 INFO  sbt bloopInstall exit: 0[0m
+[0m2021.02.23 19:23:50 INFO  time: ran 'sbt bloopInstall' in 35s[0m
+[0m2021.02.23 19:23:50 INFO  Disconnecting from Bloop session...[0m
+[0m2021.02.23 19:23:50 INFO  Shut down connection with build server.[0m
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the client stdin, exiting...
+[0m2021.02.23 19:23:50 INFO  Shut down connection with build server.[0m
+[0m2021.02.23 19:23:50 INFO  Shut down connection with build server.[0m
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the client stdin, exiting...
+[0m2021.02.23 19:23:50 INFO  Attempting to connect to the build server...[0m
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher12434481223894181245/bsp.socket'...
+[0m2021.02.23 19:23:50 WARN  no build target for: /home/sam/Dev/canape/project/project/metals.sbt[0m
+Waiting for the bsp connection to come up...
+[0m2021.02.23 19:23:50 ERROR Unexpected error initializing server
+java.util.concurrent.ExecutionException: Boxed InterruptedException
+	at scala.concurrent.impl.Promise$.resolver(Promise.scala:86)
+	at scala.concurrent.impl.Promise$.scala$concurrent$impl$Promise$$resolveTry(Promise.scala:79)
+	at scala.concurrent.impl.Promise$DefaultPromise.tryComplete(Promise.scala:284)
+	at scala.concurrent.Promise.complete(Promise.scala:53)
+	at scala.concurrent.Promise.complete$(Promise.scala:52)
+	at scala.concurrent.impl.Promise$DefaultPromise.complete(Promise.scala:187)
+	at scala.concurrent.java8.FuturesConvertersImpl$P.accept(FutureConvertersImpl.scala:100)
+	at scala.concurrent.java8.FuturesConvertersImpl$P.accept(FutureConvertersImpl.scala:97)
+	at java.util.concurrent.CompletableFuture.uniWhenComplete(CompletableFuture.java:859)
+	at java.util.concurrent.CompletableFuture$UniWhenComplete.tryFire(CompletableFuture.java:837)
+	at java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:506)
+	at java.util.concurrent.CompletableFuture.completeExceptionally(CompletableFuture.java:2088)
+	at scala.meta.internal.metals.BuildServerConnection.$anonfun$register$3(BuildServerConnection.scala:217)
+	at scala.runtime.java8.JFunction0$mcZ$sp.apply(JFunction0$mcZ$sp.java:23)
+	at scala.util.Try$.apply(Try.scala:213)
+	at scala.meta.internal.metals.BuildServerConnection.$anonfun$register$2(BuildServerConnection.scala:217)
+	at scala.meta.internal.metals.Cancelable$$anon$1.cancel(Cancelable.scala:18)
+	at scala.meta.internal.metals.Cancelable$.$anonfun$cancelAll$1(Cancelable.scala:29)
+	at scala.collection.immutable.List.foreach(List.scala:431)
+	at scala.meta.internal.metals.Cancelable$.cancelAll(Cancelable.scala:28)
+	at scala.meta.internal.metals.MutableCancelable.cancel(MutableCancelable.scala:25)
+	at scala.meta.internal.metals.BuildServerConnection.cancel(BuildServerConnection.scala:161)
+	at scala.meta.internal.metals.BuildServerConnection.$anonfun$shutdown$1(BuildServerConnection.scala:85)
+	at scala.meta.internal.metals.BuildServerConnection.$anonfun$shutdown$1$adapted(BuildServerConnection.scala:78)
+	at scala.util.Success.$anonfun$map$1(Try.scala:255)
+	at scala.util.Success.map(Try.scala:213)
+	at scala.concurrent.Future.$anonfun$map$1(Future.scala:292)
+	at scala.concurrent.impl.Promise.liftedTree1$1(Promise.scala:33)
+	at scala.concurrent.impl.Promise.$anonfun$transform$1(Promise.scala:33)
+	at scala.concurrent.impl.CallbackRunnable.run(Promise.scala:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.lang.Thread.run(Thread.java:834)
+Caused by: java.lang.InterruptedException
+	at scala.meta.internal.metals.BuildServerConnection.$anonfun$register$3(BuildServerConnection.scala:217)
+	at scala.runtime.java8.JFunction0$mcZ$sp.apply(JFunction0$mcZ$sp.java:23)
+	at scala.util.Try$.apply(Try.scala:213)
+	at scala.meta.internal.metals.BuildServerConnection.$anonfun$register$2(BuildServerConnection.scala:217)
+	at scala.meta.internal.metals.Cancelable$$anon$1.cancel(Cancelable.scala:18)
+	at scala.meta.internal.metals.Cancelable$.$anonfun$cancelAll$1(Cancelable.scala:29)
+	at scala.collection.immutable.List.foreach(List.scala:431)
+	at scala.meta.internal.metals.Cancelable$.cancelAll(Cancelable.scala:28)
+	at scala.meta.internal.metals.MutableCancelable.cancel(MutableCancelable.scala:25)
+	at scala.meta.internal.metals.BuildServerConnection.cancel(BuildServerConnection.scala:161)
+	at scala.meta.internal.metals.BuildServerConnection.$anonfun$shutdown$1(BuildServerConnection.scala:85)
+	at scala.meta.internal.metals.BuildServerConnection.$anonfun$shutdown$1$adapted(BuildServerConnection.scala:78)
+	at scala.util.Success.$anonfun$map$1(Try.scala:255)
+	at scala.util.Success.map(Try.scala:213)
+	at scala.concurrent.Future.$anonfun$map$1(Future.scala:292)
+	at scala.concurrent.impl.Promise.liftedTree1$1(Promise.scala:33)
+	at scala.concurrent.impl.Promise.$anonfun$transform$1(Promise.scala:33)
+	at scala.concurrent.impl.CallbackRunnable.run(Promise.scala:64)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.lang.Thread.run(Thread.java:834)
+[0m
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Loading 2 projects from '/home/sam/Dev/canape/.bloop'...
+[0m[32m[D][0m Loading project from '/home/sam/Dev/canape/.bloop/canape.json'
+[0m[32m[D][0m Loading project from '/home/sam/Dev/canape/.bloop/canape-test.json'
+[0m[32m[D][0m Configured SemanticDB in projects 'canape', 'canape-test'
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher12434481223894181245/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher12434481223894181245/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+[0m2021.02.23 19:23:50 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json[0m
+[0m2021.02.23 19:23:50 INFO  Attempting to connect to the build server...[0m
+[0m2021.02.23 19:23:50 INFO  Attempting to connect to the build server...[0m
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher3557543181987571243/bsp.socket'...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher6204459453552298562/bsp.socket'...
+Waiting for the bsp connection to come up...
+Waiting for the bsp connection to come up...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher3557543181987571243/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher3557543181987571243/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+[0m2021.02.23 19:23:50 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json[0m
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher6204459453552298562/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher6204459453552298562/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+[0m2021.02.23 19:23:50 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json[0m
+[0m2021.02.23 19:23:50 INFO  time: connected to build server in 0.16s[0m
+[0m2021.02.23 19:23:50 INFO  Connected to Build server v1.4.6-21-464e4ec4[0m
+[0m2021.02.23 19:23:54 INFO  running '/home/sam/.jabba/jdk/adopt@1.11.0-9/bin/java -Djline.terminal=jline.UnsupportedTerminal -Dsbt.log.noformat=true -Dfile.encoding=UTF-8 -jar /tmp/metals4255581159431916076/sbt-launch.jar -Dbloop.export-jar-classifiers=sources bloopInstall'[0m
+[0m2021.02.23 19:23:56 INFO  [info] welcome to sbt 1.4.7 (AdoptOpenJDK Java 11.0.9)[0m
+[0m2021.02.23 19:23:57 INFO  time: indexed workspace in 6.66s[0m
+[0m2021.02.23 19:23:57 INFO  compiling canape (7 scala sources)[0m
+[0m2021.02.23 19:23:58 INFO  [info] loading settings for project global-plugins from idea.sbt ...[0m
+[0m2021.02.23 19:24:01 INFO  [info] loading global plugins from /home/sam/.sbt/1.0/plugins[0m
+[0m2021.02.23 19:24:03 INFO  [info] loading settings for project canape-build-build-build from metals.sbt ...[0m
+[0m2021.02.23 19:24:03 INFO  [info] loading project definition from /home/sam/Dev/canape/project/project/project[0m
+[0m2021.02.23 19:24:03 INFO  [info] loading settings for project canape-build-build from metals.sbt ...[0m
+[0m2021.02.23 19:24:04 INFO  [info] loading project definition from /home/sam/Dev/canape/project/project[0m
+[0m2021.02.23 19:24:08 INFO  compiling canape-test (9 scala sources)[0m
+[0m2021.02.23 19:24:08 INFO  time: compiled canape in 10s[0m
+[0m2021.02.23 19:24:08 INFO  [success] Generated .bloop/canape-build-build.json[0m
+[0m2021.02.23 19:24:08 INFO  [success] Total time: 4 s, completed 23 Feb 2021, 19:24:09[0m
+[0m2021.02.23 19:24:08 INFO  [info] loading settings for project canape-build from metals.sbt,plugins.sbt ...[0m
+[0m2021.02.23 19:24:08 INFO  [info] loading project definition from /home/sam/Dev/canape/project[0m
+[0m2021.02.23 19:24:11 INFO  [success] Generated .bloop/canape-build.json[0m
+[0m2021.02.23 19:24:11 INFO  [success] Total time: 1 s, completed 23 Feb 2021, 19:24:11[0m
+[0m2021.02.23 19:24:16 INFO  [info] loading settings for project canape from build.sbt ...[0m
+[0m2021.02.23 19:24:16 INFO  [info] set current project to canape (in build file:/home/sam/Dev/canape/)[0m
+[0m2021.02.23 19:24:17 INFO  [success] Generated .bloop/canape-test.json[0m
+[0m2021.02.23 19:24:17 INFO  [success] Generated .bloop/canape.json[0m
+[0m2021.02.23 19:24:17 INFO  [success] Total time: 0 s, completed 23 Feb 2021, 19:24:17[0m
+[0m2021.02.23 19:24:17 INFO  sbt bloopInstall exit: 0[0m
+[0m2021.02.23 19:24:18 INFO  time: ran 'sbt bloopInstall' in 23s[0m
+[0m2021.02.23 19:24:18 INFO  Disconnecting from Bloop session...[0m
+[0m2021.02.23 19:24:18 INFO  Shut down connection with build server.[0m
+No more data in the client stdin, exiting...
+[0m2021.02.23 19:24:18 INFO  Shut down connection with build server.[0m
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+[0m2021.02.23 19:24:18 INFO  Shut down connection with build server.[0m
+[0m2021.02.23 19:24:18 INFO  Attempting to connect to the build server...[0m
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+Starting the bsp launcher for bloop...
+No more data in the client stdin, exiting...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher5453714184033297440/bsp.socket'...
+Waiting for the bsp connection to come up...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher5453714184033297440/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher5453714184033297440/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+[0m2021.02.23 19:24:18 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json[0m
+[0m2021.02.23 19:24:18 INFO  Attempting to connect to the build server...[0m
+Starting the bsp launcher for bloop...
+[0m2021.02.23 19:24:18 INFO  Attempting to connect to the build server...[0m
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher13251919368061777568/bsp.socket'...
+Waiting for the bsp connection to come up...
+Starting the bsp launcher for bloop...
+Opening a bsp server connection with 'bsp --protocol local --socket /tmp/bsp-launcher7565487547771682452/bsp.socket'...
+Waiting for the bsp connection to come up...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher13251919368061777568/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher13251919368061777568/bsp.socket...
+[0m[32m[D][0m Loading workspace settings from bloop.settings.json
+[0m[32m[D][0m Waiting for a connection at local:///tmp/bsp-launcher7565487547771682452/bsp.socket...
+The server is listening for incoming connections at local:///tmp/bsp-launcher7565487547771682452/bsp.socket...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps stdin and redirects it to the bsp server...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+Starting thread that pumps server stdout and redirects it to the client stdout...
+[0m2021.02.23 19:24:18 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json[0m
+[0m2021.02.23 19:24:18 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /home/sam/.cache/metals/bsp.trace.json[0m
+[0m2021.02.23 19:24:18 INFO  time: connected to build server in 0.13s[0m
+[0m2021.02.23 19:24:18 INFO  Connected to Build server v1.4.6-21-464e4ec4[0m
+[0m2021.02.23 19:24:20 INFO  time: indexed workspace in 1.83s[0m
+[0m2021.02.23 19:24:20 INFO  compiling canape-test (9 scala sources)[0m
+[0m2021.02.23 19:24:28 INFO  time: compiled canape-test in 8.41s[0m
+[0m2021.02.23 19:24:47 INFO  skipping build import with status 'Installed'[0m
+[0m2021.02.23 19:33:22 INFO  shutting down Metals[0m
+[0m2021.02.23 19:33:22 INFO  Shut down connection with build server.[0m
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+[0m2021.02.23 19:33:22 INFO  Shut down connection with build server.[0m
+[0m2021.02.23 19:33:22 INFO  Shut down connection with build server.[0m
+No more data in the server stdin, exiting...
+No more data in the server stdin, exiting...
+No more data in the client stdin, exiting...
+No more data in the client stdin, exiting...
+No more data in the server stdin, exiting...
