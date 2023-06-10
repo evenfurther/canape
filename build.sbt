@@ -7,7 +7,7 @@ lazy val canape = project
       name := "canape",
       organization := "net.rfc1149",
       version := "0.0.9-SNAPSHOT",
-      scalaVersion := "2.13.10",
+      scalaVersion := "2.13.11",
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       libraryDependencies ++= Seq(
         "com.typesafe.akka" %% "akka-actor" % "2.6.20",
