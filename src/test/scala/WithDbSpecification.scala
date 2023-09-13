@@ -7,7 +7,7 @@ import org.specs2.mutable._
 import play.api.libs.json.Json
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 // This requires a local standard CouchDB instance. The "canape-test-*" databases
 // will be created, destroyed and worked into.
@@ -16,8 +16,8 @@ abstract class WithDbSpecification(dbSuffix: String) extends Specification {
 
   sequential // CouchDB tends to block on some operations
 
-  implicit val system = ActorSystem("canape-test")
-  implicit val dispatcher = system.dispatcher
+  implicit val system: ActorSystem = ActorSystem("canape-test")
+  implicit val dispatcher: ExecutionContext = system.dispatcher
   implicit val timeout: Duration = (10, SECONDS)
 
   val couch = new Couch(host = sys.env.getOrElse("CANAPE_DB_HOST", "localhost"), port = sys.env.get("CANAPE_DB_PORT").map(_.toInt).getOrElse(5984))

@@ -2,11 +2,12 @@ import akka.actor.ActorSystem
 import net.rfc1149.canape._
 import org.specs2.mutable._
 import play.api.libs.json.{JsValue, Json}
+import scala.concurrent.ExecutionContext
 
 class URISpec extends Specification {
 
-  implicit val system = ActorSystem()
-  implicit val dispatcher = system.dispatcher
+  implicit val system: ActorSystem = ActorSystem()
+  implicit val dispatcher: ExecutionContext = system.dispatcher
 
   val cunauth = new Couch("db.example.com", 5984)
   val cauth = new Couch("db.example.com", 5984, Some(("admin", "xyzzy")))

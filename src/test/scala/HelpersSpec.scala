@@ -7,7 +7,7 @@ class HelpersSpec extends WithDbSpecification("helpers") {
 
   case class Extra(extra: Array[String])
   object Extra {
-    implicit val extraFormat = Json.format[Extra]
+    implicit val extraFormat: OFormat[Extra] = Json.format[Extra]
   }
 
   def makeConflicts(db: Database): Unit =
