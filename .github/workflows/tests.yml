@@ -21,7 +21,7 @@ jobs:
           key: ivy2-files
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: olafurpg/setup-scala@v11
+      - uses: olafurpg/setup-scala@v14
       - name: Setup CouchDB
         uses: "cobot/couchdb-action@master"
         with:
