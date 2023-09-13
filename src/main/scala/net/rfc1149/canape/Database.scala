@@ -12,7 +12,7 @@ import net.ceedubs.ficus.Ficus._
 import play.api.libs.json._
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 case class Database(couch: Couch, databaseName: String) {
 
@@ -20,7 +20,7 @@ case class Database(couch: Couch, databaseName: String) {
   import Database._
   import couch.system
 
-  private[canape] implicit val dispatcher = couch.dispatcher
+  private[canape] implicit val dispatcher: ExecutionContext = couch.dispatcher
 
   private[this] val localPath: Path = Path(s"/$databaseName")
   val uri: Uri = couch.uri.withPath(localPath)
