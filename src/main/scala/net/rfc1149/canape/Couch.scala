@@ -44,7 +44,7 @@ class Couch(
 
   import Couch._
 
-  private[canape] implicit val dispatcher = system.dispatcher
+  private[canape] implicit val dispatcher: ExecutionContext = system.dispatcher
 
   val canapeConfig: Config = config.getConfig("canape")
   private[this] val userAgent = `User-Agent`(canapeConfig.as[String]("user-agent"))
