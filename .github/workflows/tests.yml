@@ -4,6 +4,9 @@ on:
     branches:
       - staging
       - trying
+      - renovate/**
+  pull_request:
+  merge_group:
 jobs:
   test:
     name: Test suite
