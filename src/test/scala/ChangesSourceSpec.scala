@@ -80,7 +80,7 @@ class ChangesSourceSpec extends WithDbSpecification("db") with Mockito {
 
     "see the creation of new documents as soon as they are created" in new freshDb {
       val changes: Source[JsObject, Future[Done]] = db.changesSource(sinceSeq = FromStart)
-      val downstream = changes.map(j => (j \ "id").as[String]).take(3).runWith(TestSink.probe)
+      val downstream = changes.map(j => (j \ "id").as[String]).take(3).runWith(TestSink())
       waitEventually(db.insert(JsObject(Nil), "docid1"))
       downstream.requestNext("docid1")
       waitEventually(db.insert(JsObject(Nil), "docid2"))
