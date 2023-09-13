@@ -1,3 +1,13 @@
 {
-    "extends": ["config:recommended", ":automergeMinor", ":automergeBranch"]
+  "extends": ["config:recommended", ":automergeMinor", ":automergeBranch"],
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["^akka-"],
+      "groupName": "akka"
+    },
+    {
+      "matchPackagePatterns": ["^telegram-"],
+      "groupName": "bot4s-telegram"
+    }
+  ]
 }
