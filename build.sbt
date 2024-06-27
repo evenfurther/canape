@@ -10,9 +10,9 @@ lazy val canape = project
       scalaVersion := "2.13.14",
       scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
       libraryDependencies ++= Seq(
-        "com.typesafe.akka" %% "akka-actor" % "2.8.5",
-        "com.typesafe.akka" %% "akka-stream" % "2.8.5",
-        "com.typesafe.akka" %% "akka-stream-testkit" % "2.8.5" % "test",
+        "com.typesafe.akka" %% "akka-actor" % "2.8.6",
+        "com.typesafe.akka" %% "akka-stream" % "2.8.6",
+        "com.typesafe.akka" %% "akka-stream-testkit" % "2.8.6" % "test",
         "com.typesafe.akka" %% "akka-http" % "10.5.3",
         "de.heikoseeberger" %% "akka-http-play-json" % "1.39.2",
         "com.iheart" %% "ficus" % "1.5.2",
